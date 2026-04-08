@@ -125,12 +125,18 @@ const coverSubTitle = normalizedLang === 'en'
 
   .artist-bio-content {
     overflow: hidden;
-    transition: max-height 220ms ease;
-    max-height: none;
+    transition: all 220ms ease;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
   }
 
   .artist-bio-content.is-collapsed {
-    max-height: 7.25rem;
+    -webkit-line-clamp: 3;
+  }
+
+  .artist-bio-content.is-expanded {
+    display: block;
+    -webkit-line-clamp: unset;
   }
 
   .artist-bio-toggle {
@@ -160,12 +166,10 @@ const coverSubTitle = normalizedLang === 'en'
   const bioToggle = document.getElementById('artist-bio-toggle');
 
   if (bioContent && bioToggle) {
-    const isLong = bioContent.textContent !== null && bioContent.textContent.trim().length > 140;
-    const collapsedHeight = 116;
+    const isLong = bioContent.textContent !== null && bioContent.textContent.trim().length > 120;
 
-    if (isLong && bioContent.scrollHeight > collapsedHeight) {
+    if (isLong) {
       bioContent.classList.add('is-collapsed');
-      bioContent.style.maxHeight = `${collapsedHeight}px`;
       bioToggle.classList.remove('hidden');
 
       bioToggle.addEventListener('click', () => {
@@ -177,10 +181,10 @@ const coverSubTitle = normalizedLang === 'en'
 
         if (expanded) {
           bioContent.classList.add('is-collapsed');
-          bioContent.style.maxHeight = `${collapsedHeight}px`;
+          bioContent.classList.remove('is-expanded');
         } else {
           bioContent.classList.remove('is-collapsed');
-          bioContent.style.maxHeight = `${bioContent.scrollHeight}px`;
+          bioContent.classList.add('is-expanded');
         }
       });
     }
