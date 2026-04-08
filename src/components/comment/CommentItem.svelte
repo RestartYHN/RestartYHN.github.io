@@ -50,6 +50,9 @@
   
   // 防止重复提交 - 每个回复表单独立的状态
   let replySubmitting = false;
+  let likePending = false;
+  let likeCount = Number(c.likeCount ?? c.like_count ?? 0);
+  let likedByMe = Boolean(c.likedByMe ?? c.liked_by_me ?? false);
   
   const dispatch = createEventDispatcher();
   
@@ -69,6 +72,41 @@
   }
 
   const apiUrl = siteConfig.comments.backendUrl;
+
+  $: if (c) {
+    likeCount = Number(c.likeCount ?? c.like_count ?? 0);
+    likedByMe = Boolean(c.likedByMe ?? c.liked_by_me ?? false);
+  }
+
+  async function toggleLike() {
+    if (likePending) return;
+
+    const nextLiked = !likedByMe;
+    const endpoint = nextLiked ? 'like' : 'unlike';
+    const fallbackCount = likeCount;
+    const fallbackLiked = likedByMe;
+
+    likePending = true;
+    likedByMe = nextLiked;
+    likeCount = Math.max(0, likeCount + (nextLiked ? 1 : -1));
+
+    try {
+      const res = await fetch(`${apiUrl}/api/comments/${c.id}/${endpoint}`, {
+        method: 'POST',
+      });
+      if (!res.ok) throw new Error('request failed');
+      const data = await res.json();
+
+      likedByMe = Boolean(data.liked);
+      likeCount = Number(data.like_count ?? 0);
+    } catch (error) {
+      likedByMe = fallbackLiked;
+      likeCount = fallbackCount;
+      alert(t('comments.likeFailed') || '操作失败，请稍后重试');
+    } finally {
+      likePending = false;
+    }
+  }
 
   function isValidHtml(str: string): boolean {
     if (!str.includes('<') || !str.includes('>')) return false;
@@ -172,6 +210,15 @@
         replyUrl = url;
       }} class="hover:text-[var(--link-color)]">
         {t('comments.reply')}
+      </button>
+      <button
+        on:click={toggleLike}
+        disabled={likePending}
+        class="hover:text-[var(--link-color)] disabled:opacity-50"
+        title={likedByMe ? t('comments.unlike') : t('comments.like')}
+      >
+        <span class={likedByMe ? 'text-[var(--link-color)]' : ''}>{likedByMe ? '♥' : '♡'}</span>
+        <span class="ml-1">{likeCount}</span>
       </button>
     </div>
 

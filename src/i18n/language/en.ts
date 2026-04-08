@@ -108,7 +108,10 @@ const translation: Translation = {
         characters: "characters",
         words: "words",
         contentTooLong: "Comment content exceeds limit: no more than 2000 characters or 1000 words",
-        replyTo: "reply to"
+        replyTo: "reply to",
+        like: "Like",
+        unlike: "Unlike",
+        likeFailed: "Action failed, please try again later"
     },
     langNote: {
         note: "Note: ",

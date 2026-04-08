@@ -108,7 +108,10 @@ const translation: Translation = {
         characters: "字符",
         words: "单词",
         contentTooLong: "评论内容超出限制：不超过2000字或1000单词",
-        replyTo: "回复"
+        replyTo: "回复",
+        like: "点赞",
+        unlike: "取消点赞",
+        likeFailed: "操作失败，请稍后重试"
     },
     langNote: {
         note: "注意：",

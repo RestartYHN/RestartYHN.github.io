@@ -93,6 +93,9 @@ export interface Translation {
         words: string;
         contentTooLong: string;
         replyTo: string;
+        like: string;
+        unlike: string;
+        likeFailed: string;
     },
     langNote: {
         note: string;
