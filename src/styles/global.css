@@ -15,6 +15,13 @@
     @apply bg-[--bg-color] text-[--text-color];
     font-family: "Noto Serif SC", "Times New Roman", "STZhongsong", serif;
     overflow-y: scroll;
+    background-image:
+      linear-gradient(rgba(251, 251, 251, 0.7), rgba(251, 251, 251, 0.7)),
+      url('/cg/xmm.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
   
 
