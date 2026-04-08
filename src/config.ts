@@ -6,6 +6,21 @@ import type {
 
 import type { FriendLink } from "./types/friend"
 
+export interface ExternalLinkItem {
+    title: {
+        "zh-cn": string;
+        en: string;
+    };
+    url: string;
+    description: {
+        "zh-cn": string;
+        en: string;
+    };
+    tag: string;
+    enabled?: boolean;
+    order?: number;
+}
+
 const commentsBackendUrl =
     (import.meta as any).env?.PUBLIC_COMMENTS_API || "https://momo-backend-worker.478929164.workers.dev";
 
@@ -57,4 +72,49 @@ export const friendLinkConfig: FriendLink[] = [
         description: 'Build fast websites, faster.'
     }
     // Add more friend links here
+]
+
+export const externalLinkConfig: ExternalLinkItem[] = [
+    {
+        title: {
+            "zh-cn": "GitHub",
+            en: "GitHub"
+        },
+        url: "https://github.com/RestartYHN",
+        description: {
+            "zh-cn": "我的开源仓库与项目记录",
+            en: "My open-source projects and notes"
+        },
+        tag: "Code",
+        enabled: true,
+        order: 1
+    },
+    {
+        title: {
+            "zh-cn": "Astro",
+            en: "Astro"
+        },
+        url: "https://astro.build",
+        description: {
+            "zh-cn": "本博客使用的框架",
+            en: "The framework used by this blog"
+        },
+        tag: "Tech",
+        enabled: true,
+        order: 2
+    },
+    {
+        title: {
+            "zh-cn": "Cloudflare Workers",
+            en: "Cloudflare Workers"
+        },
+        url: "https://workers.cloudflare.com/",
+        description: {
+            "zh-cn": "用于后端 API 的无服务器平台",
+            en: "Serverless platform for backend APIs"
+        },
+        tag: "Infra",
+        enabled: true,
+        order: 3
+    }
 ]
