@@ -1,6 +1,7 @@
 ---
 import "@styles/global.css"
 import { Icon } from "astro-icon/components"
+import { Image } from "astro:assets"
 import { profileConfig, siteConfig } from "@/config"
 import headerAvatar from "@assets/Motues.jpg"
 import ThemeIcon from "./control/ThemeIcon.astro"
@@ -37,9 +38,8 @@ const indexPage = getRelativeLocaleUrl(currentLang, "/");
 const archivesPage = getRelativeLocaleUrl(currentLang, "/archives/");
 const friendsPage = getRelativeLocaleUrl(currentLang, "/friends/");
 const aboutPage = getRelativeLocaleUrl(currentLang, "/about/");
-const headerAvatarSrc = profileConfig.avatar?.startsWith("/") || profileConfig.avatar?.startsWith("http")
-  ? profileConfig.avatar
-  : headerAvatar;
+const isExternalAvatar = profileConfig.avatar?.startsWith("/") || profileConfig.avatar?.startsWith("http");
+const headerAvatarSrc = isExternalAvatar ? profileConfig.avatar : headerAvatar;
 
 let introPage : string;
 
@@ -57,7 +57,11 @@ if (profileConfig.indexPage) {
     <div class="pr-4 py-2 z-30 header-logo">
         <a href={ indexPage } >
         <span class="flex items-center gap-3 hover:opacity-60 transition-opacity">
-          <img src={headerAvatarSrc} alt={profileConfig.name} class="w-9 h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
+          {isExternalAvatar ? (
+            <img src={headerAvatarSrc} alt={profileConfig.name} width="36" height="36" loading="eager" decoding="async" fetchpriority="high" class="w-9 h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
+          ) : (
+            <Image src={headerAvatar} alt={profileConfig.name} width={36} height={36} quality={70} format="webp" loading="eager" class="w-9 h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
+          )}
           <span class="text-3xl font-bold">{ siteConfig.title }</span>
         </span>
         </a>
