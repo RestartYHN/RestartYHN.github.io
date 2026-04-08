@@ -7,6 +7,7 @@ type LocaleCode = "zh-cn" | "en"
 export interface GalleryAuthor {
   slug: string
   name: Record<LocaleCode, string>
+  description: Record<LocaleCode, string>
   avatar: string
   order: number
   enabled: boolean
@@ -29,6 +30,7 @@ export interface GalleryWork {
 interface GalleryMetaAuthor {
   slug: string
   name?: Partial<Record<LocaleCode, string>>
+  description?: Partial<Record<LocaleCode, string>>
   avatar?: string
   order?: number
   enabled?: boolean
@@ -62,6 +64,17 @@ function asLocaleName(name: Partial<Record<LocaleCode, string>> | undefined, fal
   return {
     "zh-cn": name?.["zh-cn"] || fallback,
     en: name?.en || fallback,
+  }
+}
+
+function asLocaleText(
+  text: Partial<Record<LocaleCode, string>> | undefined,
+  fallbackZh: string,
+  fallbackEn: string,
+): Record<LocaleCode, string> {
+  return {
+    "zh-cn": text?.["zh-cn"] || fallbackZh,
+    en: text?.en || fallbackEn,
   }
 }
 
@@ -131,6 +144,7 @@ export function loadGalleryData(): { authors: GalleryAuthor[]; works: GalleryWor
     return {
       slug,
       name: asLocaleName(metaAuthor?.name, slug),
+      description: asLocaleText(metaAuthor?.description, "这里是画师简介。", "Artist bio."),
       avatar: metaAuthor?.avatar || fallbackAvatar,
       order: metaAuthor?.order || index + 1,
       enabled: metaAuthor?.enabled !== false,

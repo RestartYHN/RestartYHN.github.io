@@ -23,8 +23,8 @@ const { authors, works } = loadGalleryData()
 const pageTitle = `${t("header.gallery")} - ${siteConfig.title}`
 const coverTitle = normalizedLang === 'en' ? 'Gallery' : '画廊'
 const coverSubTitle = normalizedLang === 'en'
-  ? `Choose an artist from ${authors.length} creators (${works.length} works)`
-  : `请选择画师进入子页面浏览，共 ${authors.length} 位画师、${works.length} 幅作品`
+  ? 'Artists I love and their illustration works'
+  : '我喜欢的画师和ta们的插画作品'
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>

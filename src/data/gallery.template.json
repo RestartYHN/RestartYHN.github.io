@@ -6,6 +6,10 @@
         "zh-cn": "抹茶",
         "en": "Matcha"
       },
+      "description": {
+        "zh-cn": "这里是抹茶的画师简介，可以写风格、题材偏好或补充说明。",
+        "en": "This is Matcha's artist bio. You can describe style, themes, or notes here."
+      },
       "avatar": "/gallery/Matcha/work-001.webp",
       "order": 1,
       "enabled": true
@@ -15,6 +19,10 @@
       "name": {
         "zh-cn": "混合可可",
         "en": "Rumoon"
+      },
+      "description": {
+        "zh-cn": "这里是混合可可的画师简介，可以补充创作方向或常画内容。",
+        "en": "This is Rumoon's artist bio. You can add creative focus or common subjects here."
       },
       "avatar": "/gallery/Rumoon/work-001.webp",
       "order": 2,

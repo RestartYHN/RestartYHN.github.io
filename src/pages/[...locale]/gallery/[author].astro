@@ -58,6 +58,24 @@ const coverSubTitle = normalizedLang === 'en'
 
     <Cover title={authorInfo.name[normalizedLang]} subTitle={coverSubTitle} />
 
+    <div class="artist-bio-box mb-6">
+      <div class="artist-bio-mark" aria-hidden="true"></div>
+      <h2 class="text-lg font-semibold text-[var(--text-color)] mb-2">
+        {normalizedLang === 'en' ? 'Artist Bio' : '画师简介'}
+      </h2>
+      <p id="artist-bio-content" class="artist-bio-content text-sm leading-relaxed text-[var(--text-color-70)] whitespace-pre-line">
+        {authorInfo.description[normalizedLang]}
+      </p>
+      <button
+        id="artist-bio-toggle"
+        type="button"
+        class="artist-bio-toggle hidden mt-3 text-sm font-medium text-[var(--link-color)] hover:opacity-80"
+        aria-expanded="false"
+      >
+        {normalizedLang === 'en' ? 'Show more' : '展开'}
+      </button>
+    </div>
+
     <section class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mb-8">
       {authorWorks.map((item) => (
         <article class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70">
@@ -82,3 +100,89 @@ const coverSubTitle = normalizedLang === 'en'
 
   <FabMenu showBackBottom={true} />
 </MainPageLayout>
+
+<style>
+  .artist-bio-box {
+    position: relative;
+    border: 1px solid var(--button-border-color);
+    border-left: 4px solid var(--link-color);
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--bg-color) 88%, transparent);
+    padding: 1rem 1rem 1rem 1.1rem;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+  }
+
+  .artist-bio-mark {
+    position: absolute;
+    top: 0.9rem;
+    left: -0.2rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 999px;
+    background: var(--link-color);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--link-color) 14%, transparent);
+  }
+
+  .artist-bio-content {
+    overflow: hidden;
+    transition: max-height 220ms ease;
+    max-height: none;
+  }
+
+  .artist-bio-content.is-collapsed {
+    max-height: 7.25rem;
+  }
+
+  .artist-bio-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .artist-bio-toggle::after {
+    content: "";
+    display: inline-block;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-1px);
+    transition: transform 180ms ease;
+  }
+
+  .artist-bio-toggle[aria-expanded="true"]::after {
+    transform: rotate(-135deg) translateY(-1px);
+  }
+</style>
+
+<script>
+  const bioContent = document.getElementById('artist-bio-content');
+  const bioToggle = document.getElementById('artist-bio-toggle');
+
+  if (bioContent && bioToggle) {
+    const isLong = bioContent.textContent !== null && bioContent.textContent.trim().length > 140;
+    const collapsedHeight = 116;
+
+    if (isLong && bioContent.scrollHeight > collapsedHeight) {
+      bioContent.classList.add('is-collapsed');
+      bioContent.style.maxHeight = `${collapsedHeight}px`;
+      bioToggle.classList.remove('hidden');
+
+      bioToggle.addEventListener('click', () => {
+        const expanded = bioToggle.getAttribute('aria-expanded') === 'true';
+        bioToggle.setAttribute('aria-expanded', String(!expanded));
+        bioToggle.textContent = expanded
+          ? (document.documentElement.lang === 'en' ? 'Show more' : '展开')
+          : (document.documentElement.lang === 'en' ? 'Show less' : '收起');
+
+        if (expanded) {
+          bioContent.classList.add('is-collapsed');
+          bioContent.style.maxHeight = `${collapsedHeight}px`;
+        } else {
+          bioContent.classList.remove('is-collapsed');
+          bioContent.style.maxHeight = `${bioContent.scrollHeight}px`;
+        }
+      });
+    }
+  }
+</script>
