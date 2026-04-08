@@ -5,11 +5,15 @@ import PostPage from '@components/PostPage.astro';
 import Navi from '@components/control/Navi.astro';
 import FabMenu from '@components/control/FabMenu.astro';
 
+import zhCN from '@i18n/language/zh-cn';
+import en from '@i18n/language/en';
+
 import { getBlogEntrySort } from '@utils/content-utils'
 import { siteConfig } from '@/config';
 import { i18n } from "astro:config/client";
 import type { GetStaticPaths } from 'astro';
 import { getRelativeLocaleUrl } from '@utils/url-utils';
+import type { Translation } from '@i18n/key';
 
 import i18nit from '@i18n/translation'
 
@@ -19,15 +23,17 @@ const { locale = i18n!.defaultLocale } = Astro.params;
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
 const t = i18nit(currentLang);
+const localeContent: Translation = currentLang === "en" ? en : zhCN;
 
 export const getStaticPaths = (async ({ paginate }) => {
 
   // 如果启用了国际化，为每个语言环境生成分页路径
   const paths = [];
-  for (const locale of i18n.locales) {
+  const localeConfig = i18n!;
+  for (const locale of localeConfig.locales) {
     const localeCode = typeof locale === 'string' ? locale : locale.path;
-    const localeParam = localeCode === i18n.defaultLocale ? undefined : localeCode;
-    const blogEntries = await getBlogEntrySort(localeParam);
+    const localeParam = localeCode === localeConfig.defaultLocale ? undefined : localeCode;
+    const blogEntries = await getBlogEntrySort(localeParam ?? localeConfig.defaultLocale);
     const paginatedPaths = paginate(blogEntries, { 
       pageSize: siteConfig.pageSize,
       params: { locale: localeParam }
@@ -48,7 +54,10 @@ const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
-    <Cover title={t("cover.title.home")} subTitle={t("cover.subTitle.home")} />
+  <Cover
+    title={t("cover.title.home")}
+    rotatingPair={localeContent.cover.rotatingPair.home}
+  />
     <PostPage page={page} />
     <Navi page={page} />
     <FabMenu showBackBottom={true} />

@@ -19,7 +19,33 @@ const translation: Translation = {
             archive: "Total of {count} articles",
             about: "A minimalist blog template",
             friends: "Interesting Souls",
-        }
+        },
+        rotatingSubTitle: {
+            home: [
+                "It will get better by tomorrow.",
+                "If one longs for eternal love, is fleeing the best choice?",
+                "Record, organize, and start again",
+            ],
+        },
+        credit: {
+            home: "— From Restart's daily notes",
+        },
+        rotatingPair: {
+            home: [
+                {
+                    subTitle: "It will get better by tomorrow.",
+                    credit: "—— アメリカ民谣研究会《明日には良くなるからね》",
+                },
+                {
+                    subTitle: "If one longs for eternal love, is fleeing the best choice?",
+                    credit: "—— ネジマキ《くじら雲（鲸鱼云）》",
+                },
+                {
+                    subTitle: "Record, organize, and start again",
+                    credit: "— After each archive refresh",
+                },
+            ],
+        },
     },
     toc: "Contents",
     category: "Category",

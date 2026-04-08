@@ -18,6 +18,18 @@ export interface Translation {
             about: string;
             friends: string;
         };
+        rotatingSubTitle: {
+            home: string[];
+        };
+        credit: {
+            home: string;
+        };
+        rotatingPair: {
+            home: Array<{
+                subTitle: string;
+                credit: string;
+            }>;
+        };
     };
     toc:string;
     category: string;

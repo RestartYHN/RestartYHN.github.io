@@ -1,16 +1,29 @@
 ---
 import "@styles/global.css"
+import TypingText from "@components/misc/TypingText.svelte"
 
 interface Props {
     title?: string;
     subTitle?: string;
+    rotatingSubTitle?: string[];
+    credit?: string;
+    rotatingPair?: Array<{ subTitle: string; credit: string }>;
 }
 
-const { title, subTitle } = Astro.props;
+const { title, subTitle, rotatingSubTitle, credit, rotatingPair } = Astro.props;
 ---
 
 <!-- Cover -->
 <div class="text-center pt-5 pb-10 max-w-[var(--page-width)] mx-auto md:mt-0 mt-28">
     { title && <p class="text-[var(--text-color)] text-3xl py-5 font-bold">{ title }</p> }
-    { subTitle && <p class="text-[var(--text-color-70)] font-bold">{ subTitle }</p> }
+    {rotatingPair?.length ? (
+        <div class="flex flex-col items-center gap-1">
+            <TypingText client:load pairs={rotatingPair} />
+        </div>
+    ) : rotatingSubTitle?.length ? (
+        <div class="flex flex-col items-center gap-1">
+            <TypingText client:load lines={rotatingSubTitle} />
+            {credit && <p class="text-sm md:text-base font-medium tracking-wide text-[var(--text-color-70)] opacity-80">{credit}</p>}
+        </div>
+    ) : subTitle && <p class="text-[var(--text-color-70)] font-bold">{ subTitle }</p>}
 </div>

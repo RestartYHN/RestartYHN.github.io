@@ -19,7 +19,33 @@ const translation: Translation = {
             archive: "共 {count} 篇文章",
             about: "一个极简的Blog模板",
             friends: "有趣的灵魂",
-        }
+        },
+        rotatingSubTitle: {
+            home: [
+                "明日には良くなるからね.",
+                "把日常写成可回看的轨迹",
+                "记录、整理、再出发",
+            ],
+        },
+        credit: {
+            home: "—— 来自 Restart 的日常记录",
+        },
+        rotatingPair: {
+            home: [
+                {
+                    subTitle: "明日には良くなるからね.",
+                    credit: "—— アメリカ民谣研究会《明日には良くなるからね》",
+                },
+                {
+                    subTitle: "若渴求永恒的爱，逃离才是最佳选择吗？",
+                    credit: "——ネジマキ《くじら雲（鲸鱼云）》 ",
+                },
+                {
+                    subTitle: "记录、整理、再出发",
+                    credit: "—— 写在每一次归档之后",
+                },
+            ],
+        },
     },
     toc: "目录",
     category: "分类",
