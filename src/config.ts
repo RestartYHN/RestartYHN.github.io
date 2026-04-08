@@ -6,6 +6,9 @@ import type {
 
 import type { FriendLink } from "./types/friend"
 
+const commentsBackendUrl =
+    (import.meta as any).env?.PUBLIC_COMMENTS_API || "https://momo-backend-worker.478929164.workers.dev";
+
 export const siteConfig: SiteConfig = {
     title: "RestartYHN",
     subTitle: "Hello!",
@@ -22,7 +25,7 @@ export const siteConfig: SiteConfig = {
     },
     comments: {
         enable: true, // Whether to enable comments
-        backendUrl: "https://api-momo.motues.top" // Backend URL for comments
+        backendUrl: commentsBackendUrl // Backend URL for comments
     }
 }
 
