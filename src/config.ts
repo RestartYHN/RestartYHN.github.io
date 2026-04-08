@@ -7,8 +7,8 @@ import type {
 import type { FriendLink } from "./types/friend"
 
 export const siteConfig: SiteConfig = {
-    title: "Momo",
-    subTitle: "Blog",
+    title: "RestartYHN",
+    subTitle: "Hello!",
 
     favicon: "/favicon/favicon.ico", // Path of the favicon, relative to the /public directory
 
