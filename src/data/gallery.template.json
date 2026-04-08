@@ -1,0 +1,95 @@
+{
+  "authors": [
+    {
+      "slug": "Matcha",
+      "name": {
+        "zh-cn": "抹茶",
+        "en": "Matcha"
+      },
+      "avatar": "/gallery/Matcha/work-001.webp",
+      "order": 1,
+      "enabled": true
+    },
+    {
+      "slug": "Rumoon",
+      "name": {
+        "zh-cn": "混合可可",
+        "en": "Rumoon"
+      },
+      "avatar": "/gallery/Rumoon/work-001.webp",
+      "order": 2,
+      "enabled": true
+    }
+  ],
+  "works": [
+    {
+      "id": "work-001",
+      "author": "Matcha",
+      "title": {
+        "zh-cn": "鹿目圆",
+        "en": "Kaname Madoka"
+      },
+      "image": "/gallery/Matcha/work-001.webp",
+      "thumb": "/gallery/Matcha/work-001.webp",
+      "year": 2026,
+      "tags": [
+        "魔法少女小圆",
+        "同人"
+      ],
+      "enabled": true,
+      "order": 1,
+      "link": "https://example.com/work/work-001"
+    },
+    {
+      "id": "work-002",
+      "author": "Matcha",
+      "title": {
+        "zh-cn": "抹茶作品 2",
+        "en": "Matcha Work 2"
+      },
+      "image": "/gallery/Matcha/work-002.webp",
+      "thumb": "/gallery/Matcha/work-002.webp",
+      "year": 2026,
+      "tags": [
+        "同人"
+      ],
+      "enabled": true,
+      "order": 2,
+      "link": "https://example.com/work/work-002"
+    },
+    {
+      "id": "work-003",
+      "author": "Rumoon",
+      "title": {
+        "zh-cn": "混合可可作品 1",
+        "en": "Rumoon Work 1"
+      },
+      "image": "/gallery/Rumoon/work-001.webp",
+      "thumb": "/gallery/Rumoon/work-001.webp",
+      "year": 2026,
+      "tags": [
+        "同人"
+      ],
+      "enabled": true,
+      "order": 3,
+      "link": "https://example.com/work/work-003"
+    },
+    {
+      "id": "work-004",
+      "author": "Rumoon",
+      "title": {
+        "zh-cn": "混合可可作品 2",
+        "en": "Rumoon Work 2"
+      },
+      "image": "/gallery/Rumoon/work-002.webp",
+      "thumb": "/gallery/Rumoon/work-002.webp",
+      "year": 2026,
+      "tags": [
+        "同人"
+      ],
+      "enabled": true,
+      "order": 4,
+      "link": "https://example.com/work/work-004"
+    }
+  ]
+}

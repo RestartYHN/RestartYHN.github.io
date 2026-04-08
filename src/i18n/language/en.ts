@@ -7,6 +7,7 @@ const translation: Translation = {
         about: "About",
         friends: "Friends",
         links: "Links",
+        gallery: "Gallery",
     },
     cover: {
         title: {

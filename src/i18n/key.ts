@@ -5,6 +5,7 @@ export interface Translation {
         about: string;
         friends: string;
         links: string;
+        gallery: string;
     };
     cover: {
         title: {

@@ -1,0 +1,118 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro'
+import Cover from '@components/Cover.astro'
+import FabMenu from '@components/control/FabMenu.astro'
+import { siteConfig } from '@/config'
+import i18nit from '@i18n/translation'
+import { i18n } from "astro:config/client"
+import galleryData from '@/data/gallery.template.json'
+
+export async function getStaticPaths() {
+  return i18n?.locales.map(locale => ({
+    params: { locale: locale == i18n?.defaultLocale ? undefined : (locale as string) }
+  }))
+}
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale
+const normalizedLang = currentLang === 'en' ? 'en' : 'zh-cn'
+const t = i18nit(currentLang)
+
+const authors = galleryData.authors
+  .filter((item) => item.enabled !== false)
+  .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+
+const works = galleryData.works
+  .filter((item) => item.enabled !== false)
+  .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+
+const pageTitle = `${t("header.gallery")} - ${siteConfig.title}`
+const coverTitle = normalizedLang === 'en' ? 'Gallery' : '画廊'
+const coverSubTitle = normalizedLang === 'en'
+  ? `Browse ${works.length} works by ${authors.length} artists`
+  : `按画师筛选浏览，共 ${works.length} 幅作品`
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang}>
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover title={coverTitle} subTitle={coverSubTitle} />
+
+    <div class="mb-6 flex flex-wrap gap-2" id="gallery-author-filter">
+      <button type="button" data-author="all" class="author-chip active">{normalizedLang === 'en' ? 'All' : '全部'}</button>
+      {authors.map((author) => (
+        <button type="button" data-author={author.slug} class="author-chip">{author.name[normalizedLang]}</button>
+      ))}
+    </div>
+
+    <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8" id="gallery-grid">
+      {works.map((item) => {
+        const author = authors.find((a) => a.slug === item.author)
+        return (
+          <article class="gallery-card" data-author={item.author}>
+            <a href={item.link || item.image} target="_blank" rel="noopener noreferrer" class="block overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 hover:border-[var(--link-color)] transition-colors">
+              <img src={item.thumb || item.image} alt={item.title[normalizedLang]} class="h-52 w-full object-cover transition-transform duration-300 hover:scale-[1.03]" loading="lazy" decoding="async" />
+              <div class="p-3">
+                <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title[normalizedLang]}</h3>
+                <p class="mt-1 text-sm text-[var(--text-color-70)]">
+                  {(author?.name[normalizedLang] || item.author)} · {item.year}
+                </p>
+                <div class="mt-2 flex flex-wrap gap-1">
+                  {item.tags?.map((tag) => (
+                    <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </a>
+          </article>
+        )
+      })}
+    </section>
+  </div>
+
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>
+
+<style>
+  .author-chip {
+    border: 1px solid var(--button-border-color);
+    background: color-mix(in oklab, var(--bg-color) 85%, transparent);
+    color: var(--text-color);
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+  }
+
+  .author-chip:hover {
+    background: var(--button-hover-color);
+  }
+
+  .author-chip.active {
+    border-color: var(--link-color);
+    color: var(--link-color);
+  }
+
+  .gallery-card.is-hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  const filterRoot = document.getElementById('gallery-author-filter');
+  const cards = Array.from(document.querySelectorAll('.gallery-card'));
+
+  if (filterRoot) {
+    filterRoot.querySelectorAll('button[data-author]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const author = button.getAttribute('data-author') || 'all';
+
+        filterRoot.querySelectorAll('button').forEach((btn) => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        cards.forEach((card) => {
+          const cardAuthor = card.getAttribute('data-author');
+          const shouldShow = author === 'all' || cardAuthor === author;
+          card.classList.toggle('is-hidden', !shouldShow);
+        });
+      });
+    });
+  }
+</script>
