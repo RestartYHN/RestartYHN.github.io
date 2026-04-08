@@ -9,12 +9,13 @@ interface Props {
   title: string;
   lang: string;
   description?: string;
+  noCache?: boolean;
 }
-const { title, lang, description } = Astro.props;
+const { title, lang, description, noCache = false } = Astro.props;
 
 ---
 
-<Layout title={title} lang={lang} description={description}>
+<Layout title={title} lang={lang} description={description} noCache={noCache}>
   <div class="flex flex-col min-h-screen">
     <div>
       <Header />

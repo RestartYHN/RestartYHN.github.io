@@ -46,12 +46,13 @@ const pageTitle = `${authorInfo.name[normalizedLang]} - ${t('header.gallery')} -
 const coverSubTitle = normalizedLang === 'en'
   ? `${authorWorks.length} works`
   : `共 ${authorWorks.length} 幅作品`
+const cacheVersion = Date.now().toString()
 ---
 
-<MainPageLayout title={pageTitle} lang={currentLang}>
+<MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
   <div class="mx-auto w-full max-w-[var(--page-width)]">
     <div class="mb-4">
-      <a href={getRelativeLocaleUrl(currentLang, '/gallery/')} class="text-sm text-[var(--link-color)] hover:underline">
+      <a href={`${getRelativeLocaleUrl(currentLang, '/gallery/')}?v=${cacheVersion}`} class="text-sm text-[var(--link-color)] hover:underline">
         {normalizedLang === 'en' ? '← Back to Gallery' : '← 返回画廊'}
       </a>
     </div>
