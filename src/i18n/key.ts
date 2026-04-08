@@ -4,6 +4,7 @@ export interface Translation {
         archive: string;
         about: string;
         friends: string;
+        links: string;
     };
     cover: {
         title: {

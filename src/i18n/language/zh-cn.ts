@@ -6,6 +6,7 @@ const translation: Translation = {
         archive: "归档",
         about: "关于",
         friends: "友链",
+        links: "链接",
     },
     cover: {
         title: {

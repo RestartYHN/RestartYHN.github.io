@@ -1,0 +1,77 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro'
+import Cover from '@components/Cover.astro'
+import FabMenu from '@components/control/FabMenu.astro'
+import { siteConfig } from '@/config'
+import i18nit from '@i18n/translation'
+import { i18n } from "astro:config/client"
+
+export async function getStaticPaths() {
+  return i18n?.locales.map(locale => ({
+    params: { locale: locale == i18n?.defaultLocale ? undefined : (locale as string) }
+  }))
+}
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale
+const t = i18nit(currentLang)
+
+const pageTitle = `${t("header.links")} - ${siteConfig.title}`
+
+const links = [
+  {
+    title: "GitHub",
+    url: "https://github.com/RestartYHN",
+    description: currentLang === "en" ? "My open-source projects and notes" : "我的开源仓库与项目记录",
+    tag: "Code"
+  },
+  {
+    title: "Astro",
+    url: "https://astro.build",
+    description: currentLang === "en" ? "The framework used by this blog" : "本博客使用的框架",
+    tag: "Tech"
+  },
+  {
+    title: "Cloudflare Workers",
+    url: "https://workers.cloudflare.com/",
+    description: currentLang === "en" ? "Serverless platform for backend APIs" : "用于后端 API 的无服务器平台",
+    tag: "Infra"
+  }
+]
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang}>
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover
+      title={currentLang === "en" ? "Useful Links" : "外部链接"}
+      subTitle={currentLang === "en" ? "Places worth visiting" : "一些我常用/推荐的网站"}
+    />
+
+    <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+      {links.map((item) => (
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="group rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--link-color)]"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-lg font-bold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors">
+              {item.title}
+            </h3>
+            <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">
+              {item.tag}
+            </span>
+          </div>
+          <p class="text-sm text-[var(--text-color-70)] leading-relaxed">
+            {item.description}
+          </p>
+          <p class="mt-3 text-xs text-[var(--link-color)] break-all opacity-80">
+            {item.url}
+          </p>
+        </a>
+      ))}
+    </section>
+  </div>
+
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>
