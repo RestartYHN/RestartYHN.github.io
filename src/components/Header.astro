@@ -161,7 +161,7 @@ if (profileConfig.indexPage) {
             </a>
               <!-- 画廊链接 -->
               <a href={ galleryPage } class={`transition-colors rounded-lg px-3 py-1 mx-1 hover:text-current ${
-                Astro.url.pathname === galleryPage
+                  Astro.url.pathname.startsWith(galleryPage)
                   ? 'bg-[var(--button-hover-color)]'
                   : 'hover:bg-[var(--button-hover-color)]'
                 }`}>

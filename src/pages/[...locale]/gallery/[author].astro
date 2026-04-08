@@ -1,0 +1,84 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro'
+import Cover from '@components/Cover.astro'
+import FabMenu from '@components/control/FabMenu.astro'
+import { siteConfig } from '@/config'
+import i18nit from '@i18n/translation'
+import { i18n } from "astro:config/client"
+import { getRelativeLocaleUrl } from '@utils/url-utils'
+import { getAuthorWorks, loadGalleryData } from '@utils/gallery-utils'
+
+export async function getStaticPaths() {
+  const paths = []
+  const { authors } = loadGalleryData()
+
+  for (const locale of i18n!.locales) {
+    const localeCode = locale as string
+    const localeParam = localeCode === i18n!.defaultLocale ? undefined : localeCode
+
+    for (const author of authors) {
+      paths.push({
+        params: {
+          locale: localeParam,
+          author: author.slug,
+        },
+      })
+    }
+  }
+
+  return paths
+}
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale
+const normalizedLang = currentLang === 'en' ? 'en' : 'zh-cn'
+const t = i18nit(currentLang)
+const authorParam = Astro.params.author || ''
+
+const { authors } = loadGalleryData()
+const authorInfo = authors.find((a) => a.slug.toLowerCase() === authorParam.toLowerCase())
+const authorWorks = getAuthorWorks(authorParam)
+
+if (!authorInfo) {
+  throw new Error(`Gallery author not found: ${authorParam}`)
+}
+
+const pageTitle = `${authorInfo.name[normalizedLang]} - ${t('header.gallery')} - ${siteConfig.title}`
+const coverSubTitle = normalizedLang === 'en'
+  ? `${authorWorks.length} works`
+  : `共 ${authorWorks.length} 幅作品`
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang}>
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <div class="mb-4">
+      <a href={getRelativeLocaleUrl(currentLang, '/gallery/')} class="text-sm text-[var(--link-color)] hover:underline">
+        {normalizedLang === 'en' ? '← Back to Gallery' : '← 返回画廊'}
+      </a>
+    </div>
+
+    <Cover title={authorInfo.name[normalizedLang]} subTitle={coverSubTitle} />
+
+    <section class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mb-8">
+      {authorWorks.map((item) => (
+        <article class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70">
+          <a href={item.link || item.image} target="_blank" rel="noopener noreferrer">
+            <img src={item.image} alt={item.title[normalizedLang]} class="w-full h-auto object-contain" loading="lazy" decoding="async" />
+          </a>
+          <div class="p-3">
+            <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title[normalizedLang]}</h3>
+            <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
+            {item.tags?.length > 0 && (
+              <div class="mt-2 flex flex-wrap gap-1">
+                {item.tags.map((tag) => (
+                  <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </article>
+      ))}
+    </section>
+  </div>
+
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>
