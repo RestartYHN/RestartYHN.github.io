@@ -1,52 +1,45 @@
 ---
 import MainPageLayout from '@layouts/MainPageLayout.astro';
 import Cover from '@components/Cover.astro';
-import HomePostCards from '@components/misc/HomePostCards.astro';
+import PostPage from '@components/PostPage.astro';
+import Navi from '@components/control/Navi.astro';
 import FabMenu from '@components/control/FabMenu.astro';
 
-import zhCN from '@i18n/language/zh-cn';
-import en from '@i18n/language/en';
-
+import { getBlogEntrySort } from '@utils/content-utils'
 import { siteConfig } from '@/config';
 import { i18n } from "astro:config/client";
 import type { GetStaticPaths } from 'astro';
-import type { Translation } from '@i18n/key';
 
 import i18nit from '@i18n/translation'
 
-const { locale = i18n!.defaultLocale } = Astro.params;
-
+const { page } = Astro.props;
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
 const t = i18nit(currentLang);
-const localeContent: Translation = currentLang === "en" ? en : zhCN;
 
 export const getStaticPaths = (async ({ paginate }) => {
-  // 首页只生成语言维度路径，不再承担文章分页。
   const paths = [];
   const localeConfig = i18n!;
   for (const locale of localeConfig.locales) {
     const localeCode = typeof locale === 'string' ? locale : locale.path;
     const localeParam = localeCode === localeConfig.defaultLocale ? undefined : localeCode;
-    const onePage = paginate([localeCode], {
-      pageSize: 1,
-      params: { locale: localeParam },
+    const blogEntries = await getBlogEntrySort(localeParam ?? localeConfig.defaultLocale);
+    const paginatedPaths = paginate(blogEntries, {
+      pageSize: siteConfig.pageSize,
+      params: { locale: localeParam }
     });
 
-    paths.push(...onePage);
+    paths.push(...paginatedPaths);
   }
 
   return paths;
 }) satisfies GetStaticPaths
 
-const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
-
+const pageTitle = `${t("header.article")} - ${siteConfig.title}`;
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
-  <Cover
-    title={t("cover.title.home")}
-    rotatingPair={localeContent.cover.rotatingPair.home}
-  />
-  <HomePostCards />
+  <Cover title={t("header.article")} subTitle={t("cover.subTitle.archive").replace('{count}', String(page.lastPage * siteConfig.pageSize))} />
+  <PostPage page={page} />
+  <Navi page={page} />
   <FabMenu showBackBottom={true} />
 </MainPageLayout>

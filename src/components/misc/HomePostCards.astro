@@ -1,0 +1,93 @@
+---
+import { getBlogEntrySort } from '@utils/content-utils';
+import { blogCoverUrl, getRelativeLocaleUrl } from '@utils/url-utils';
+import { formatFullDate } from '@/utils/time';
+import ImageModule from '@components/misc/ImageModule.astro';
+import { i18n } from 'astro:config/client';
+import i18nit from '@i18n/translation';
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale;
+const t = i18nit(currentLang);
+const posts = (await getBlogEntrySort(currentLang)).slice(0, 3);
+---
+
+<section class="home-post-section mx-auto mt-10 mb-8 w-full max-w-[var(--page-width)]">
+  <div class="mb-4 flex items-end justify-between gap-3 border-b border-[var(--button-border-color)] pb-3">
+    <div>
+      <h2 class="text-2xl font-bold text-[var(--text-color)]">
+        {currentLang === 'en' ? 'Latest Posts' : '最新文章'}
+      </h2>
+      <p class="mt-1 text-sm text-[var(--text-color-70)]">
+        {currentLang === 'en' ? 'Cards below the cover, like a quick reading shelf.' : '在封面下方放一组文章卡片，方便快速浏览。'}
+      </p>
+    </div>
+    <a href={getRelativeLocaleUrl(currentLang, '/articles/')} class="text-sm text-[var(--text-color-70)] transition-colors hover:text-[var(--link-color)]">
+      {currentLang === 'en' ? 'View all' : '查看全部'} →
+    </a>
+  </div>
+
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    {posts.map((post) => {
+      const postUrl = getRelativeLocaleUrl(currentLang, `/blog/${post.id}`);
+      const image = post.data.image ? blogCoverUrl(post.data.image, post.id) : '';
+
+      return (
+        <a
+          href={postUrl}
+          class="home-post-card group overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[color-mix(in_oklab,var(--bg-color)_92%,transparent)] shadow-[0_6px_16px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]"
+        >
+          <div class="home-post-cover">
+            {image ? (
+              <ImageModule
+                src={image}
+                alt={post.data.title}
+                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            ) : (
+              <div class="home-post-placeholder flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--button-hover-color)] to-[color-mix(in_oklab,var(--button-hover-color)_40%,var(--bg-color))] text-sm font-semibold text-[var(--text-color-70)]">
+                {currentLang === 'en' ? 'No Cover' : '暂无封面'}
+              </div>
+            )}
+          </div>
+
+          <div class="p-3">
+            <div class="mb-2 flex items-center justify-between gap-2 text-xs text-[var(--text-color-70)]">
+              <span>{formatFullDate(post.data.pubDate, currentLang)}</span>
+              <span class="rounded-full bg-[var(--button-hover-color)] px-1.5 py-0.5 text-[11px]">
+                {post.data.category || t('pagecard.uncategorized')}
+              </span>
+            </div>
+
+            <h3 class="mb-1.5 text-base font-bold leading-snug text-[var(--text-color)] transition-colors group-hover:text-[var(--link-color)]">
+              {post.data.title}
+            </h3>
+
+            <p class="home-post-desc text-xs leading-5 text-[var(--text-color-70)]">
+              {post.data.description}
+            </p>
+
+            <div class="mt-2.5 flex items-center justify-between text-xs text-[var(--text-color-70)]">
+              <span>{currentLang === 'en' ? 'Read' : '阅读'}</span>
+              <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </div>
+          </div>
+        </a>
+      );
+    })}
+  </div>
+</section>
+
+<style is:global>
+  .home-post-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .home-post-cover {
+    aspect-ratio: 16 / 8;
+    overflow: hidden;
+    background: var(--button-hover-color);
+  }
+</style>

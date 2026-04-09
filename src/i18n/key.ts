@@ -1,6 +1,7 @@
 export interface Translation {
     header: {
         home: string;
+        article: string;
         archive: string;
         about: string;
         friends: string;

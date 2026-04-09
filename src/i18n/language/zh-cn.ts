@@ -3,6 +3,7 @@ import type { Translation } from "@i18n/key";
 const translation: Translation = {
     header: {
         home: "首页",
+        article: "文章",
         archive: "归档",
         about: "关于",
         friends: "友链",
@@ -18,7 +19,7 @@ const translation: Translation = {
         },
         subTitle: {
             home: "明日には良くなるからね.",
-            archive: "共 {count} 篇文章",
+            archive: "收录开发者所写配置指南和个人文章",
             about: "一个极简的Blog模板",
             friends: "有趣的灵魂",
         },

@@ -3,6 +3,7 @@ import type { Translation } from "@i18n/key";
 const translation: Translation = {
     header: {
         home: "Home",
+        article: "Articles",
         archive: "Archive",
         about: "About",
         friends: "Friends",

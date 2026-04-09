@@ -13,15 +13,25 @@
 
   body {
     @apply bg-[--bg-color] text-[--text-color];
+    position: relative;
+    z-index: 0;
     font-family: "Noto Serif SC", "Times New Roman", "STZhongsong", serif;
     overflow-y: scroll;
+    background-color: var(--bg-color);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image:
       linear-gradient(rgba(251, 251, 251, 0.7), rgba(251, 251, 251, 0.7)),
       url('/cg/xmm.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
   }
   
 

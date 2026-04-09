@@ -1,5 +1,5 @@
 
-Momo originates from Xiaohongshu's 📕, serving as every new user's initial nickname, symbolizing a fresh start. The blog's design philosophy stems from this concept, beginning with simplicity to strike a balance between complex functionality and minimalist aesthetics.
+This blog is from an open source event.Here are the instructions.
 
 ## ✨ Features
 
