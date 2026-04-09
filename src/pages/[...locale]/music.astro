@@ -321,6 +321,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     border-color: #d5a56a;
   }
 
+  .music-track-card.unavailable {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .music-track-card.unavailable:hover {
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+    transform: none;
+  }
+
   .music-track-card:hover {
     background: var(--button-hover-color);
   }
@@ -768,11 +778,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     trackListEl.innerHTML = tracks
       .map(
         (track, idx) => `
-          <li class="music-track-card ${idx === currentIndex ? "active" : ""}" data-idx="${idx}">
+          <li class="music-track-card ${idx === currentIndex ? "active" : ""} ${!track.audio ? "unavailable" : ""}" data-idx="${idx}">
             <div class="music-track-index">${String(idx + 1).padStart(2, "0")}</div>
             <div class="min-w-0 flex-1">
               <p class="music-track-title truncate">${track.title || "Unknown"}</p>
-              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}${track.audio ? "" : isEn ? " · Open in NetEase" : " · 网易云打开"}</p>
+              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}${track.audio ? "" : isEn ? " · Unavailable" : " · 无法播放"}</p>
             </div>
           </li>
         `,
@@ -780,17 +790,50 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       .join("");
 
     trackListEl.querySelectorAll(".music-track-card").forEach((el) => {
-      el.addEventListener("click", () => {
+      el.addEventListener("click", async () => {
         const idx = Number(el.getAttribute("data-idx") || "0");
         currentIndex = idx;
         const current = tracks[currentIndex];
+        
+        // If no audio, try to fetch URL again (might be cached now)
+        if (!current?.audio && USE_DIRECT_NETEASE_API) {
+          showStatus(isEn ? "Retrying to fetch URL..." : "重新尝试获取播放链接...");
+          try {
+            const urlResp = await getNeteaseJson("/song/url/v1", { id: current.id, level: "standard" });
+            const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+            if (urlItem?.url) {
+              current.audio = urlItem.url;
+              setTrackCache(current.id, current);
+              hideStatus();
+            }
+          } catch (e) {
+            console.warn("[music] URL retry failed", e);
+          }
+        }
+        
         updateNowPlaying(current);
         renderTrackList();
         updatePlayerPosition();
+        
         if (current?.audio && audio?.src) {
+          hideStatus();
           audio.play().catch(() => {});
         } else if (current?.id) {
-          window.open(`https://music.163.com/#/song?id=${encodeURIComponent(current.id)}`, "_blank", "noopener,noreferrer");
+          showStatus(
+            isEn
+              ? "No playback URL available. Opening NetEase Cloud Music..."
+              : "无可用的播放链接，即将打开网易云音乐...，3秒后",
+            "info"
+          );
+          setTimeout(() => {
+            window.open(
+              `https://music.163.com/#/song?id=${encodeURIComponent(current.id)}`,
+              "_blank",
+              "noopener,noreferrer"
+            );
+          }, 1000);
+        } else {
+          showStatus(isEn ? "Cannot load this track." : "无法加载此歌曲。", "error");
         }
       });
     });
@@ -870,14 +913,31 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     if (USE_DIRECT_NETEASE_API) {
       try {
-        const [detailResp, urlResp, lrcResp] = await Promise.all([
+        const [detailResp, lrcResp] = await Promise.all([
           getNeteaseJson("/song/detail", { ids: id }),
-          getNeteaseJson("/song/url/v1", { id, level: "standard" }),
           getNeteaseJson("/lyric", { id }),
         ]);
 
         const song = Array.isArray(detailResp?.songs) ? detailResp.songs[0] : null;
-        const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+        
+        // Try multiple quality levels for URL (standard → higher → lower)
+        let audioUrl = "";
+        const qualityLevels = ["standard", "higher", "lossless", "exhigh"];
+        
+        for (const level of qualityLevels) {
+          if (audioUrl) break;
+          try {
+            const urlResp = await getNeteaseJson("/song/url/v1", { id, level });
+            const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+            if (urlItem?.url) {
+              audioUrl = urlItem.url;
+              console.debug(`[music] got ${level} quality URL for ${id}`);
+              break;
+            }
+          } catch (e) {
+            console.debug(`[music] quality ${level} failed`, e);
+          }
+        }
 
         const result = {
           id: String(id),
@@ -886,7 +946,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             ? song.ar.map((item) => item?.name || "Unknown").join(", ")
             : "Unknown Artist",
           cover: song?.al?.picUrl || "",
-          audio: urlItem?.url || "",
+          audio: audioUrl,
           lyric: typeof lrcResp?.lrc?.lyric === "string" ? lrcResp.lrc.lyric : "",
           tlyric: typeof lrcResp?.tlyric?.lyric === "string" ? lrcResp.tlyric.lyric : "",
         };
