@@ -387,7 +387,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       grid-template-columns: 54px minmax(0, 1fr) auto auto auto;
       grid-template-areas:
         "cover info prev play next"
-        "cover progress progress progress progress";
+        "progress progress progress progress progress";
       gap: 0.45rem 0.5rem;
       align-items: center;
       padding: 0.65rem;
@@ -416,7 +416,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     .music-progress-wrap {
       grid-area: progress;
+      grid-column: 1 / -1;
       margin-top: 0.2rem;
+      margin-left: -0.65rem;
+      margin-right: -0.65rem;
+      padding: 0 0.65rem;
       grid-template-columns: 34px 1fr 34px;
       gap: 0.35rem;
     }
@@ -453,6 +457,43 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     width: 100%;
     accent-color: #d5a56a;
     cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    background: transparent;
+  }
+
+  .music-progress::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 999px;
+    background: color-mix(in oklab, #d5a56a 70%, var(--button-border-color));
+  }
+
+  .music-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5.5px;
+    border-radius: 50%;
+    border: 2px solid color-mix(in oklab, #d5a56a 80%, #fff);
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .music-progress::-moz-range-track {
+    height: 3px;
+    border: none;
+    border-radius: 999px;
+    background: color-mix(in oklab, #d5a56a 70%, var(--button-border-color));
+  }
+
+  .music-progress::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid color-mix(in oklab, #d5a56a 80%, #fff);
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   }
 
   .music-time {
@@ -614,6 +655,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let lyricLines = [];
   let activeLyricIndex = -1;
   let lyricScrollReady = false;
+  let lastLyricScrollAtMs = 0;
   let loadVersion = 0;
   let currentPlaylistId = "";
   let userToken = localStorage.getItem("music-user-token") || null;
@@ -874,15 +916,34 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (activeLine) {
       activeLine.classList.add("active");
 
-      if (!lyricScrollReady && audio.currentTime < 1.2) {
+      if (!lyricScrollReady && audio.currentTime < 2.2) {
         return;
       }
       lyricScrollReady = true;
 
-      const ACTIVE_LINE_VIEWPORT_RATIO = 0.62;
-      const targetTop = activeLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + activeLine.clientHeight / 2;
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
-      lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: isMobile ? "auto" : "smooth" });
+      const ACTIVE_LINE_VIEWPORT_RATIO = isMobile ? 0.72 : 0.62;
+      const targetTop = activeLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + activeLine.clientHeight / 2;
+
+      if (isMobile) {
+        const nowMs = performance.now();
+        const MIN_SCROLL_INTERVAL_MS = 220;
+        if (nowMs - lastLyricScrollAtMs < MIN_SCROLL_INTERVAL_MS) {
+          return;
+        }
+        lastLyricScrollAtMs = nowMs;
+
+        const MAX_SCROLL_STEP_PX = 34;
+        const currentTop = lyricsEl.scrollTop;
+        const delta = targetTop - currentTop;
+        const clampedTop = Math.abs(delta) > MAX_SCROLL_STEP_PX
+          ? currentTop + Math.sign(delta) * MAX_SCROLL_STEP_PX
+          : targetTop;
+
+        lyricsEl.scrollTo({ top: Math.max(0, clampedTop), behavior: "auto" });
+      } else {
+        lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+      }
     }
   }
 
@@ -915,6 +976,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     lyricLines = buildLyricLines(track.lyric, track.tlyric);
     activeLyricIndex = -1;
     lyricScrollReady = false;
+    lastLyricScrollAtMs = 0;
     renderLyrics(lyricLines);
     if (lyricsEl) {
       lyricsEl.scrollTo({ top: 0, behavior: "auto" });
