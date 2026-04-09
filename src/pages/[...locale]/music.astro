@@ -1066,12 +1066,25 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       showStatus(isEn ? "Loading playlist songs..." : "正在加载歌单歌曲...");
 
       if (USE_DIRECT_NETEASE_API) {
-        const data = await getNeteaseJson("/playlist/track/all", {
-          id: playlistId,
-          limit: 200,
-          offset: 0,
-        });
-        const songsRaw = Array.isArray(data?.songs) ? data.songs : [];
+        let songsRaw = [];
+        try {
+          // Prefer playlist/detail: it keeps full playlist metadata (e.g. 12 tracks here),
+          // while playlist/track/all may drop tracks that cannot provide playable URLs.
+          const detail = await getNeteaseJson("/playlist/detail", { id: playlistId });
+          songsRaw = Array.isArray(detail?.playlist?.tracks) ? detail.playlist.tracks : [];
+        } catch (error) {
+          console.warn("[music] load /playlist/detail failed", error);
+        }
+
+        if (!songsRaw.length) {
+          const data = await getNeteaseJson("/playlist/track/all", {
+            id: playlistId,
+            limit: 500,
+            offset: 0,
+          });
+          songsRaw = Array.isArray(data?.songs) ? data.songs : [];
+        }
+
         const limit = Number(musicConfig.playlistSongLimit || 120);
         const version = ++loadVersion;
 
