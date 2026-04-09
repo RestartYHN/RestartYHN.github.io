@@ -528,6 +528,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 <script define:vars={{ musicConfig, isEn }}>
   const API_BASE = musicConfig.apiBase;
   const NETEASE_API_BASE = musicConfig.neteaseApiBase || "";
+  const NETEASE_REAL_IP = musicConfig.neteaseRealIp || "";
   const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
 
   const audio = document.getElementById("music-audio");
@@ -626,30 +627,43 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   async function getBestDirectAudioUrl(id) {
     const levels = ["standard", "higher", "exhigh", "lossless"];
+    const realIpCandidates = Array.from(
+      new Set([
+        "",
+        NETEASE_REAL_IP,
+        "211.161.244.70",
+      ].filter(Boolean)),
+    );
 
     for (const level of levels) {
-      try {
-        const urlResp = await getNeteaseJson("/song/url/v1", { id, level });
-        const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
-        const normalized = normalizeAudioUrl(urlItem?.url || "");
-        if (normalized) {
-          return normalized;
+      for (const realIP of realIpCandidates) {
+        try {
+          const params = realIP ? { id, level, realIP } : { id, level };
+          const urlResp = await getNeteaseJson("/song/url/v1", params);
+          const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+          const normalized = normalizeAudioUrl(urlItem?.url || "");
+          if (normalized) {
+            return normalized;
+          }
+        } catch (e) {
+          console.debug(`[music] /song/url/v1 failed for ${id} at ${level} realIP=${realIP || "none"}`, e);
         }
-      } catch (e) {
-        console.debug(`[music] /song/url/v1 failed for ${id} at ${level}`, e);
       }
     }
 
     // Fallback endpoint for compatibility with some tracks.
-    try {
-      const legacyResp = await getNeteaseJson("/song/url", { id, br: 320000 });
-      const legacyItem = Array.isArray(legacyResp?.data) ? legacyResp.data[0] : null;
-      const normalized = normalizeAudioUrl(legacyItem?.url || "");
-      if (normalized) {
-        return normalized;
+    for (const realIP of realIpCandidates) {
+      try {
+        const params = realIP ? { id, br: 320000, realIP } : { id, br: 320000 };
+        const legacyResp = await getNeteaseJson("/song/url", params);
+        const legacyItem = Array.isArray(legacyResp?.data) ? legacyResp.data[0] : null;
+        const normalized = normalizeAudioUrl(legacyItem?.url || "");
+        if (normalized) {
+          return normalized;
+        }
+      } catch (e) {
+        console.debug(`[music] /song/url fallback failed for ${id} realIP=${realIP || "none"}`, e);
       }
-    } catch (e) {
-      console.debug(`[music] /song/url fallback failed for ${id}`, e);
     }
 
     return "";

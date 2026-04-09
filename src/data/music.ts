@@ -10,6 +10,7 @@ export interface MusicSeedTrack {
 export interface MusicConfig {
   apiBase: string;
   neteaseApiBase: string;
+  neteaseRealIp: string;
   preferDirectNeteaseApi: boolean;
   preferPublicProfile: boolean;
   preferCookieProfile: boolean;
@@ -21,6 +22,7 @@ export interface MusicConfig {
 
 const apiBaseFromEnv = (import.meta as any).env?.PUBLIC_MUSIC_API || "http://localhost:17171";
 const neteaseApiBaseFromEnv = (import.meta as any).env?.PUBLIC_NETEASE_API || "";
+const neteaseRealIpFromEnv = (import.meta as any).env?.PUBLIC_NETEASE_REAL_IP || "";
 
 export const musicConfig: MusicConfig = {
   // You can point this to your backend proxy when deployed.
@@ -28,6 +30,10 @@ export const musicConfig: MusicConfig = {
 
   // Optional: direct NetEase API base (for no-server setup, e.g. your Vercel api-enhanced URL).
   neteaseApiBase: neteaseApiBaseFromEnv,
+
+  // Optional: force realIP for URL fetching in direct mode (helps with region-sensitive tracks).
+  // Example: 211.161.244.70
+  neteaseRealIp: neteaseRealIpFromEnv,
 
   // If true and neteaseApiBase is set, frontend calls NetEase API directly.
   preferDirectNeteaseApi: Boolean(neteaseApiBaseFromEnv),
