@@ -654,7 +654,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let currentIndex = 0;
   let lyricLines = [];
   let activeLyricIndex = -1;
-  let lyricVisualIndex = -1;
+  let lyricScrollReady = false;
+  let lastLyricScrollAtMs = 0;
   let loadVersion = 0;
   let currentPlaylistId = "";
   let userToken = localStorage.getItem("music-user-token") || null;
@@ -909,47 +910,37 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     activeLyricIndex = active;
     lyricsEl.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
-    if (active < 0) {
-      lyricVisualIndex = -1;
-      return;
-    }
+    if (active < 0) return;
 
     const activeLine = lyricsEl.querySelector(`li[data-i='${active}']`);
     if (activeLine) {
       activeLine.classList.add("active");
 
-      const isMobile = window.matchMedia("(max-width: 768px)").matches;
-      let scrollIndex = active;
-
-      if (isMobile) {
-        if (lyricVisualIndex < 0) {
-          lyricVisualIndex = active;
-        }
-
-        // Keep time-axis highlight, but cap the initial visual jump in line count.
-        // This reduces "big jump" feeling in first seconds without freezing lyrics.
-        const t = audio.currentTime;
-        const maxLineStep = t < 1.5 ? 1 : t < 3 ? 2 : t < 6 ? 3 : 99;
-
-        if (active > lyricVisualIndex + maxLineStep) {
-          scrollIndex = lyricVisualIndex + maxLineStep;
-        } else if (active < lyricVisualIndex - 4) {
-          // Allow quick catch-up when seeking backward.
-          scrollIndex = active;
-        }
-
-        lyricVisualIndex = scrollIndex;
+      if (!lyricScrollReady && audio.currentTime < 2.2) {
+        return;
       }
+      lyricScrollReady = true;
 
-      const lineForScroll = isMobile
-        ? lyricsEl.querySelector(`li[data-i='${scrollIndex}']`) || activeLine
-        : activeLine;
-
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
       const ACTIVE_LINE_VIEWPORT_RATIO = isMobile ? 0.72 : 0.62;
-      const targetTop = lineForScroll.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + lineForScroll.clientHeight / 2;
+      const targetTop = activeLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + activeLine.clientHeight / 2;
 
       if (isMobile) {
-        lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: "auto" });
+        const nowMs = performance.now();
+        const MIN_SCROLL_INTERVAL_MS = 220;
+        if (nowMs - lastLyricScrollAtMs < MIN_SCROLL_INTERVAL_MS) {
+          return;
+        }
+        lastLyricScrollAtMs = nowMs;
+
+        const MAX_SCROLL_STEP_PX = 34;
+        const currentTop = lyricsEl.scrollTop;
+        const delta = targetTop - currentTop;
+        const clampedTop = Math.abs(delta) > MAX_SCROLL_STEP_PX
+          ? currentTop + Math.sign(delta) * MAX_SCROLL_STEP_PX
+          : targetTop;
+
+        lyricsEl.scrollTo({ top: Math.max(0, clampedTop), behavior: "auto" });
       } else {
         lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
       }
@@ -984,7 +975,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     lyricLines = buildLyricLines(track.lyric, track.tlyric);
     activeLyricIndex = -1;
-    lyricVisualIndex = -1;
+    lyricScrollReady = false;
+    lastLyricScrollAtMs = 0;
     renderLyrics(lyricLines);
     if (lyricsEl) {
       lyricsEl.scrollTo({ top: 0, behavior: "auto" });
