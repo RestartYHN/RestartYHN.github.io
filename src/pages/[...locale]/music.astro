@@ -778,11 +778,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     trackListEl.innerHTML = tracks
       .map(
         (track, idx) => `
-          <li class="music-track-card ${idx === currentIndex ? "active" : ""} ${!track.audio ? "unavailable" : ""}" data-idx="${idx}">
+          <li class="music-track-card ${idx === currentIndex ? "active" : ""} ${track.unavailable ? "unavailable" : ""}" data-idx="${idx}">
             <div class="music-track-index">${String(idx + 1).padStart(2, "0")}</div>
             <div class="min-w-0 flex-1">
               <p class="music-track-title truncate">${track.title || "Unknown"}</p>
-              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}${track.audio ? "" : isEn ? " · Unavailable" : " · 无法播放"}</p>
+              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}${track.unavailable ? isEn ? " · Unavailable" : " · 无法播放" : track.audio ? "" : isEn ? " · Click to load" : " · 点击加载"}</p>
             </div>
           </li>
         `,
@@ -793,21 +793,26 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       el.addEventListener("click", async () => {
         const idx = Number(el.getAttribute("data-idx") || "0");
         currentIndex = idx;
-        const current = tracks[currentIndex];
+        let current = tracks[currentIndex];
         
-        // If no audio, try to fetch URL again (might be cached now)
-        if (!current?.audio && USE_DIRECT_NETEASE_API) {
-          showStatus(isEn ? "Retrying to fetch URL..." : "重新尝试获取播放链接...");
+        // Direct mode: load full track data only when user clicks.
+        if (USE_DIRECT_NETEASE_API && current?.id && !current?.audio && !current?.unavailable) {
+          showStatus(isEn ? "Loading playback URL..." : "正在获取播放链接...");
           try {
-            const urlResp = await getNeteaseJson("/song/url/v1", { id: current.id, level: "standard" });
-            const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
-            if (urlItem?.url) {
-              current.audio = urlItem.url;
-              setTrackCache(current.id, current);
-              hideStatus();
-            }
+            const fullTrack = await loadTrack(current.id);
+            current = {
+              ...current,
+              ...fullTrack,
+              unavailable: !fullTrack?.audio,
+            };
+            tracks[currentIndex] = current;
           } catch (e) {
             console.warn("[music] URL retry failed", e);
+            current = {
+              ...current,
+              unavailable: true,
+            };
+            tracks[currentIndex] = current;
           }
         }
         
@@ -821,17 +826,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         } else if (current?.id) {
           showStatus(
             isEn
-              ? "No playback URL available. Opening NetEase Cloud Music..."
-              : "无可用的播放链接，即将打开网易云音乐...，3秒后",
-            "info"
+              ? "No playable URL for this track in direct mode."
+              : "直连模式下该歌曲暂无可用播放链接。",
+            "error"
           );
-          setTimeout(() => {
-            window.open(
-              `https://music.163.com/#/song?id=${encodeURIComponent(current.id)}`,
-              "_blank",
-              "noopener,noreferrer"
-            );
-          }, 1000);
         } else {
           showStatus(isEn ? "Cannot load this track." : "无法加载此歌曲。", "error");
         }
@@ -985,6 +983,21 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return enqueueTrackLoad(id);
   }
 
+  function mapPlaylistSongToTrack(item) {
+    return {
+      id: item?.id !== undefined ? String(item.id) : "",
+      title: item?.name || "Unknown",
+      artist: Array.isArray(item?.ar)
+        ? item.ar.map((artist) => artist?.name || "Unknown").join(", ")
+        : "Unknown Artist",
+      cover: item?.al?.picUrl || "",
+      audio: "",
+      lyric: "",
+      tlyric: "",
+      unavailable: false,
+    };
+  }
+
   function dedupeIds(ids) {
     return Array.from(new Set((ids || []).map((id) => String(id)).filter(Boolean)));
   }
@@ -1026,7 +1039,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     try {
       showStatus(isEn ? "Loading playlist songs..." : "正在加载歌单歌曲...");
 
-      let result = null;
       if (USE_DIRECT_NETEASE_API) {
         const data = await getNeteaseJson("/playlist/track/all", {
           id: playlistId,
@@ -1034,15 +1046,48 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           offset: 0,
         });
         const songsRaw = Array.isArray(data?.songs) ? data.songs : [];
-        result = {
-          code: 200,
-          data: {
-            songs: songsRaw
-              .map((item) => (item?.id !== undefined ? String(item.id) : ""))
-              .filter(Boolean),
-          },
-        };
-      } else if (userToken) {
+        const limit = Number(musicConfig.playlistSongLimit || 120);
+        const version = ++loadVersion;
+
+        tracks = songsRaw
+          .slice(0, limit)
+          .map((item) => mapPlaylistSongToTrack(item))
+          .filter((item) => item.id);
+
+        if (!tracks.length) {
+          renderTrackList();
+          showStatus(isEn ? "Playlist is empty." : "该歌单为空。", "error");
+          return;
+        }
+
+        currentIndex = 0;
+        updateNowPlaying(tracks[currentIndex]);
+        updatePlayerPosition();
+        renderTrackList();
+        hideStatus();
+        if (playlistSubtitleEl) {
+          playlistSubtitleEl.textContent = isEn ? `Loaded ${tracks.length} songs` : `已加载 ${tracks.length} 首歌`;
+        }
+
+        // Warm only the first track in background to improve first-play experience.
+        loadTrack(tracks[0].id)
+          .then((firstTrack) => {
+            if (version !== loadVersion || !firstTrack) return;
+            tracks[0] = { ...tracks[0], ...firstTrack, unavailable: !firstTrack.audio };
+            if (currentIndex === 0) {
+              updateNowPlaying(tracks[0]);
+            }
+            renderTrackList();
+          })
+          .catch((error) => {
+            console.warn("[music] warm first track failed", error);
+          });
+
+        return;
+      }
+
+      let result = null;
+      if (userToken) {
         result = await getJson(
           `${API_BASE}/api/music/playlist-songs?token=${encodeURIComponent(userToken)}&playlistId=${encodeURIComponent(playlistId)}`,
         );
