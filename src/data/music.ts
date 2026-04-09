@@ -9,6 +9,8 @@ export interface MusicSeedTrack {
 
 export interface MusicConfig {
   apiBase: string;
+  neteaseApiBase: string;
+  preferDirectNeteaseApi: boolean;
   preferPublicProfile: boolean;
   preferCookieProfile: boolean;
   neteaseUserId: string;
@@ -18,10 +20,17 @@ export interface MusicConfig {
 }
 
 const apiBaseFromEnv = (import.meta as any).env?.PUBLIC_MUSIC_API || "http://localhost:17171";
+const neteaseApiBaseFromEnv = (import.meta as any).env?.PUBLIC_NETEASE_API || "";
 
 export const musicConfig: MusicConfig = {
   // You can point this to your backend proxy when deployed.
   apiBase: apiBaseFromEnv,
+
+  // Optional: direct NetEase API base (for no-server setup, e.g. your Vercel api-enhanced URL).
+  neteaseApiBase: neteaseApiBaseFromEnv,
+
+  // If true and neteaseApiBase is set, frontend calls NetEase API directly.
+  preferDirectNeteaseApi: Boolean(neteaseApiBaseFromEnv),
 
   // If true and user id is provided, page can load your public songs without account login.
   preferPublicProfile: true,

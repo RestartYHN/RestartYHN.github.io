@@ -517,6 +517,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
 <script define:vars={{ musicConfig, isEn }}>
   const API_BASE = musicConfig.apiBase;
+  const NETEASE_API_BASE = musicConfig.neteaseApiBase || "";
+  const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
 
   const audio = document.getElementById("music-audio");
   const trackListEl = document.getElementById("music-track-list");
@@ -572,6 +574,31 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       throw new Error(`HTTP ${res.status}`);
     }
     return res.json();
+  }
+
+  function withTimestamp(params = {}) {
+    return {
+      ...params,
+      timestamp: Date.now(),
+    };
+  }
+
+  function buildUrl(base, path, params = {}) {
+    const cleanBase = String(base || "").replace(/\/+$/, "");
+    const cleanPath = String(path || "").replace(/^\/+/, "");
+    const url = new URL(`${cleanBase}/${cleanPath}`);
+    Object.entries(params).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === "") return;
+      url.searchParams.set(k, String(v));
+    });
+    return url.toString();
+  }
+
+  async function getNeteaseJson(path, params = {}) {
+    if (!NETEASE_API_BASE) {
+      throw new Error("PUBLIC_NETEASE_API is not configured");
+    }
+    return getJson(buildUrl(NETEASE_API_BASE, path, withTimestamp(params)));
   }
 
   function formatClock(sec) {
@@ -777,6 +804,33 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   async function loadTrack(id) {
+    if (USE_DIRECT_NETEASE_API) {
+      try {
+        const [detailResp, urlResp, lrcResp] = await Promise.all([
+          getNeteaseJson("/song/detail", { ids: id }),
+          getNeteaseJson("/song/url/v1", { id, level: "standard" }),
+          getNeteaseJson("/lyric", { id }),
+        ]);
+
+        const song = Array.isArray(detailResp?.songs) ? detailResp.songs[0] : null;
+        const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+
+        return {
+          id: String(id),
+          title: song?.name || `Song ${id}`,
+          artist: Array.isArray(song?.ar)
+            ? song.ar.map((item) => item?.name || "Unknown").join(", ")
+            : "Unknown Artist",
+          cover: song?.al?.picUrl || "",
+          audio: urlItem?.url || "",
+          lyric: typeof lrcResp?.lrc?.lyric === "string" ? lrcResp.lrc.lyric : "",
+          tlyric: typeof lrcResp?.tlyric?.lyric === "string" ? lrcResp.tlyric.lyric : "",
+        };
+      } catch (error) {
+        console.warn("[music] load direct track failed", id, error);
+      }
+    }
+
     try {
       const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
       if (result?.code === 200 && result.data) return result.data;
@@ -840,7 +894,22 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       showStatus(isEn ? "Loading playlist songs..." : "正在加载歌单歌曲...");
 
       let result = null;
-      if (userToken) {
+      if (USE_DIRECT_NETEASE_API) {
+        const data = await getNeteaseJson("/playlist/track/all", {
+          id: playlistId,
+          limit: 200,
+          offset: 0,
+        });
+        const songsRaw = Array.isArray(data?.songs) ? data.songs : [];
+        result = {
+          code: 200,
+          data: {
+            songs: songsRaw
+              .map((item) => (item?.id !== undefined ? String(item.id) : ""))
+              .filter(Boolean),
+          },
+        };
+      } else if (userToken) {
         result = await getJson(
           `${API_BASE}/api/music/playlist-songs?token=${encodeURIComponent(userToken)}&playlistId=${encodeURIComponent(playlistId)}`,
         );
@@ -891,6 +960,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   async function restoreUserDataByToken() {
+    if (USE_DIRECT_NETEASE_API) return false;
     if (!userToken) return false;
     try {
       const result = await getJson(`${API_BASE}/api/music/user?token=${encodeURIComponent(userToken)}`);
@@ -910,6 +980,37 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   async function loadPublicProfileIfConfigured() {
     if (!musicConfig.preferPublicProfile || !musicConfig.neteaseUserId) return false;
+
+    if (USE_DIRECT_NETEASE_API) {
+      try {
+        const [detailResp, playlistResp] = await Promise.all([
+          getNeteaseJson("/user/detail", { uid: musicConfig.neteaseUserId }),
+          getNeteaseJson("/user/playlist", { uid: musicConfig.neteaseUserId, limit: 50 }),
+        ]);
+
+        const profile = detailResp?.profile || {};
+        const playlistsRaw = Array.isArray(playlistResp?.playlist) ? playlistResp.playlist : [];
+        userData = {
+          userId: String(profile.userId || musicConfig.neteaseUserId),
+          username: profile.nickname || "NetEase User",
+          avatarUrl: profile.avatarUrl || "",
+          playlists: playlistsRaw.map((pl) => ({
+            id: pl?.id ? String(pl.id) : "",
+            name: pl?.name || (isEn ? "Playlist" : "歌单"),
+            songCount: Number(pl?.trackCount || 0),
+          })),
+          recentSongs: [],
+          recentHistory: [],
+          favoriteSongs: [],
+          source: "public-profile-direct",
+        };
+        return true;
+      } catch (error) {
+        console.warn("[music] load direct public profile failed", error);
+      }
+      return false;
+    }
+
     try {
       const result = await getJson(
         `${API_BASE}/api/music/public-user?uid=${encodeURIComponent(musicConfig.neteaseUserId)}`,
@@ -925,6 +1026,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   async function loadCookieProfileIfConfigured() {
+    if (USE_DIRECT_NETEASE_API) return false;
     if (!musicConfig.preferCookieProfile) return false;
     try {
       const result = await getJson(`${API_BASE}/api/music/cookie-user`);
@@ -1001,14 +1103,22 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         if (hasPublicData) {
           showStatus(
             isEn
-              ? "Loaded public profile songs without QR login."
-              : "已加载公开资料歌曲（免扫码模式）。",
+              ? USE_DIRECT_NETEASE_API
+                ? "Loaded public profile songs from direct NetEase API mode."
+                : "Loaded public profile songs without QR login."
+              : USE_DIRECT_NETEASE_API
+                ? "已通过直连网易云 API 模式加载公开资料歌曲。"
+                : "已加载公开资料歌曲（免扫码模式）。",
           );
         } else {
           showStatus(
             isEn
-              ? "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
-              : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。",
+              ? USE_DIRECT_NETEASE_API
+                ? "No public profile data. Check PUBLIC_NETEASE_API and neteaseUserId."
+                : "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
+              : USE_DIRECT_NETEASE_API
+                ? "未读取到公开资料数据，请检查 PUBLIC_NETEASE_API 与 neteaseUserId。"
+                : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。",
           );
         }
       }
