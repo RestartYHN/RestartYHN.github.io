@@ -714,7 +714,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       tags.forEach((tag) => {
         const t = Number(tag[1]) * 60 + Number(tag[2]) + offsetSec;
         lines.push({
-          time: Math.max(0, t),
+          time: t,
           text: plainText,
         });
       });
@@ -782,24 +782,43 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       .join("");
   }
 
-  function syncLyrics() {
-    if (!audio || !lyricsEl || !lyricLines.length) return;
-    const t = audio.currentTime;
-    let active = 0;
+  function getActiveLyricIndex(currentTime) {
+    if (!lyricLines.length) return -1;
+
+    const t = currentTime + 0.03;
+    if (t < lyricLines[0].time) return -1;
+
+    let active = -1;
     for (let i = 0; i < lyricLines.length; i += 1) {
       if (t >= lyricLines[i].time) active = i;
       else break;
     }
+
+    // If many lines share exactly the same timestamp, keep the first one
+    // to avoid jumping several lines on initial mobile sync.
+    while (active > 0 && lyricLines[active - 1].time === lyricLines[active].time) {
+      active -= 1;
+    }
+
+    return active;
+  }
+
+  function syncLyrics() {
+    if (!audio || !lyricsEl || !lyricLines.length) return;
+    const active = getActiveLyricIndex(audio.currentTime);
     if (active === activeLyricIndex) return;
+
     activeLyricIndex = active;
     lyricsEl.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
+    if (active < 0) return;
+
     const activeLine = lyricsEl.querySelector(`li[data-i='${active}']`);
     if (activeLine) {
       activeLine.classList.add("active");
-      // Keep active line slightly lower than center so the previous line remains visible as a buffer.
       const ACTIVE_LINE_VIEWPORT_RATIO = 0.62;
       const targetTop = activeLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + activeLine.clientHeight / 2;
-      lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+      lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: isMobile ? "auto" : "smooth" });
     }
   }
 
@@ -848,7 +867,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             <div class="music-track-index">${String(idx + 1).padStart(2, "0")}</div>
             <div class="min-w-0 flex-1">
               <p class="music-track-title truncate">${track.title || "Unknown"}</p>
-              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}${track.unavailable ? isEn ? " · Unavailable" : " · 无法播放" : track.audio ? "" : isEn ? " · Click to load" : " · 点击加载"}</p>
+              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}</p>
             </div>
           </li>
         `,
