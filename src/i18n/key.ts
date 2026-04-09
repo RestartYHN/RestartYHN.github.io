@@ -2,6 +2,7 @@ export interface Translation {
     header: {
         home: string;
         article: string;
+        music: string;
         archive: string;
         about: string;
         friends: string;

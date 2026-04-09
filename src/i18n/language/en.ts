@@ -4,6 +4,7 @@ const translation: Translation = {
     header: {
         home: "Home",
         article: "Articles",
+        music: "Music",
         archive: "Archive",
         about: "About",
         friends: "Friends",

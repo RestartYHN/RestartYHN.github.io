@@ -36,6 +36,7 @@ const getLocalePath = (path: string, targetLocale: string) => {
 
 const indexPage = getRelativeLocaleUrl(currentLang, "/");
 const articlesPage = getRelativeLocaleUrl(currentLang, "/articles/");
+const musicPage = getRelativeLocaleUrl(currentLang, "/music/");
 const archivesPage = getRelativeLocaleUrl(currentLang, "/archives/");
 const friendsPage = getRelativeLocaleUrl(currentLang, "/friends/");
 const aboutPage = getRelativeLocaleUrl(currentLang, "/about/");
@@ -136,6 +137,14 @@ if (profileConfig.indexPage) {
               }`}>
               {t("header.article")}
             </a>
+            <!-- 音乐链接 -->
+            <a href={ musicPage } class={`transition-colors rounded-lg px-3 py-1 mx-1 hover:text-current ${
+              Astro.url.pathname.startsWith(musicPage)
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.music")}
+            </a>
           <!-- 归档链接 -->
           <a href={ archivesPage } class={`transition-colors rounded-lg px-3 py-1 mx-1 hover:text-current ${
               Astro.url.pathname === archivesPage 
@@ -199,6 +208,10 @@ if (profileConfig.indexPage) {
             <a href={ articlesPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
               <Icon name="fa6-solid:newspaper" class="w-4 h-4 opacity-70" />
               <span>{t("header.article")}</span>
+            </a>
+            <a href={ musicPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+              <Icon name="fa6-solid:music" class="w-4 h-4 opacity-70" />
+              <span>{t("header.music")}</span>
             </a>
             <a href={ archivesPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
                 <Icon name="fa6-solid:book-bookmark" class="w-4 h-4 opacity-70" />
