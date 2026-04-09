@@ -69,7 +69,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       </section>
     </div>
 
-    <audio id="music-audio" preload="metadata" class="hidden"></audio>
+    <audio id="music-audio" preload="metadata" crossorigin="anonymous" class="hidden"></audio>
 
     <div class="music-bottom-player" id="music-bottom-player">
       <div class="music-bottom-cover" id="music-bottom-cover"></div>
@@ -789,20 +789,48 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       )
       .join("");
 
+    async function refetchAudioUrl(trackId) {
+      if (!USE_DIRECT_NETEASE_API) return null;
+      const strategies = [
+        { level: "standard", br: 320000, encodeType: "mp3" },
+        { level: "higher", br: 320000, encodeType: "mp3" },
+        { level: "standard", br: 192000, encodeType: "mp3" },
+        { level: "standard", br: 128000, encodeType: "mp3" },
+        { level: "exhigh", br: 320000, encodeType: "mp3" },
+      ];
+    
+      for (const strategy of strategies) {
+        try {
+          const urlResp = await getNeteaseJson("/song/url/v1", {
+            id: trackId,
+            level: strategy.level,
+            br: strategy.br,
+            encodeType: strategy.encodeType,
+          });
+          const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+          if (urlItem?.url && urlItem.code === 200) {
+            return urlItem.url;
+          }
+        } catch (e) {
+          console.debug(`[music] refetch strategy ${JSON.stringify(strategy)} failed`);
+        }
+      }
+      return null;
+    }
+
     trackListEl.querySelectorAll(".music-track-card").forEach((el) => {
       el.addEventListener("click", async () => {
         const idx = Number(el.getAttribute("data-idx") || "0");
         currentIndex = idx;
         const current = tracks[currentIndex];
         
-        // If no audio, try to fetch URL again (might be cached now)
+          // If no audio URL, try to fetch with full strategy
         if (!current?.audio && USE_DIRECT_NETEASE_API) {
           showStatus(isEn ? "Retrying to fetch URL..." : "重新尝试获取播放链接...");
           try {
-            const urlResp = await getNeteaseJson("/song/url/v1", { id: current.id, level: "standard" });
-            const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
-            if (urlItem?.url) {
-              current.audio = urlItem.url;
+              const audioUrl = await refetchAudioUrl(current.id);
+              if (audioUrl) {
+                current.audio = audioUrl;
               setTrackCache(current.id, current);
               hideStatus();
             }
@@ -817,21 +845,29 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         
         if (current?.audio && audio?.src) {
           hideStatus();
-          audio.play().catch(() => {});
+            audio.play().catch(async (err) => {
+              console.warn("[music] audio play failed", err);
+              // Try to refetch URL and play again
+              const newAudioUrl = await refetchAudioUrl(current.id);
+              if (newAudioUrl) {
+                current.audio = newAudioUrl;
+                setTrackCache(current.id, current);
+                audio.src = newAudioUrl;
+                audio.load();
+                audio.play().catch(() => {
+                  showStatus(isEn ? "Cannot play this track." : "无法播放此歌曲。", "error");
+                });
+              } else {
+                showStatus(isEn ? "All URL strategies exhausted." : "无法获取可用的播放链接。", "error");
+              }
+            });
         } else if (current?.id) {
           showStatus(
             isEn
-              ? "No playback URL available. Opening NetEase Cloud Music..."
-              : "无可用的播放链接，即将打开网易云音乐...，3秒后",
+                ? "Cannot get playback URL. Try clicking again or use NetEase Cloud Music."
+                : "获取播放链接失败，请重新尝试或使用网易云音乐。",
             "info"
           );
-          setTimeout(() => {
-            window.open(
-              `https://music.163.com/#/song?id=${encodeURIComponent(current.id)}`,
-              "_blank",
-              "noopener,noreferrer"
-            );
-          }, 1000);
         } else {
           showStatus(isEn ? "Cannot load this track." : "无法加载此歌曲。", "error");
         }
@@ -846,19 +882,26 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
-  // Track cache with 10 minute TTL
+  // Track cache: 5 minute TTL for audio URLs (may expire), 30 min for metadata
   const trackCacheKey = "music-track-cache-v1";
-  const trackCacheTTL = 10 * 60 * 1000; // 10 minutes
+  const audioCacheTTL = 5 * 60 * 1000; // 5 minutes (audios expire quickly)
+  const metadataCacheTTL = 30 * 60 * 1000; // 30 minutes for title/artist/lyric
   
   function getTrackCache(id) {
     try {
       const cached = localStorage.getItem(`${trackCacheKey}:${id}`);
       if (!cached) return null;
       const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp > trackCacheTTL) {
+        // Audio URLs expire faster, check separately
+        const ttl = data.audio ? audioCacheTTL : metadataCacheTTL;
+        if (Date.now() - timestamp > ttl) {
         localStorage.removeItem(`${trackCacheKey}:${id}`);
         return null;
       }
+        // If metadata is fresh but audio expired, keep metadata
+        if (data.audio && Date.now() - timestamp > audioCacheTTL) {
+          data.audio = ""; // Clear expired audio URL
+        }
       return data;
     } catch {
       return null;
@@ -939,19 +982,51 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           }
         }
 
-        const result = {
-          id: String(id),
-          title: song?.name || `Song ${id}`,
-          artist: Array.isArray(song?.ar)
-            ? song.ar.map((item) => item?.name || "Unknown").join(", ")
-            : "Unknown Artist",
-          cover: song?.al?.picUrl || "",
-          audio: audioUrl,
-          lyric: typeof lrcResp?.lrc?.lyric === "string" ? lrcResp.lrc.lyric : "",
-          tlyric: typeof lrcResp?.tlyric?.lyric === "string" ? lrcResp.tlyric.lyric : "",
-        };
-        setTrackCache(id, result);
-        return result;
+          // Try multiple combinations of level, br, and encodeType
+          let audioUrl = "";
+          const strategies = [
+            { level: "standard", br: 320000, encodeType: "mp3" },
+            { level: "higher", br: 320000, encodeType: "mp3" },
+            { level: "exhigh", br: 320000, encodeType: "mp3" },
+            { level: "lossless", br: 999000, encodeType: "flac" },
+            { level: "hires", br: 999000, encodeType: "flac" },
+            { level: "standard", br: 192000, encodeType: "mp3" },
+            { level: "standard", br: 128000, encodeType: "mp3" },
+          ];
+        
+          for (const strategy of strategies) {
+            if (audioUrl) break;
+            try {
+              const urlResp = await getNeteaseJson("/song/url/v1", {
+                id,
+                level: strategy.level,
+                br: strategy.br,
+                encodeType: strategy.encodeType,
+              });
+              const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+              if (urlItem?.url && urlItem.code === 200) {
+                audioUrl = urlItem.url;
+                console.debug(`[music] got ${strategy.level}/${strategy.encodeType} URL for ${id}`);
+                break;
+              }
+            } catch (e) {
+              console.debug(`[music] strategy ${JSON.stringify(strategy)} failed`, e);
+            }
+          }
+
+          const result = {
+            id: String(id),
+            title: song?.name || `Song ${id}`,
+            artist: Array.isArray(song?.ar)
+              ? song.ar.map((item) => item?.name || "Unknown").join(", ")
+              : "Unknown Artist",
+            cover: song?.al?.picUrl || "",
+            audio: audioUrl,
+            lyric: typeof lrcResp?.lrc?.lyric === "string" ? lrcResp.lrc.lyric : "",
+            tlyric: typeof lrcResp?.tlyric?.lyric === "string" ? lrcResp.tlyric.lyric : "",
+          };
+          setTrackCache(id, result);
+          return result;
       } catch (error) {
         console.warn("[music] load direct track failed", id, error);
       }
