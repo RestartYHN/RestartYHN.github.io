@@ -625,6 +625,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return trimmed;
   }
 
+  function withPreferredRealIP(params = {}) {
+    if (!NETEASE_REAL_IP) return params;
+    return {
+      ...params,
+      realIP: NETEASE_REAL_IP,
+    };
+  }
+
   async function getBestDirectAudioUrl(id) {
     const levels = ["standard", "higher", "exhigh", "lossless"];
     const realIpCandidates = Array.from(
@@ -970,8 +978,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (USE_DIRECT_NETEASE_API) {
       try {
         const [detailResp, lrcResp] = await Promise.all([
-          getNeteaseJson("/song/detail", { ids: id }),
-          getNeteaseJson("/lyric", { id }),
+          getNeteaseJson("/song/detail", withPreferredRealIP({ ids: id })),
+          getNeteaseJson("/lyric", withPreferredRealIP({ id })),
         ]);
 
         const song = Array.isArray(detailResp?.songs) ? detailResp.songs[0] : null;
@@ -1084,18 +1092,21 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         try {
           // Prefer playlist/detail: it keeps full playlist metadata (e.g. 12 tracks here),
           // while playlist/track/all may drop tracks that cannot provide playable URLs.
-          const detail = await getNeteaseJson("/playlist/detail", { id: playlistId });
+          const detail = await getNeteaseJson("/playlist/detail", withPreferredRealIP({ id: playlistId }));
           songsRaw = Array.isArray(detail?.playlist?.tracks) ? detail.playlist.tracks : [];
         } catch (error) {
           console.warn("[music] load /playlist/detail failed", error);
         }
 
         if (!songsRaw.length) {
-          const data = await getNeteaseJson("/playlist/track/all", {
-            id: playlistId,
-            limit: 500,
-            offset: 0,
-          });
+          const data = await getNeteaseJson(
+            "/playlist/track/all",
+            withPreferredRealIP({
+              id: playlistId,
+              limit: 500,
+              offset: 0,
+            }),
+          );
           songsRaw = Array.isArray(data?.songs) ? data.songs : [];
         }
 
