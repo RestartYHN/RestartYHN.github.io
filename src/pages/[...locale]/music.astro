@@ -803,7 +803,71 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
-  async function loadTrack(id) {
+  // Track cache with 10 minute TTL
+  const trackCacheKey = "music-track-cache-v1";
+  const trackCacheTTL = 10 * 60 * 1000; // 10 minutes
+  
+  function getTrackCache(id) {
+    try {
+      const cached = localStorage.getItem(`${trackCacheKey}:${id}`);
+      if (!cached) return null;
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp > trackCacheTTL) {
+        localStorage.removeItem(`${trackCacheKey}:${id}`);
+        return null;
+      }
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  function setTrackCache(id, data) {
+    try {
+      localStorage.setItem(`${trackCacheKey}:${id}`, JSON.stringify({
+        data,
+        timestamp: Date.now(),
+      }));
+    } catch (e) {
+      console.warn("[music] cache write failed", e);
+    }
+  }
+
+  // Concurrent request queue (max 3 simultaneous)
+  let trackLoadQueue = [];
+  let trackLoadInProgress = 0;
+  const MAX_CONCURRENT = 3;
+
+  function enqueueTrackLoad(id) {
+    return new Promise((resolve, reject) => {
+      trackLoadQueue.push({ id, resolve, reject });
+      processTrackLoadQueue();
+    });
+  }
+
+  async function processTrackLoadQueue() {
+    if (trackLoadInProgress >= MAX_CONCURRENT || trackLoadQueue.length === 0) return;
+    trackLoadInProgress += 1;
+    const { id, resolve, reject } = trackLoadQueue.shift();
+    try {
+      const result = await loadTrackInternal(id);
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    } finally {
+      trackLoadInProgress -= 1;
+      processTrackLoadQueue();
+    }
+  }
+
+  async function loadTrackInternal(id) {
+    // Check cache first
+    const cached = getTrackCache(id);
+    if (cached) {
+      console.debug("[music] track cache hit", id);
+      return cached;
+    }
+
     if (USE_DIRECT_NETEASE_API) {
       try {
         const [detailResp, urlResp, lrcResp] = await Promise.all([
@@ -815,7 +879,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         const song = Array.isArray(detailResp?.songs) ? detailResp.songs[0] : null;
         const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
 
-        return {
+        const result = {
           id: String(id),
           title: song?.name || `Song ${id}`,
           artist: Array.isArray(song?.ar)
@@ -826,6 +890,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           lyric: typeof lrcResp?.lrc?.lyric === "string" ? lrcResp.lrc.lyric : "",
           tlyric: typeof lrcResp?.tlyric?.lyric === "string" ? lrcResp.tlyric.lyric : "",
         };
+        setTrackCache(id, result);
+        return result;
       } catch (error) {
         console.warn("[music] load direct track failed", id, error);
       }
@@ -833,7 +899,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     try {
       const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
-      if (result?.code === 200 && result.data) return result.data;
+      if (result?.code === 200 && result.data) {
+        setTrackCache(id, result.data);
+        return result.data;
+      }
     } catch (error) {
       console.warn("[music] load track failed", id, error);
     }
@@ -850,6 +919,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       lyric: "",
       tlyric: "",
     };
+  }
+
+  async function loadTrack(id) {
+    return enqueueTrackLoad(id);
   }
 
   function dedupeIds(ids) {
