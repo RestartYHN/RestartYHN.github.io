@@ -611,6 +611,50 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return getJson(buildUrl(NETEASE_API_BASE, path, withTimestamp(params)));
   }
 
+  function normalizeAudioUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== "string") return "";
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return "";
+
+    // GitHub Pages is HTTPS. Convert known NetEase HTTP media links to HTTPS to avoid mixed-content blocking.
+    if (window.location.protocol === "https:" && /^http:\/\/m\d+\.music\.126\.net\//i.test(trimmed)) {
+      return trimmed.replace(/^http:\/\//i, "https://");
+    }
+
+    return trimmed;
+  }
+
+  async function getBestDirectAudioUrl(id) {
+    const levels = ["standard", "higher", "exhigh", "lossless"];
+
+    for (const level of levels) {
+      try {
+        const urlResp = await getNeteaseJson("/song/url/v1", { id, level });
+        const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+        const normalized = normalizeAudioUrl(urlItem?.url || "");
+        if (normalized) {
+          return normalized;
+        }
+      } catch (e) {
+        console.debug(`[music] /song/url/v1 failed for ${id} at ${level}`, e);
+      }
+    }
+
+    // Fallback endpoint for compatibility with some tracks.
+    try {
+      const legacyResp = await getNeteaseJson("/song/url", { id, br: 320000 });
+      const legacyItem = Array.isArray(legacyResp?.data) ? legacyResp.data[0] : null;
+      const normalized = normalizeAudioUrl(legacyItem?.url || "");
+      if (normalized) {
+        return normalized;
+      }
+    } catch (e) {
+      console.debug(`[music] /song/url fallback failed for ${id}`, e);
+    }
+
+    return "";
+  }
+
   function formatClock(sec) {
     const t = Number.isFinite(sec) ? Math.max(0, Math.floor(sec)) : 0;
     const m = Math.floor(t / 60);
@@ -917,25 +961,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         ]);
 
         const song = Array.isArray(detailResp?.songs) ? detailResp.songs[0] : null;
-        
-        // Try multiple quality levels for URL (standard → higher → lower)
-        let audioUrl = "";
-        const qualityLevels = ["standard", "higher", "lossless", "exhigh"];
-        
-        for (const level of qualityLevels) {
-          if (audioUrl) break;
-          try {
-            const urlResp = await getNeteaseJson("/song/url/v1", { id, level });
-            const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
-            if (urlItem?.url) {
-              audioUrl = urlItem.url;
-              console.debug(`[music] got ${level} quality URL for ${id}`);
-              break;
-            }
-          } catch (e) {
-            console.debug(`[music] quality ${level} failed`, e);
-          }
-        }
+        const audioUrl = await getBestDirectAudioUrl(id);
 
         const result = {
           id: String(id),
