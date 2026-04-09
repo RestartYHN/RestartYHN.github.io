@@ -1005,10 +1005,43 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       const version = ++loadVersion;
       tracks = [];
 
-      for (const id of ids) {
+      // Batch rendering: first show 20 songs, then continue loading rest
+      const BATCH_SIZE = 20;
+      const batchesCount = Math.ceil(ids.length / BATCH_SIZE);
+
+      for (let batchIdx = 0; batchIdx < batchesCount; batchIdx += 1) {
         if (version !== loadVersion) return;
-        const track = await loadTrack(id);
-        tracks.push(track);
+
+        const batchStart = batchIdx * BATCH_SIZE;
+        const batchEnd = Math.min(batchStart + BATCH_SIZE, ids.length);
+        const batchIds = ids.slice(batchStart, batchEnd);
+
+        // Load all tracks in this batch
+        for (const id of batchIds) {
+          if (version !== loadVersion) return;
+          const track = await loadTrack(id);
+          tracks.push(track);
+        }
+
+        // Render tracks after each batch (show progressive loading)
+        if (tracks.length && !currentIndex) {
+          currentIndex = 0;
+          updateNowPlaying(tracks[currentIndex]);
+        }
+        if (tracks.length) {
+          updatePlayerPosition();
+          renderTrackList();
+        }
+
+        // After first batch, hide loading message
+        if (batchIdx === 0 && batchesCount > 1) {
+          hideStatus();
+          if (playlistSubtitleEl) {
+            playlistSubtitleEl.textContent = isEn
+              ? `Loading... ${tracks.length} / ${ids.length}`
+              : `加载中... ${tracks.length} / ${ids.length}`;
+          }
+        }
       }
 
       if (version !== loadVersion) return;
@@ -1018,10 +1051,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         return;
       }
 
-      currentIndex = 0;
-      updateNowPlaying(tracks[currentIndex]);
-      updatePlayerPosition();
-      renderTrackList();
       hideStatus();
       if (playlistSubtitleEl) {
         playlistSubtitleEl.textContent = isEn ? `Loaded ${tracks.length} songs` : `已加载 ${tracks.length} 首歌`;
@@ -1098,6 +1127,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return false;
   }
 
+  async function warmupNeteaseApi() {
+    if (!USE_DIRECT_NETEASE_API || !NETEASE_API_BASE) return;
+    try {
+      await getNeteaseJson("/inner/version", {});
+      console.debug("[music] API warmup succeeded");
+    } catch (e) {
+      console.debug("[music] API warmup (non-critical)", e);
+    }
+  }
+
   async function loadCookieProfileIfConfigured() {
     if (USE_DIRECT_NETEASE_API) return false;
     if (!musicConfig.preferCookieProfile) return false;
@@ -1162,6 +1201,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   });
 
   (async () => {
+    // Warmup API in parallel (don't await)
+    warmupNeteaseApi();
+
     const hasTokenData = await restoreUserDataByToken();
     if (!hasTokenData) {
       const hasCookieData = await loadCookieProfileIfConfigured();
