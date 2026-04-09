@@ -254,6 +254,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     line-height: 1.9;
   }
 
+  @media (max-width: 768px) {
+    .music-lyrics {
+      scroll-behavior: auto;
+      scroll-padding-block: 35%;
+    }
+  }
+
   .music-lyrics li {
     color: var(--text-color-70);
     padding: 0.4rem 0;
@@ -372,6 +379,56 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     background: color-mix(in oklab, var(--bg-color) 90%, transparent);
     padding: 0.75rem;
     backdrop-filter: blur(8px);
+  }
+
+  @media (max-width: 768px) {
+    .music-bottom-player {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr) auto auto auto;
+      grid-template-areas:
+        "cover info prev play next"
+        "cover progress progress progress progress";
+      gap: 0.45rem 0.5rem;
+      align-items: center;
+      padding: 0.65rem;
+    }
+
+    .music-bottom-cover {
+      grid-area: cover;
+    }
+
+    .music-bottom-player .min-w-0 {
+      grid-area: info;
+      min-width: 0;
+    }
+
+    #music-prev {
+      grid-area: prev;
+    }
+
+    #music-main-play {
+      grid-area: play;
+    }
+
+    #music-next {
+      grid-area: next;
+    }
+
+    .music-progress-wrap {
+      grid-area: progress;
+      margin-top: 0.2rem;
+      grid-template-columns: 34px 1fr 34px;
+      gap: 0.35rem;
+    }
+
+    .music-position-info {
+      display: none;
+    }
+
+    .music-control {
+      width: 36px;
+      height: 36px;
+    }
   }
 
   .music-bottom-cover {
@@ -556,6 +613,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let currentIndex = 0;
   let lyricLines = [];
   let activeLyricIndex = -1;
+  let lyricScrollReady = false;
   let loadVersion = 0;
   let currentPlaylistId = "";
   let userToken = localStorage.getItem("music-user-token") || null;
@@ -714,7 +772,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       tags.forEach((tag) => {
         const t = Number(tag[1]) * 60 + Number(tag[2]) + offsetSec;
         lines.push({
-          time: t,
+          time: Math.max(0, t),
           text: plainText,
         });
       });
@@ -815,6 +873,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     const activeLine = lyricsEl.querySelector(`li[data-i='${active}']`);
     if (activeLine) {
       activeLine.classList.add("active");
+
+      if (!lyricScrollReady && audio.currentTime < 1.2) {
+        return;
+      }
+      lyricScrollReady = true;
+
       const ACTIVE_LINE_VIEWPORT_RATIO = 0.62;
       const targetTop = activeLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + activeLine.clientHeight / 2;
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -850,7 +914,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     lyricLines = buildLyricLines(track.lyric, track.tlyric);
     activeLyricIndex = -1;
+    lyricScrollReady = false;
     renderLyrics(lyricLines);
+    if (lyricsEl) {
+      lyricsEl.scrollTo({ top: 0, behavior: "auto" });
+    }
   }
 
   function renderTrackList() {
