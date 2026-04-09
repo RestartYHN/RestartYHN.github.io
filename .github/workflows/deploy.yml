@@ -41,6 +41,7 @@ jobs:
         env:
           PUBLIC_MUSIC_API: ${{ secrets.PUBLIC_MUSIC_API }}
           PUBLIC_NETEASE_API: ${{ secrets.PUBLIC_NETEASE_API }}
+          PUBLIC_NETEASE_REAL_IP: ${{ secrets.PUBLIC_NETEASE_REAL_IP }}
 
       - name: Upload
         uses: actions/upload-pages-artifact@v3
