@@ -54,37 +54,37 @@ if (profileConfig.indexPage) {
 
 <!-- header -->
 <div id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out md:relative md:translate-y-0">
-<div class="flex items-center pt-2 md:py-4 text-[var(--text-color)] max-w-[var(--header-width)] mx-auto">
+<div class="flex items-center pt-1 md:py-4 text-[var(--text-color)] max-w-[var(--header-width)] mx-auto">
     <!-- logo -->
-    <div class="pr-4 py-2 z-30 header-logo">
+    <div class="pr-2 md:pr-4 py-1 md:py-2 z-30 header-logo">
         <a href={ indexPage } >
-        <span class="flex items-center gap-3 hover:opacity-60 transition-opacity">
+        <span class="flex items-center gap-2 md:gap-3 hover:opacity-60 transition-opacity">
           {isExternalAvatar ? (
-            <img src={headerAvatarSrc} alt={profileConfig.name} width="36" height="36" loading="eager" decoding="async" fetchpriority="high" class="w-9 h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
+            <img src={headerAvatarSrc} alt={profileConfig.name} width="36" height="36" loading="eager" decoding="async" fetchpriority="high" class="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
           ) : (
-            <Image src={headerAvatar} alt={profileConfig.name} width={36} height={36} quality={70} format="webp" loading="eager" class="w-9 h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
+            <Image src={headerAvatar} alt={profileConfig.name} width={36} height={36} quality={70} format="webp" loading="eager" class="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
           )}
-          <span class="text-[1.40625rem] font-bold">{ siteConfig.title }</span>
+          <span class="text-[1.125rem] md:text-[1.40625rem] font-bold">{ siteConfig.title }</span>
         </span>
         </a>
     </div>
     
     <!-- tools -->
-    <div class="ml-auto flex gap-2 pl-4 py-2 justify-end z-30">
+    <div class="ml-auto flex gap-1.5 md:gap-2 pl-2 md:pl-4 py-1 md:py-2 justify-end z-30">
         <!-- Search -->
-        <button id="search-button" class="flex items-center justify-center w-10 h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Search">
-            <Icon name="fa6-solid:magnifying-glass" class="w-4 h-4" />
+      <button id="search-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Search">
+        <Icon name="fa6-solid:magnifying-glass" class="w-3.5 h-3.5 md:w-4 md:h-4" />
         </button>
         <!-- Dark Mode -->
-        <ThemeIcon class="flex items-center justify-center w-10 h-10 hover:bg-[var(--button-hover-color)] rounded-lg hover:text-current active:scale-90 border border-[var(--button-border-color)] transition-all duration-300"/>
+      <ThemeIcon class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] rounded-lg hover:text-current active:scale-90 border border-[var(--button-border-color)] transition-all duration-300"/>
         <!-- RSS -->
         <!-- <a href="/rss.xml" target="_blank" class="flex items-center justify-center w-10 h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300">
             <Icon name="simple-icons:rss" class="w-4 h-4" />
         </a> -->
         <!-- Language Switcher -->
         <div class="relative">
-            <button id="language-button" class="flex items-center justify-center w-10 h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Language Switcher">
-                <Icon name="fa6-solid:globe" class="w-4 h-4" />
+            <button id="language-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Language Switcher">
+              <Icon name="fa6-solid:globe" class="w-3.5 h-3.5 md:w-4 md:h-4" />
             </button>
             
           <!-- Language Dropdown Menu -->
@@ -107,8 +107,8 @@ if (profileConfig.indexPage) {
         </div>
         <div class="relative md:hidden">
           <!-- Mobile Menu -->
-          <button id="mobile-menu-button" class="flex items-center justify-center w-10 h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Mobile Menu">
-              <Icon name="fa6-solid:align-justify" class="w-5 h-5" />
+            <button id="mobile-menu-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Mobile Menu">
+              <Icon name="fa6-solid:align-justify" class="w-4 h-4 md:w-5 md:h-5" />
           </button>
               
         </div>
