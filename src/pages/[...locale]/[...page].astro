@@ -1,6 +1,7 @@
 ---
 import MainPageLayout from '@layouts/MainPageLayout.astro';
 import Cover from '@components/Cover.astro';
+import FindMeCard from '@components/misc/FindMeCard.astro';
 import HomePostCards from '@components/misc/HomePostCards.astro';
 import FabMenu from '@components/control/FabMenu.astro';
 
@@ -47,6 +48,7 @@ const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
     title={t("cover.title.home")}
     rotatingPair={localeContent.cover.rotatingPair.home}
   />
+  <FindMeCard />
   <HomePostCards />
   <FabMenu showBackBottom={true} />
 </MainPageLayout>

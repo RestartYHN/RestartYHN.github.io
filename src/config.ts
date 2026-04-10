@@ -21,6 +21,18 @@ export interface ExternalLinkItem {
     order?: number;
 }
 
+export interface FindMeAccountItem {
+    platform: string;
+    account: string;
+    url: string;
+    description?: {
+        "zh-cn": string;
+        en: string;
+    };
+    enabled?: boolean;
+    order?: number;
+}
+
 const commentsBackendUrl =
     (import.meta as any).env?.PUBLIC_COMMENTS_API || "https://momo-backend-worker.478929164.workers.dev";
 
@@ -116,5 +128,63 @@ export const externalLinkConfig: ExternalLinkItem[] = [
         tag: "Infra",
         enabled: true,
         order: 3
+    }
+]
+
+export const findMeAccounts: FindMeAccountItem[] = [
+    {
+        platform: "QZone",
+        account: "180356381",
+        url: "https://user.qzone.qq.com/180356381",
+        description: {
+            "zh-cn": "QQ 空间主页",
+            en: "QZone profile"
+        },
+        enabled: true,
+        order: 1
+    },
+    {
+        platform: "Bilibili",
+        account: "499205919",
+        url: "https://space.bilibili.com/499205919?spm_id_from=333.1007.0.0",
+        description: {
+            "zh-cn": "B 站主页",
+            en: "Bilibili profile"
+        },
+        enabled: true,
+        order: 2
+    },
+    {
+        platform: "NetEase Music",
+        account: "2112672342",
+        url: "https://music.163.com/#/user/home?id=2112672342",
+        description: {
+            "zh-cn": "网易云音乐主页",
+            en: "NetEase Cloud Music profile"
+        },
+        enabled: true,
+        order: 3
+    },
+    {
+        platform: "Steam",
+        account: "76561199866224092",
+        url: "https://steamcommunity.com/profiles/76561199866224092/",
+        description: {
+            "zh-cn": "Steam 个人资料",
+            en: "Steam profile"
+        },
+        enabled: true,
+        order: 4
+    },
+    {
+        platform: "GitHub",
+        account: "RestartYHN",
+        url: "https://github.com/RestartYHN",
+        description: {
+            "zh-cn": "GitHub 主页",
+            en: "GitHub profile"
+        },
+        enabled: true,
+        order: 5
     }
 ]
