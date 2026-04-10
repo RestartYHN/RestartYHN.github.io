@@ -1,0 +1,441 @@
+---
+import { musicConfig } from '@/data/music';
+---
+
+<div id="global-music-player" transition:persist>
+  <audio id="music-audio" preload="metadata" class="hidden"></audio>
+
+  <div class="music-bottom-player" id="music-bottom-player">
+    <div class="music-bottom-cover" id="music-bottom-cover"></div>
+    <div class="min-w-0 flex-1">
+      <p id="music-bottom-title" class="truncate font-semibold text-[var(--text-color)]">-</p>
+      <p id="music-bottom-artist" class="truncate text-sm text-[var(--text-color-70)]">-</p>
+      <div class="music-progress-wrap">
+        <span id="music-current-time" class="music-time">0:00</span>
+        <input id="music-progress" class="music-progress" type="range" min="0" max="1000" value="0" step="1" />
+        <span id="music-total-time" class="music-time">0:00</span>
+      </div>
+    </div>
+    <span id="music-player-position" class="music-position-info">-</span>
+    <button id="music-prev" class="music-control" type="button" aria-label="Prev">◀</button>
+    <button
+      id="music-main-play"
+      class="music-control primary music-control-play"
+      type="button"
+      aria-label="Play"
+      aria-pressed="false"
+      data-ui-rev="icon-v2"
+    >
+      <span class="music-control-icon music-control-icon-play" aria-hidden="true">▶</span>
+      <span class="music-control-icon music-control-icon-pause hidden" aria-hidden="true">❚❚</span>
+    </button>
+    <button id="music-next" class="music-control" type="button" aria-label="Next">▶</button>
+  </div>
+</div>
+
+<style is:global>
+  .music-bottom-player {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0.8rem;
+    width: min(960px, calc(100vw - 1.2rem));
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--button-border-color);
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--bg-color) 90%, transparent);
+    padding: 0.75rem;
+    backdrop-filter: blur(8px);
+  }
+
+  .music-bottom-cover {
+    width: 54px;
+    height: 54px;
+    border-radius: 0.6rem;
+    background: var(--button-hover-color);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+  }
+
+  .music-progress-wrap {
+    margin-top: 0.2rem;
+    display: grid;
+    grid-template-columns: 42px 1fr 42px;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .music-time {
+    font-size: 0.72rem;
+    color: var(--text-color-70);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .music-progress {
+    width: 100%;
+    height: 4px;
+    appearance: none;
+    border-radius: 999px;
+    outline: none;
+    background: color-mix(in oklab, var(--text-color-70) 18%, transparent);
+  }
+
+  .music-progress::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #d5a56a;
+    border: 2px solid color-mix(in oklab, #d5a56a 20%, white);
+    cursor: pointer;
+  }
+
+  .music-control {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid var(--button-border-color);
+    background: color-mix(in oklab, var(--bg-color) 85%, transparent);
+    color: var(--text-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .music-control.primary {
+    width: 44px;
+    height: 44px;
+    background: #d5a56a;
+    border-color: #d5a56a;
+    color: #fff;
+  }
+
+  .music-control-icon {
+    display: inline-block;
+    line-height: 1;
+  }
+
+  .music-control-icon.hidden {
+    display: none;
+  }
+
+  .music-position-info {
+    min-width: 52px;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--text-color-70);
+  }
+
+  @media (max-width: 768px) {
+    .music-bottom-player {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr) auto auto auto;
+      grid-template-areas:
+        "cover info prev play next"
+        "progress progress progress progress progress";
+      gap: 0.45rem 0.5rem;
+      align-items: center;
+      padding: 0.65rem;
+      width: calc(100vw - 0.8rem);
+      bottom: 0.4rem;
+    }
+
+    .music-bottom-cover {
+      grid-area: cover;
+    }
+
+    .music-bottom-player .min-w-0 {
+      grid-area: info;
+      min-width: 0;
+    }
+
+    #music-prev {
+      grid-area: prev;
+    }
+
+    #music-main-play {
+      grid-area: play;
+    }
+
+    #music-next {
+      grid-area: next;
+    }
+
+    .music-progress-wrap {
+      grid-area: progress;
+      grid-column: 1 / -1;
+      margin-top: 0.2rem;
+      margin-left: -0.65rem;
+      margin-right: -0.65rem;
+      padding: 0 0.65rem;
+      grid-template-columns: 34px 1fr 34px;
+      gap: 0.35rem;
+    }
+
+    .music-position-info {
+      display: none;
+    }
+
+    .music-control {
+      width: 36px;
+      height: 36px;
+    }
+
+    .music-control.primary {
+      width: 40px;
+      height: 40px;
+    }
+  }
+</style>
+
+<script define:vars={{ musicConfig }}>
+  const GLOBAL_MUSIC_KEY = '__globalMusicBootstrapV1';
+
+  function isMusicPagePath() {
+    return /\/music\/?$/i.test(window.location.pathname);
+  }
+
+  function formatClock(sec) {
+    const t = Number.isFinite(sec) ? Math.max(0, Math.floor(sec)) : 0;
+    const m = Math.floor(t / 60);
+    const s = t % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  function normalizeAudioUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== 'string') return '';
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return '';
+    if (window.location.protocol === 'https:' && /^http:\/\/m\d+\.music\.126\.net\//i.test(trimmed)) {
+      return trimmed.replace(/^http:\/\//i, 'https://');
+    }
+    return trimmed;
+  }
+
+  async function getJson(url) {
+    const res = await fetch(url, { referrerPolicy: 'no-referrer' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function makeController() {
+    const API_BASE = musicConfig.apiBase;
+
+    const state = {
+      tracks: [],
+      currentIndex: 0,
+      loaded: false,
+      loading: false,
+      bound: false,
+      handlers: {},
+      els: null,
+    };
+
+    function getEls() {
+      return {
+        audio: document.getElementById('music-audio'),
+        bottomCover: document.getElementById('music-bottom-cover'),
+        bottomTitle: document.getElementById('music-bottom-title'),
+        bottomArtist: document.getElementById('music-bottom-artist'),
+        progressEl: document.getElementById('music-progress'),
+        currentTimeEl: document.getElementById('music-current-time'),
+        totalTimeEl: document.getElementById('music-total-time'),
+        btnMainPlay: document.getElementById('music-main-play'),
+        btnPrev: document.getElementById('music-prev'),
+        btnNext: document.getElementById('music-next'),
+        posEl: document.getElementById('music-player-position'),
+      };
+    }
+
+    function updatePlayButtonState() {
+      const { audio, btnMainPlay } = state.els || {};
+      if (!audio || !btnMainPlay) return;
+      const isPlaying = !audio.paused;
+      const playIcon = btnMainPlay.querySelector('.music-control-icon-play');
+      const pauseIcon = btnMainPlay.querySelector('.music-control-icon-pause');
+      btnMainPlay.classList.toggle('playing', isPlaying);
+      btnMainPlay.setAttribute('aria-pressed', String(isPlaying));
+      btnMainPlay.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+      playIcon?.classList.toggle('hidden', isPlaying);
+      pauseIcon?.classList.toggle('hidden', !isPlaying);
+    }
+
+    function updateProgressVisual() {
+      const { progressEl } = state.els || {};
+      if (!progressEl) return;
+      const ratio = Number(progressEl.value || 0) / 1000;
+      progressEl.style.setProperty('--progress-percent', `${Math.max(0, Math.min(100, ratio * 100))}%`);
+    }
+
+    function updatePlayerPosition() {
+      const { posEl } = state.els || {};
+      if (!posEl) return;
+      if (!state.tracks.length) {
+        posEl.textContent = '-';
+        return;
+      }
+      posEl.textContent = `${state.currentIndex + 1} / ${state.tracks.length}`;
+    }
+
+    async function loadTrack(id) {
+      const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
+      if (result?.code === 200 && result?.data) {
+        return {
+          ...result.data,
+          audio: normalizeAudioUrl(result.data?.audio || ''),
+        };
+      }
+      return null;
+    }
+
+    async function hydrateTrack(idx) {
+      const current = state.tracks[idx];
+      if (!current) return null;
+      if (current.audio) return current;
+      const full = await loadTrack(current.id);
+      if (!full) return current;
+      const merged = { ...current, ...full };
+      state.tracks[idx] = merged;
+      return merged;
+    }
+
+    function updateNowPlaying(track) {
+      const { audio, bottomCover, bottomTitle, bottomArtist } = state.els || {};
+      if (bottomTitle) bottomTitle.textContent = track?.title || '-';
+      if (bottomArtist) bottomArtist.textContent = track?.artist || '-';
+      if (bottomCover) bottomCover.style.backgroundImage = track?.cover ? `url(${track.cover})` : '';
+      if (!audio) return;
+
+      if (track?.audio) {
+        const previousSrc = audio.getAttribute('src') || '';
+        if (previousSrc !== track.audio) {
+          audio.src = track.audio;
+          audio.load();
+        }
+      }
+      updatePlayerPosition();
+      updatePlayButtonState();
+    }
+
+    async function playCurrent() {
+      const { audio } = state.els || {};
+      if (!audio || !state.tracks.length) return;
+      const track = await hydrateTrack(state.currentIndex);
+      if (!track) return;
+      updateNowPlaying(track);
+      if (track.audio) {
+        audio.play().catch(() => {});
+      }
+      updatePlayButtonState();
+    }
+
+    async function step(delta) {
+      if (!state.tracks.length) return;
+      state.currentIndex = (state.currentIndex + delta + state.tracks.length) % state.tracks.length;
+      await playCurrent();
+    }
+
+    function bind() {
+      if (state.bound || isMusicPagePath()) return;
+      state.els = getEls();
+      const { audio, btnMainPlay, btnPrev, btnNext, progressEl } = state.els;
+      if (!audio || !btnMainPlay || !btnPrev || !btnNext || !progressEl) return;
+
+      state.handlers.onMainPlay = async () => {
+        if (!state.tracks.length && !audio.src) return;
+        if (!audio.src) {
+          await playCurrent();
+          return;
+        }
+        if (audio.paused) audio.play().catch(() => {});
+        else audio.pause();
+        updatePlayButtonState();
+      };
+
+      state.handlers.onPrev = () => step(-1);
+      state.handlers.onNext = () => step(1);
+      state.handlers.onTimeUpdate = () => {
+        if (!audio || !progressEl) return;
+        const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+        const current = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+        if (duration > 0) {
+          progressEl.value = String(Math.round((current / duration) * 1000));
+          updateProgressVisual();
+        }
+        if (state.els?.currentTimeEl) state.els.currentTimeEl.textContent = formatClock(current);
+        if (state.els?.totalTimeEl) state.els.totalTimeEl.textContent = formatClock(duration);
+      };
+
+      state.handlers.onEnded = () => step(1);
+      state.handlers.onLoadedMetadata = () => {
+        if (state.els?.totalTimeEl) state.els.totalTimeEl.textContent = formatClock(audio.duration || 0);
+      };
+      state.handlers.onProgressInput = () => {
+        if (!audio) return;
+        const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+        if (duration <= 0) return;
+        const ratio = Number(progressEl.value || 0) / 1000;
+        audio.currentTime = duration * Math.max(0, Math.min(1, ratio));
+      };
+
+      btnMainPlay.addEventListener('click', state.handlers.onMainPlay);
+      btnPrev.addEventListener('click', state.handlers.onPrev);
+      btnNext.addEventListener('click', state.handlers.onNext);
+      audio.addEventListener('timeupdate', state.handlers.onTimeUpdate);
+      audio.addEventListener('ended', state.handlers.onEnded);
+      audio.addEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
+      progressEl.addEventListener('input', state.handlers.onProgressInput);
+      state.bound = true;
+      updatePlayButtonState();
+      if (state.tracks[state.currentIndex]) {
+        updateNowPlaying(state.tracks[state.currentIndex]);
+      }
+    }
+
+    function unbind() {
+      if (!state.bound || !state.els) return;
+      const { audio, btnMainPlay, btnPrev, btnNext, progressEl } = state.els;
+      if (btnMainPlay && state.handlers.onMainPlay) btnMainPlay.removeEventListener('click', state.handlers.onMainPlay);
+      if (btnPrev && state.handlers.onPrev) btnPrev.removeEventListener('click', state.handlers.onPrev);
+      if (btnNext && state.handlers.onNext) btnNext.removeEventListener('click', state.handlers.onNext);
+      if (audio && state.handlers.onTimeUpdate) audio.removeEventListener('timeupdate', state.handlers.onTimeUpdate);
+      if (audio && state.handlers.onEnded) audio.removeEventListener('ended', state.handlers.onEnded);
+      if (audio && state.handlers.onLoadedMetadata) audio.removeEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
+      if (progressEl && state.handlers.onProgressInput) progressEl.removeEventListener('input', state.handlers.onProgressInput);
+      state.handlers = {};
+      state.bound = false;
+    }
+
+    function onRouteChange() {
+      state.els = getEls();
+      if (isMusicPagePath()) {
+        unbind();
+        return;
+      }
+      bind();
+      if (state.tracks[state.currentIndex]) {
+        updateNowPlaying(state.tracks[state.currentIndex]);
+      }
+    }
+
+    return {
+      onRouteChange,
+    };
+  }
+
+  if (!window[GLOBAL_MUSIC_KEY]) {
+    window[GLOBAL_MUSIC_KEY] = makeController();
+    window[GLOBAL_MUSIC_KEY].onRouteChange();
+    document.addEventListener('astro:page-load', () => window[GLOBAL_MUSIC_KEY].onRouteChange());
+    document.addEventListener('astro:after-swap', () => window[GLOBAL_MUSIC_KEY].onRouteChange());
+  } else {
+    window[GLOBAL_MUSIC_KEY].onRouteChange();
+  }
+</script>

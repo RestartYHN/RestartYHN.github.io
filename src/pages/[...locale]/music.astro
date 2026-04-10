@@ -68,26 +68,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         </div>
         <ul id="music-track-list" class="music-track-list"></ul>
       </section>
-    </div>
-
-    <audio id="music-audio" preload="metadata" class="hidden"></audio>
-
-    <div class="music-bottom-player" id="music-bottom-player">
-      <div class="music-bottom-cover" id="music-bottom-cover"></div>
-      <div class="min-w-0 flex-1">
-        <p id="music-bottom-title" class="truncate font-semibold text-[var(--text-color)]">-</p>
-        <p id="music-bottom-artist" class="truncate text-sm text-[var(--text-color-70)]">-</p>
-        <div class="music-progress-wrap">
-          <span id="music-current-time" class="music-time">0:00</span>
-          <input id="music-progress" class="music-progress" type="range" min="0" max="1000" value="0" step="1" />
-          <span id="music-total-time" class="music-time">0:00</span>
-        </div>
-      </div>
-      <span id="music-player-position" class="music-position-info">-</span>
-      <button id="music-prev" class="music-control" type="button" aria-label="Prev">◀</button>
-      <button id="music-main-play" class="music-control primary" type="button" aria-label="Play">▶</button>
-      <button id="music-next" class="music-control" type="button" aria-label="Next">▶</button>
-    </div>
+    </div>
 
     <section id="music-comments" class="mt-10 rounded-xl border border-[var(--button-border-color)] p-4">
       <h3 class="mb-4 text-lg font-semibold text-[var(--text-color)]">{t('comments.comments')}</h3>

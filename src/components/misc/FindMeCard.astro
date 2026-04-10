@@ -43,6 +43,9 @@ const isHttpUrl = (url: string) => /^https?:\/\//i.test(url);
       <p class="mt-1 text-sm text-[var(--text-color-70)]">
         {isEn ? 'Choose a platform below and jump directly to my profile.' : '点击下方平台图标，可直接跳转到我的账号主页。'}
       </p>
+      <p class="mt-1 text-xs text-[var(--text-color-70)]">
+        （手机端建议点击QQ入口，web/pc端建议点击QZone入口）
+      </p>
 
       <div class="mt-5 flex flex-wrap items-center gap-3">
         {accounts.map((item) => (

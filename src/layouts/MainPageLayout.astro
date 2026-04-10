@@ -3,6 +3,7 @@ import Layout from '@layouts/Layout.astro';
 import Header from '@components/Header.astro';
 import Footer from '@components/Footer.astro';
 import Search from '@components/misc/Search.astro';
+import GlobalMusicPlayer from '@components/misc/GlobalMusicPlayer.astro';
 
 
 interface Props {
@@ -20,9 +21,10 @@ const { title, lang, description, noCache = false } = Astro.props;
     <div>
       <Header />
     </div>
-    <main class="flex-grow">
+    <main class="flex-grow pb-28 md:pb-24">
       <slot />
     </main>
+    <GlobalMusicPlayer />
     <Footer />
     <Search />
   </div>
