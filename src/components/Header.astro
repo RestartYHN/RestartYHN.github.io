@@ -43,7 +43,7 @@ const aboutPage = getRelativeLocaleUrl(currentLang, "/about/");
 const linksPage = getRelativeLocaleUrl(currentLang, "/links/");
 const galleryPage = getRelativeLocaleUrl(currentLang, "/gallery/");
 const isExternalAvatar = profileConfig.avatar?.startsWith("/") || profileConfig.avatar?.startsWith("http");
-const headerAvatarSrc = isExternalAvatar ? profileConfig.avatar : headerAvatar;
+const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
 
 let introPage : string;
 
@@ -62,7 +62,7 @@ if (profileConfig.indexPage) {
         <a href={ indexPage } >
         <span class="flex items-center gap-2 md:gap-3 hover:opacity-60 transition-opacity">
           {isExternalAvatar ? (
-            <img src={headerAvatarSrc} alt={profileConfig.name} width="36" height="36" loading="eager" decoding="async" fetchpriority="high" class="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
+            <img src={externalAvatarSrc ?? ""} alt={profileConfig.name} width="36" height="36" loading="eager" decoding="async" fetchpriority="high" class="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
           ) : (
             <Image src={headerAvatar} alt={profileConfig.name} width={36} height={36} quality={70} format="webp" loading="eager" class="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-[var(--button-border-color)]" />
           )}
@@ -276,9 +276,10 @@ function initMobileNav() {
   const navBarList = document.getElementById('nav-bar-list');
 
   if (!menuButton || !container) return;
+  const mobileMenuContainer = container;
 
   function openMenu() {
-    container.classList.remove('hidden');
+    mobileMenuContainer.classList.remove('hidden');
     // 强制重绘以触发动画
     requestAnimationFrame(() => {
       overlay?.classList.add('opacity-100');
@@ -293,7 +294,7 @@ function initMobileNav() {
     
     // 等待动画结束后隐藏容器
     setTimeout(() => {
-      container.classList.add('hidden');
+      mobileMenuContainer.classList.add('hidden');
       document.body.style.overflow = '';
     }, 300);
   }
@@ -348,11 +349,14 @@ function initLanguageMenu() {
   });
 
   document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+
     if (
       languageButton &&
       languageMenu &&
-      !languageButton.contains(event.target) &&
-      !languageMenu.contains(event.target)
+      !languageButton.contains(target) &&
+      !languageMenu.contains(target)
     ) {
       languageMenu.classList.add('hidden');
     }
@@ -366,6 +370,7 @@ document.addEventListener('astro:after-swap', initLanguageMenu);
   function initHeaderScroll() {
     const header = document.getElementById('main-header');
     if (!header) return;
+    const headerEl = header;
 
     let lastScrollY = window.scrollY;
     let ticking = false;
@@ -376,16 +381,16 @@ document.addEventListener('astro:after-swap', initLanguageMenu);
 
       if (window.innerWidth < 776) {
         if (currentScrollY <= 50) {
-          header.classList.remove('header-hidden');
+          headerEl.classList.remove('header-hidden');
         } 
         else if (scrollDelta > 0 && currentScrollY > 100) {
-          header.classList.add('header-hidden');
+          headerEl.classList.add('header-hidden');
         } 
         else if (scrollDelta < 0) {
-          header.classList.remove('header-hidden');
+          headerEl.classList.remove('header-hidden');
         }
       } else {
-        header.classList.remove('header-hidden');
+        headerEl.classList.remove('header-hidden');
       }
       lastScrollY = currentScrollY;
       ticking = false;
