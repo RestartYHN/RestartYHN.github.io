@@ -133,15 +133,26 @@ export const externalLinkConfig: ExternalLinkItem[] = [
 
 export const findMeAccounts: FindMeAccountItem[] = [
     {
+        platform: "QQ",
+        account: "180356381",
+        url: "mqqapi://card/show_pslcard?src_type=internal&version=1&uin=180356381&card_type=person&source=external",
+        description: {
+            "zh-cn": "拉起 QQ 客户端并打开个人资料",
+            en: "Open QQ app and jump to profile"
+        },
+        enabled: true,
+        order: 1
+    },
+    {
         platform: "QZone",
         account: "180356381",
         url: "https://user.qzone.qq.com/180356381",
         description: {
-            "zh-cn": "QQ 空间主页",
-            en: "QZone profile"
+            "zh-cn": "QQ 空间主页（Web/PC）",
+            en: "QZone profile (Web/PC)"
         },
         enabled: true,
-        order: 1
+        order: 2
     },
     {
         platform: "Bilibili",
@@ -152,7 +163,7 @@ export const findMeAccounts: FindMeAccountItem[] = [
             en: "Bilibili profile"
         },
         enabled: true,
-        order: 2
+        order: 3
     },
     {
         platform: "NetEase Music",
@@ -163,7 +174,7 @@ export const findMeAccounts: FindMeAccountItem[] = [
             en: "NetEase Cloud Music profile"
         },
         enabled: true,
-        order: 3
+        order: 4
     },
     {
         platform: "Steam",
@@ -174,7 +185,7 @@ export const findMeAccounts: FindMeAccountItem[] = [
             en: "Steam profile"
         },
         enabled: true,
-        order: 4
+        order: 5
     },
     {
         platform: "GitHub",
@@ -185,6 +196,6 @@ export const findMeAccounts: FindMeAccountItem[] = [
             en: "GitHub profile"
         },
         enabled: true,
-        order: 5
+        order: 6
     }
 ]

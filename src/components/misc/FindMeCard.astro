@@ -9,7 +9,7 @@ const accounts = findMeAccounts.filter((item) => item.enabled !== false);
 
 const iconByPlatform: Record<string, string> = {
   steam: 'fa6-brands:steam',
-  qzone: 'fa6-brands:qq',
+  qzone: 'simple-icons:qzone',
   qq: 'fa6-brands:qq',
   'qq music': 'fa6-solid:music',
   'netease music': 'fa6-solid:music',
@@ -30,6 +30,8 @@ const getPlatformIcon = (platform: string) => {
   const key = platform.toLowerCase();
   return iconByPlatform[key] || 'fa6-solid:link';
 };
+
+const isHttpUrl = (url: string) => /^https?:\/\//i.test(url);
 ---
 
 {accounts.length > 0 && (
@@ -46,8 +48,8 @@ const getPlatformIcon = (platform: string) => {
         {accounts.map((item) => (
           <a
             href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
+            target={isHttpUrl(item.url) ? '_blank' : '_self'}
+            rel={isHttpUrl(item.url) ? 'noopener noreferrer' : undefined}
             title={`${item.platform} - ${item.account}`}
             aria-label={`${item.platform} - ${item.account}`}
             class="group inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--button-border-color)] bg-[var(--bg-color)] text-[var(--text-color-70)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--link-color)] hover:text-[var(--link-color)]"
