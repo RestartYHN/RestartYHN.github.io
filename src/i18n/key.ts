@@ -3,6 +3,7 @@ export interface Translation {
         home: string;
         article: string;
         music: string;
+        guestbook: string;
         archive: string;
         about: string;
         friends: string;

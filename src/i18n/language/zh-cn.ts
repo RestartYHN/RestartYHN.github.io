@@ -5,6 +5,7 @@ const translation: Translation = {
         home: "首页",
         article: "文章",
         music: "音乐",
+        guestbook: "留言",
         archive: "归档",
         about: "关于",
         friends: "友链",

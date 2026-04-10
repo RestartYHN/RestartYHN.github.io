@@ -2,6 +2,7 @@
 import MainPageLayout from '@layouts/MainPageLayout.astro';
 import Cover from '@components/Cover.astro';
 import FabMenu from '@components/control/FabMenu.astro';
+import Comments from '@components/comment/Comments.svelte';
 import { siteConfig } from '@/config';
 import { musicConfig } from '@/data/music';
 import i18nit from '@i18n/translation';
@@ -87,6 +88,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       <button id="music-main-play" class="music-control primary" type="button" aria-label="Play">▶</button>
       <button id="music-next" class="music-control" type="button" aria-label="Next">▶</button>
     </div>
+
+    <section id="music-comments" class="mt-10 rounded-xl border border-[var(--button-border-color)] p-4">
+      <h3 class="mb-4 text-lg font-semibold text-[var(--text-color)]">{t('comments.comments')}</h3>
+      <Comments
+        client:load
+        postSlug="music"
+        postTitle={pageTitle}
+        language={currentLang}
+      />
+    </section>
 
   </div>
 

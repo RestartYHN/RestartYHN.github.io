@@ -5,6 +5,7 @@ const translation: Translation = {
         home: "Home",
         article: "Articles",
         music: "Music",
+        guestbook: "Guestbook",
         archive: "Archive",
         about: "About",
         friends: "Friends",
