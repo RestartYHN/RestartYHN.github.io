@@ -128,7 +128,21 @@ export const externalLinkConfig: ExternalLinkItem[] = [
         tag: "Infra",
         enabled: true,
         order: 3
-    }
+    },
+    {
+        title: {
+            "zh-cn": "时光与快乐并存(热情市民c先生的切片man)",
+            en: "Time and Joy Coexist (Passionate Citizen C's Clip Man)"
+        },
+        url: "https://space.bilibili.com/592312291?spm_id_from=333.337.0.0",
+        description: {
+            "zh-cn": "冰！",
+            en: "Ice!"
+        },
+        tag: "电吉他/electric guitar",
+        enabled: true,
+        order: 3
+    },
 ]
 
 export const findMeAccounts: FindMeAccountItem[] = [
