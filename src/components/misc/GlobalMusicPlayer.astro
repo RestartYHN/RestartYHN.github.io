@@ -5,6 +5,18 @@ import { musicConfig } from '@/data/music';
 <div id="global-music-player" transition:persist>
   <audio id="music-audio" preload="metadata" class="hidden"></audio>
 
+  {/* Playlist Popup Modal for Global Player */}
+  <div id="global-music-playlist-modal" class="global-music-playlist-modal hidden">
+    <div class="global-music-playlist-modal-backdrop" id="global-music-playlist-modal-backdrop"></div>
+    <div class="global-music-playlist-modal-content">
+      <div class="global-music-playlist-modal-header">
+        <h3 class="global-music-playlist-modal-title">Playlist</h3>
+        <button id="global-music-playlist-modal-close" class="global-music-playlist-modal-close" type="button">×</button>
+      </div>
+      <ul id="global-music-playlist-modal-list" class="global-music-playlist-modal-list"></ul>
+    </div>
+  </div>
+
   <div class="music-bottom-player" id="music-bottom-player">
     <div class="music-bottom-cover" id="music-bottom-cover"></div>
     <div class="min-w-0 flex-1">
@@ -15,9 +27,14 @@ import { musicConfig } from '@/data/music';
         <input id="music-progress" class="music-progress" type="range" min="0" max="1000" value="0" step="1" />
         <span id="music-total-time" class="music-time">0:00</span>
       </div>
-    <!-- 已移除遗留脚本和样式，修复语法错误 -->
     </div>
     <span id="music-player-position" class="music-position-info">-</span>
+    {/* Play Mode Controls */}
+    <button id="music-mode-toggle" class="music-control music-mode-toggle" type="button" aria-label="Play Mode" title="Toggle play mode">
+      <span class="music-mode-icon music-mode-sequential">≡</span>
+      <span class="music-mode-icon music-mode-loop hidden">↻</span>
+      <span class="music-mode-icon music-mode-shuffle hidden">⤮</span>
+    </button>
     <button id="music-prev" class="music-control" type="button" aria-label="Prev">◀</button>
     <button
       id="music-main-play"
@@ -31,6 +48,9 @@ import { musicConfig } from '@/data/music';
       <span class="music-control-icon music-control-icon-pause hidden" aria-hidden="true">❚❚</span>
     </button>
     <button id="music-next" class="music-control" type="button" aria-label="Next">▶</button>
+    <button id="music-playlist-btn" class="music-control music-playlist-btn" type="button" aria-label="Playlist" title="View playlist">
+      <span>☰</span>
+    </button>
   </div>
 </div>
 
@@ -193,6 +213,154 @@ import { musicConfig } from '@/data/music';
       width: 40px;
       height: 40px;
     }
+
+    .music-mode-toggle,
+    .music-playlist-btn {
+      display: none;
+    }
+  }
+
+  /* Play Mode Toggle */
+  .music-mode-toggle {
+    font-size: 0.85rem;
+  }
+
+  .music-mode-icon.hidden {
+    display: none;
+  }
+
+  .music-mode-toggle.active {
+    background: #d5a56a;
+    border-color: #d5a56a;
+    color: #fff;
+  }
+
+  /* Global Playlist Modal */
+  .global-music-playlist-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .global-music-playlist-modal.hidden {
+    display: none;
+  }
+
+  .global-music-playlist-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .global-music-playlist-modal-content {
+    position: relative;
+    width: min(480px, calc(100vw - 2rem));
+    max-height: 70vh;
+    background: var(--bg-color);
+    border: 1px solid var(--button-border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .global-music-playlist-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--button-border-color);
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+  }
+
+  .global-music-playlist-modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+  }
+
+  .global-music-playlist-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-color-70);
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 160ms ease;
+  }
+
+  .global-music-playlist-modal-close:hover {
+    background: var(--button-hover-color);
+  }
+
+  .global-music-playlist-modal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .global-music-playlist-modal-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+  }
+
+  .global-music-playlist-modal-item:hover {
+    background: var(--button-hover-color);
+  }
+
+  .global-music-playlist-modal-item.active {
+    background: color-mix(in oklab, #d5a56a 15%, transparent);
+  }
+
+  .global-music-playlist-modal-item-index {
+    width: 2rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-color-70);
+    flex-shrink: 0;
+  }
+
+  .global-music-playlist-modal-item.active .global-music-playlist-modal-item-index {
+    color: #d5a56a;
+  }
+
+  .global-music-playlist-modal-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .global-music-playlist-modal-item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .global-music-playlist-modal-item-artist {
+    font-size: 0.8rem;
+    color: var(--text-color-70);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 </style>
 
@@ -229,6 +397,9 @@ import { musicConfig } from '@/data/music';
   function makeController() {
     const API_BASE = musicConfig.apiBase;
 
+    const PLAY_MODE_KEY = 'music-play-mode';
+    const PLAY_MODES = ['sequential', 'loop', 'shuffle'];
+
     const state = {
       tracks: [],
       currentIndex: 0,
@@ -237,7 +408,58 @@ import { musicConfig } from '@/data/music';
       bound: false,
       handlers: {},
       els: null,
+      playMode: localStorage.getItem(PLAY_MODE_KEY) || 'sequential',
+      shuffleHistory: [],
+      shuffleIndex: -1,
     };
+
+    // Bootstrap the global player with tracks from music page
+    function bootstrap(options) {
+      if (!options) return;
+      if (Array.isArray(options.tracks) && options.tracks.length) {
+        state.tracks = options.tracks;
+        state.currentIndex = Number.isFinite(options.currentIndex) ? options.currentIndex : 0;
+        state.loaded = true;
+        // Update UI if bound
+        if (state.bound && state.els) {
+          const track = state.tracks[state.currentIndex];
+          if (track) {
+            updateNowPlaying(track);
+          }
+          updatePlayerPosition();
+          updatePlayButtonState();
+        }
+      }
+    }
+
+    // Sync current playback state from music page
+    function syncState(options) {
+      if (!options) return;
+      if (Array.isArray(options.tracks)) {
+        state.tracks = options.tracks;
+      }
+      if (Number.isFinite(options.currentIndex)) {
+        state.currentIndex = options.currentIndex;
+      }
+      if (state.bound && state.els) {
+        const track = state.tracks[state.currentIndex];
+        if (track) {
+          updateNowPlaying(track);
+        }
+        updatePlayerPosition();
+        updatePlayButtonState();
+      }
+    }
+
+    // Get current state for external access
+    function getState() {
+      return {
+        tracks: state.tracks,
+        currentIndex: state.currentIndex,
+        playMode: state.playMode,
+        loaded: state.loaded,
+      };
+    }
 
     function getEls() {
       return {
@@ -252,7 +474,122 @@ import { musicConfig } from '@/data/music';
         btnPrev: document.getElementById('music-prev'),
         btnNext: document.getElementById('music-next'),
         posEl: document.getElementById('music-player-position'),
+        btnModeToggle: document.getElementById('music-mode-toggle'),
+        btnPlaylist: document.getElementById('music-playlist-btn'),
+        playlistModal: document.getElementById('global-music-playlist-modal'),
+        playlistModalBackdrop: document.getElementById('global-music-playlist-modal-backdrop'),
+        playlistModalClose: document.getElementById('global-music-playlist-modal-close'),
+        playlistModalList: document.getElementById('global-music-playlist-modal-list'),
       };
+    }
+
+    function updatePlayModeUI() {
+      const { btnModeToggle } = state.els || {};
+      if (!btnModeToggle) return;
+      const icons = btnModeToggle.querySelectorAll('.music-mode-icon');
+      icons.forEach((icon) => icon.classList.add('hidden'));
+      const activeIcon = btnModeToggle.querySelector(`.music-mode-${state.playMode}`);
+      if (activeIcon) activeIcon.classList.remove('hidden');
+    }
+
+    function cyclePlayMode() {
+      const currentIdx = PLAY_MODES.indexOf(state.playMode);
+      state.playMode = PLAY_MODES[(currentIdx + 1) % PLAY_MODES.length];
+      localStorage.setItem(PLAY_MODE_KEY, state.playMode);
+      updatePlayModeUI();
+      if (state.playMode === 'shuffle') {
+        state.shuffleHistory = [state.currentIndex];
+        state.shuffleIndex = 0;
+      }
+    }
+
+    function getNextIndex() {
+      if (!state.tracks.length) return 0;
+      if (state.playMode === 'loop') {
+        return state.currentIndex;
+      }
+      if (state.playMode === 'shuffle') {
+        if (state.shuffleIndex < state.shuffleHistory.length - 1) {
+          state.shuffleIndex++;
+          return state.shuffleHistory[state.shuffleIndex];
+        }
+        let nextIdx;
+        do {
+          nextIdx = Math.floor(Math.random() * state.tracks.length);
+        } while (state.tracks.length > 1 && nextIdx === state.currentIndex);
+        state.shuffleHistory.push(nextIdx);
+        state.shuffleIndex = state.shuffleHistory.length - 1;
+        return nextIdx;
+      }
+      return (state.currentIndex + 1) % state.tracks.length;
+    }
+
+    function getPrevIndex() {
+      if (!state.tracks.length) return 0;
+      if (state.playMode === 'loop') {
+        return state.currentIndex;
+      }
+      if (state.playMode === 'shuffle') {
+        if (state.shuffleIndex > 0) {
+          state.shuffleIndex--;
+          return state.shuffleHistory[state.shuffleIndex];
+        }
+        let prevIdx;
+        do {
+          prevIdx = Math.floor(Math.random() * state.tracks.length);
+        } while (state.tracks.length > 1 && prevIdx === state.currentIndex);
+        state.shuffleHistory.unshift(prevIdx);
+        return prevIdx;
+      }
+      return (state.currentIndex - 1 + state.tracks.length) % state.tracks.length;
+    }
+
+    function openPlaylistModal() {
+      const { playlistModal } = state.els || {};
+      if (!playlistModal) return;
+      playlistModal.classList.remove('hidden');
+      renderPlaylistModal();
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closePlaylistModal() {
+      const { playlistModal } = state.els || {};
+      if (!playlistModal) return;
+      playlistModal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function renderPlaylistModal() {
+      const { playlistModalList } = state.els || {};
+      if (!playlistModalList) return;
+      if (!state.tracks.length) {
+        playlistModalList.innerHTML = '<li class="global-music-playlist-modal-item" style="justify-content: center; color: var(--text-color-70);">No tracks</li>';
+        return;
+      }
+
+      playlistModalList.innerHTML = state.tracks.map((track, idx) => `
+        <li class="global-music-playlist-modal-item ${idx === state.currentIndex ? 'active' : ''}" data-idx="${idx}">
+          <div class="global-music-playlist-modal-item-index">${idx === state.currentIndex ? '▶' : String(idx + 1).padStart(2, '0')}</div>
+          <div class="global-music-playlist-modal-item-info">
+            <div class="global-music-playlist-modal-item-title">${track.title || 'Unknown'}</div>
+            <div class="global-music-playlist-modal-item-artist">${track.artist || 'Unknown Artist'}</div>
+          </div>
+        </li>
+      `).join('');
+
+      playlistModalList.querySelectorAll('.global-music-playlist-modal-item').forEach((el) => {
+        el.addEventListener('click', async () => {
+          const idx = Number(el.getAttribute('data-idx') || '0');
+          state.currentIndex = idx;
+          await playCurrent();
+          renderPlaylistModal();
+        });
+      });
+
+      const activeItem = playlistModalList.querySelector('.global-music-playlist-modal-item.active');
+      if (activeItem) {
+        activeItem.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+      }
     }
 
     function updatePlayButtonState() {
@@ -337,17 +674,25 @@ import { musicConfig } from '@/data/music';
       updatePlayButtonState();
     }
 
-    async function step(delta) {
+    async function stepPrev() {
       if (!state.tracks.length) return;
-      state.currentIndex = (state.currentIndex + delta + state.tracks.length) % state.tracks.length;
+      state.currentIndex = getPrevIndex();
+      await playCurrent();
+    }
+
+    async function stepNext() {
+      if (!state.tracks.length) return;
+      state.currentIndex = getNextIndex();
       await playCurrent();
     }
 
     function bind() {
       if (state.bound || isMusicPagePath()) return;
       state.els = getEls();
-      const { audio, btnMainPlay, btnPrev, btnNext, progressEl } = state.els;
+      const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
       if (!audio || !btnMainPlay || !btnPrev || !btnNext || !progressEl) return;
+
+      updatePlayModeUI();
 
       state.handlers.onMainPlay = async () => {
         if (!state.tracks.length && !audio.src) return;
@@ -360,8 +705,8 @@ import { musicConfig } from '@/data/music';
         updatePlayButtonState();
       };
 
-      state.handlers.onPrev = () => step(-1);
-      state.handlers.onNext = () => step(1);
+      state.handlers.onPrev = () => stepPrev();
+      state.handlers.onNext = () => stepNext();
       state.handlers.onTimeUpdate = () => {
         if (!audio || !progressEl) return;
         const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
@@ -374,7 +719,14 @@ import { musicConfig } from '@/data/music';
         if (state.els?.totalTimeEl) state.els.totalTimeEl.textContent = formatClock(duration);
       };
 
-      state.handlers.onEnded = () => step(1);
+      state.handlers.onEnded = async () => {
+        if (state.playMode === 'loop') {
+          audio.currentTime = 0;
+          audio.play().catch(() => {});
+          return;
+        }
+        await stepNext();
+      };
       state.handlers.onLoadedMetadata = () => {
         if (state.els?.totalTimeEl) state.els.totalTimeEl.textContent = formatClock(audio.duration || 0);
       };
@@ -393,6 +745,23 @@ import { musicConfig } from '@/data/music';
       audio.addEventListener('ended', state.handlers.onEnded);
       audio.addEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       progressEl.addEventListener('input', state.handlers.onProgressInput);
+
+      // Play mode toggle
+      if (btnModeToggle) {
+        btnModeToggle.addEventListener('click', cyclePlayMode);
+      }
+
+      // Playlist modal
+      if (btnPlaylist) {
+        btnPlaylist.addEventListener('click', openPlaylistModal);
+      }
+      if (playlistModalBackdrop) {
+        playlistModalBackdrop.addEventListener('click', closePlaylistModal);
+      }
+      if (playlistModalClose) {
+        playlistModalClose.addEventListener('click', closePlaylistModal);
+      }
+
       state.bound = true;
       updatePlayButtonState();
       if (state.tracks[state.currentIndex]) {
@@ -402,7 +771,7 @@ import { musicConfig } from '@/data/music';
 
     function unbind() {
       if (!state.bound || !state.els) return;
-      const { audio, btnMainPlay, btnPrev, btnNext, progressEl } = state.els;
+      const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
       if (btnMainPlay && state.handlers.onMainPlay) btnMainPlay.removeEventListener('click', state.handlers.onMainPlay);
       if (btnPrev && state.handlers.onPrev) btnPrev.removeEventListener('click', state.handlers.onPrev);
       if (btnNext && state.handlers.onNext) btnNext.removeEventListener('click', state.handlers.onNext);
@@ -410,6 +779,10 @@ import { musicConfig } from '@/data/music';
       if (audio && state.handlers.onEnded) audio.removeEventListener('ended', state.handlers.onEnded);
       if (audio && state.handlers.onLoadedMetadata) audio.removeEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       if (progressEl && state.handlers.onProgressInput) progressEl.removeEventListener('input', state.handlers.onProgressInput);
+      if (btnModeToggle) btnModeToggle.removeEventListener('click', cyclePlayMode);
+      if (btnPlaylist) btnPlaylist.removeEventListener('click', openPlaylistModal);
+      if (playlistModalBackdrop) playlistModalBackdrop.removeEventListener('click', closePlaylistModal);
+      if (playlistModalClose) playlistModalClose.removeEventListener('click', closePlaylistModal);
       state.handlers = {};
       state.bound = false;
     }
@@ -428,6 +801,9 @@ import { musicConfig } from '@/data/music';
 
     return {
       onRouteChange,
+      bootstrap,
+      syncState,
+      getState,
     };
   }
 

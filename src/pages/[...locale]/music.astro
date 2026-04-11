@@ -32,6 +32,18 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     <p id="music-status" class="music-status hidden"></p>
 
+    {/* Playlist Popup Modal */}
+    <div id="music-playlist-modal" class="music-playlist-modal hidden">
+      <div class="music-playlist-modal-backdrop" id="music-playlist-modal-backdrop"></div>
+      <div class="music-playlist-modal-content">
+        <div class="music-playlist-modal-header">
+          <h3 class="music-playlist-modal-title">{isEn ? 'Current Playlist' : '当前播放列表'}</h3>
+          <button id="music-playlist-modal-close" class="music-playlist-modal-close" type="button">×</button>
+        </div>
+        <ul id="music-playlist-modal-list" class="music-playlist-modal-list"></ul>
+      </div>
+    </div>
+
     <div class="music-main-grid">
       {/* Top Row: Album & Lyrics */}
       <section class="music-hero">
@@ -44,6 +56,39 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             <button id="music-play-toggle" class="music-play-btn" type="button">
               {isEn ? 'Play / Pause' : '播放 / 暂停'}
             </button>
+            {/* Play Mode & Playlist Controls */}
+            <div class="music-controls-row">
+              <button id="music-mode-sequential" class="music-mode-btn active" type="button" title={isEn ? 'Sequential' : '顺序播放'}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </button>
+              <button id="music-mode-loop" class="music-mode-btn" type="button" title={isEn ? 'Loop One' : '单曲循环'}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 8v4l2 2"></path>
+                </svg>
+              </button>
+              <button id="music-mode-shuffle" class="music-mode-btn" type="button" title={isEn ? 'Shuffle' : '随机播放'}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 3h5v5"></path>
+                  <path d="M4 20L21 3"></path>
+                  <path d="M21 16v5h-5"></path>
+                  <path d="M15 15l6 6"></path>
+                  <path d="M4 4l5 5"></path>
+                </svg>
+              </button>
+              <button id="music-playlist-toggle" class="music-playlist-btn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 18V5l12-2v13"></path>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+                <span id="music-playlist-count">0</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -675,6 +720,198 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     padding: 1rem;
     text-align: center;
   }
+
+  /* Playlist Modal Styles */
+  .music-playlist-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .music-playlist-modal.hidden {
+    display: none;
+  }
+
+  .music-playlist-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .music-playlist-modal-content {
+    position: relative;
+    width: min(480px, calc(100vw - 2rem));
+    max-height: 70vh;
+    background: var(--bg-color);
+    border: 1px solid var(--button-border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .music-playlist-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--button-border-color);
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+  }
+
+  .music-playlist-modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+  }
+
+  .music-playlist-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-color-70);
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 160ms ease;
+  }
+
+  .music-playlist-modal-close:hover {
+    background: var(--button-hover-color);
+  }
+
+  .music-playlist-modal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .music-playlist-modal-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+  }
+
+  .music-playlist-modal-item:hover {
+    background: var(--button-hover-color);
+  }
+
+  .music-playlist-modal-item.active {
+    background: color-mix(in oklab, #d5a56a 15%, transparent);
+  }
+
+  .music-playlist-modal-item-index {
+    width: 2rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-color-70);
+    flex-shrink: 0;
+  }
+
+  .music-playlist-modal-item.active .music-playlist-modal-item-index {
+    color: #d5a56a;
+  }
+
+  .music-playlist-modal-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .music-playlist-modal-item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .music-playlist-modal-item-artist {
+    font-size: 0.8rem;
+    color: var(--text-color-70);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Play Mode Control Styles */
+  .music-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .music-mode-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--button-border-color);
+    background: var(--bg-color);
+    color: var(--text-color-70);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 160ms ease;
+  }
+
+  .music-mode-btn:hover {
+    background: var(--button-hover-color);
+    color: var(--text-color);
+  }
+
+  .music-mode-btn.active {
+    background: #d5a56a;
+    border-color: #d5a56a;
+    color: #fff;
+  }
+
+  .music-mode-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .music-playlist-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid var(--button-border-color);
+    background: var(--bg-color);
+    color: var(--text-color-70);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    transition: all 160ms ease;
+  }
+
+  .music-playlist-btn:hover {
+    background: var(--button-hover-color);
+    color: var(--text-color);
+  }
+
+  .music-playlist-btn svg {
+    width: 16px;
+    height: 16px;
+  }
 </style>
 
 <script define:vars={{ musicConfig, isEn }}>
@@ -718,6 +955,64 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let userToken = localStorage.getItem("music-user-token") || null;
   let userData = userToken ? JSON.parse(localStorage.getItem("music-user-data") || "null") : null;
 
+  // Global music player sync key
+  const GLOBAL_MUSIC_KEY = '__globalMusicBootstrapV1';
+
+  // Sync tracks to global player whenever tracks change
+  function syncToGlobalPlayer() {
+    const globalController = window[GLOBAL_MUSIC_KEY];
+    if (globalController && typeof globalController.syncState === 'function') {
+      globalController.syncState({
+        tracks: tracks,
+        currentIndex: currentIndex,
+      });
+    }
+  }
+
+  // Bootstrap global player with current tracks
+  function bootstrapGlobalPlayer() {
+    const globalController = window[GLOBAL_MUSIC_KEY];
+    if (globalController && typeof globalController.bootstrap === 'function') {
+      globalController.bootstrap({
+        tracks: tracks,
+        currentIndex: currentIndex,
+      });
+    }
+  }
+
+  // Restore state from global player (for page re-entry)
+  function restoreFromGlobalPlayer() {
+    const globalController = window[GLOBAL_MUSIC_KEY];
+    if (globalController && typeof globalController.getState === 'function') {
+      const state = globalController.getState();
+      if (state && Array.isArray(state.tracks) && state.tracks.length && state.loaded) {
+        tracks = state.tracks;
+        currentIndex = Number.isFinite(state.currentIndex) ? state.currentIndex : 0;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Play mode: 'sequential' | 'loop' | 'shuffle'
+  const PLAY_MODE_KEY = "music-play-mode";
+  let playMode = localStorage.getItem(PLAY_MODE_KEY) || "sequential";
+
+  // Playlist modal elements
+  const playlistModal = document.getElementById("music-playlist-modal");
+  const playlistModalBackdrop = document.getElementById("music-playlist-modal-backdrop");
+  const playlistModalClose = document.getElementById("music-playlist-modal-close");
+  const playlistModalList = document.getElementById("music-playlist-modal-list");
+  const playlistCountEl = document.getElementById("music-playlist-count");
+  const btnModeSequential = document.getElementById("music-mode-sequential");
+  const btnModeLoop = document.getElementById("music-mode-loop");
+  const btnModeShuffle = document.getElementById("music-mode-shuffle");
+  const btnPlaylistToggle = document.getElementById("music-playlist-toggle");
+
+  // Shuffle history for navigation
+  let shuffleHistory = [];
+  let shuffleIndex = -1;
+
   function showStatus(text, level = "info") {
     if (!statusEl) return;
     statusEl.textContent = text;
@@ -735,6 +1030,148 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (!statusEl) return;
     statusEl.classList.add("hidden");
   }
+
+  // Play mode management
+  function updatePlayModeUI() {
+    [btnModeSequential, btnModeLoop, btnModeShuffle].forEach((btn) => btn?.classList.remove("active"));
+    if (playMode === "sequential" && btnModeSequential) btnModeSequential.classList.add("active");
+    if (playMode === "loop" && btnModeLoop) btnModeLoop.classList.add("active");
+    if (playMode === "shuffle" && btnModeShuffle) btnModeShuffle.classList.add("active");
+  }
+
+  function setPlayMode(mode) {
+    playMode = mode;
+    localStorage.setItem(PLAY_MODE_KEY, mode);
+    updatePlayModeUI();
+    // Reset shuffle history when mode changes
+    if (mode === "shuffle") {
+      shuffleHistory = [currentIndex];
+      shuffleIndex = 0;
+    }
+  }
+
+  function getNextIndex() {
+    if (!tracks.length) return 0;
+    if (playMode === "loop") {
+      return currentIndex; // Same track
+    }
+    if (playMode === "shuffle") {
+      // If we're not at the end of shuffle history, move forward
+      if (shuffleIndex < shuffleHistory.length - 1) {
+        shuffleIndex++;
+        return shuffleHistory[shuffleIndex];
+      }
+      // Generate new random index
+      let nextIdx;
+      do {
+        nextIdx = Math.floor(Math.random() * tracks.length);
+      } while (tracks.length > 1 && nextIdx === currentIndex);
+      shuffleHistory.push(nextIdx);
+      shuffleIndex = shuffleHistory.length - 1;
+      return nextIdx;
+    }
+    // Sequential mode
+    return (currentIndex + 1) % tracks.length;
+  }
+
+  function getPrevIndex() {
+    if (!tracks.length) return 0;
+    if (playMode === "loop") {
+      return currentIndex; // Same track
+    }
+    if (playMode === "shuffle") {
+      // If we have history to go back to
+      if (shuffleIndex > 0) {
+        shuffleIndex--;
+        return shuffleHistory[shuffleIndex];
+      }
+      // Generate new random index for "previous"
+      let prevIdx;
+      do {
+        prevIdx = Math.floor(Math.random() * tracks.length);
+      } while (tracks.length > 1 && prevIdx === currentIndex);
+      shuffleHistory.unshift(prevIdx);
+      return prevIdx;
+    }
+    // Sequential mode
+    return (currentIndex - 1 + tracks.length) % tracks.length;
+  }
+
+  // Playlist modal functions
+  function openPlaylistModal() {
+    if (!playlistModal) return;
+    playlistModal.classList.remove("hidden");
+    renderPlaylistModalList();
+    document.body.style.overflow = "hidden";
+  }
+
+  function closePlaylistModal() {
+    if (!playlistModal) return;
+    playlistModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  function renderPlaylistModalList() {
+    if (!playlistModalList) return;
+    if (!tracks.length) {
+      playlistModalList.innerHTML = `<li class="music-empty">${isEn ? "No tracks" : "暂无歌曲"}</li>`;
+      return;
+    }
+
+    playlistModalList.innerHTML = tracks
+      .map(
+        (track, idx) => `
+          <li class="music-playlist-modal-item ${idx === currentIndex ? "active" : ""}" data-idx="${idx}">
+            <div class="music-playlist-modal-item-index">${idx === currentIndex ? "▶" : String(idx + 1).padStart(2, "0")}</div>
+            <div class="music-playlist-modal-item-info">
+              <div class="music-playlist-modal-item-title">${track.title || "Unknown"}</div>
+              <div class="music-playlist-modal-item-artist">${track.artist || "Unknown Artist"}</div>
+            </div>
+          </li>
+        `
+      )
+      .join("");
+
+    playlistModalList.querySelectorAll(".music-playlist-modal-item").forEach((el) => {
+      el.addEventListener("click", async () => {
+        const idx = Number(el.getAttribute("data-idx") || "0");
+        currentIndex = idx;
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        renderPlaylistModalList();
+        updatePlayerPosition();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio.play().catch(() => {});
+        }
+      });
+    });
+
+    // Scroll to current track
+    const activeItem = playlistModalList.querySelector(".music-playlist-modal-item.active");
+    if (activeItem) {
+      activeItem.scrollIntoView({ behavior: "auto", block: "nearest" });
+    }
+  }
+
+  function updatePlaylistCount() {
+    if (playlistCountEl) {
+      playlistCountEl.textContent = tracks.length;
+    }
+  }
+
+  // Event listeners for play mode buttons
+  btnModeSequential?.addEventListener("click", () => setPlayMode("sequential"));
+  btnModeLoop?.addEventListener("click", () => setPlayMode("loop"));
+  btnModeShuffle?.addEventListener("click", () => setPlayMode("shuffle"));
+  btnPlaylistToggle?.addEventListener("click", openPlaylistModal);
+  playlistModalBackdrop?.addEventListener("click", closePlaylistModal);
+  playlistModalClose?.addEventListener("click", closePlaylistModal);
+
+  // Initialize play mode UI
+  updatePlayModeUI();
 
   function updatePlayButtonState() {
     if (!btnMainPlay || !audio) return;
@@ -1141,6 +1578,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       }
     }
 
+    // Sync to global player after track is hydrated
+    syncToGlobalPlayer();
+
     return current;
   }
 
@@ -1417,6 +1857,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         if (playlistSubtitleEl) {
           playlistSubtitleEl.textContent = isEn ? `Loaded ${tracks.length} songs` : `已加载 ${tracks.length} 首歌`;
         }
+        // Bootstrap global player with loaded tracks
+        bootstrapGlobalPlayer();
 
         // Warm only the first track in background to improve first-play experience.
         loadTrack(tracks[0].id)
@@ -1524,6 +1966,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       if (playlistSubtitleEl) {
         playlistSubtitleEl.textContent = isEn ? `Loaded ${tracks.length} songs` : `已加载 ${tracks.length} 首歌`;
       }
+      // Bootstrap global player with loaded tracks
+      bootstrapGlobalPlayer();
     } catch (error) {
       console.warn("[music] load playlist songs failed", error);
       showStatus(isEn ? "Failed to load playlist songs." : "歌单歌曲加载失败。", "error");
@@ -1634,12 +2078,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   btnCardPlay?.addEventListener("click", togglePlay);
   btnPrev?.addEventListener("click", async () => {
     if (!tracks.length) return;
-    currentIndex = (currentIndex - 1 + tracks.length) % tracks.length;
+    currentIndex = getPrevIndex();
     const current = await prepareTrackForPlayback(currentIndex);
     if (!current) return;
     updateNowPlaying(current);
     renderTrackList();
     updatePlayerPosition();
+    updatePlaylistCount();
+    syncToGlobalPlayer();
     if (current?.audio && audio?.src) {
       hideStatus();
       audio?.play().catch(() => {});
@@ -1649,12 +2095,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   });
   btnNext?.addEventListener("click", async () => {
     if (!tracks.length) return;
-    currentIndex = (currentIndex + 1) % tracks.length;
+    currentIndex = getNextIndex();
     const current = await prepareTrackForPlayback(currentIndex);
     if (!current) return;
     updateNowPlaying(current);
     renderTrackList();
     updatePlayerPosition();
+    updatePlaylistCount();
+    syncToGlobalPlayer();
     if (current?.audio && audio?.src) {
       hideStatus();
       audio?.play().catch(() => {});
@@ -1676,8 +2124,27 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       updateProgressVisual();
     }
   });
-  audio?.addEventListener("ended", () => {
-    btnNext?.click();
+  audio?.addEventListener("ended", async () => {
+    if (!tracks.length) return;
+    // For loop mode, just replay the current track
+    if (playMode === "loop") {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+      return;
+    }
+    // For sequential and shuffle modes, go to next track
+    currentIndex = getNextIndex();
+    const current = await prepareTrackForPlayback(currentIndex);
+    if (!current) return;
+    updateNowPlaying(current);
+    renderTrackList();
+    updatePlayerPosition();
+    updatePlaylistCount();
+    syncToGlobalPlayer();
+    if (current?.audio && audio?.src) {
+      hideStatus();
+      audio.play().catch(() => {});
+    }
   });
 
   progressEl?.addEventListener("input", () => {
@@ -1691,6 +2158,20 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     warmupNeteaseApi();
 
     const shouldPreservePlaybackOnInit = Boolean(audio && !audio.paused && (audio.currentSrc || audio.src));
+
+    // Try to restore from global player first (for page re-entry)
+    const hasGlobalState = restoreFromGlobalPlayer();
+    if (hasGlobalState) {
+      renderPlaylistList();
+      renderTrackList();
+      if (tracks[currentIndex]) {
+        updateNowPlaying(tracks[currentIndex]);
+      }
+      updatePlayerPosition();
+      updatePlaylistCount();
+      showStatus(isEn ? "Restored playlist from global player." : "已从全局播放器恢复歌单。");
+      return;
+    }
 
     const hasTokenData = await restoreUserDataByToken();
     if (!hasTokenData) {
