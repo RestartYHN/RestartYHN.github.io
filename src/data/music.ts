@@ -52,7 +52,7 @@ export const musicConfig: MusicConfig = {
   defaultPlaylistId: "17446314153",
 
   // Maximum number of songs loaded from the selected playlist.
-  playlistSongLimit: 120,
+  playlistSongLimit: 100,
 
   // Placeholder cards shown before account-linked data is ready.
   seedTracks: [
