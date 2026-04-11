@@ -56,39 +56,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             <button id="music-play-toggle" class="music-play-btn" type="button">
               {isEn ? 'Play / Pause' : '播放 / 暂停'}
             </button>
-            {/* Play Mode & Playlist Controls */}
-            <div class="music-controls-row">
-              <button id="music-mode-sequential" class="music-mode-btn active" type="button" title={isEn ? 'Sequential' : '顺序播放'}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
-              <button id="music-mode-loop" class="music-mode-btn" type="button" title={isEn ? 'Loop One' : '单曲循环'}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="9"></circle>
-                  <path d="M12 8v4l2 2"></path>
-                </svg>
-              </button>
-              <button id="music-mode-shuffle" class="music-mode-btn" type="button" title={isEn ? 'Shuffle' : '随机播放'}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M16 3h5v5"></path>
-                  <path d="M4 20L21 3"></path>
-                  <path d="M21 16v5h-5"></path>
-                  <path d="M15 15l6 6"></path>
-                  <path d="M4 4l5 5"></path>
-                </svg>
-              </button>
-              <button id="music-playlist-toggle" class="music-playlist-btn" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 18V5l12-2v13"></path>
-                  <circle cx="6" cy="18" r="3"></circle>
-                  <circle cx="18" cy="16" r="3"></circle>
-                </svg>
-                <span id="music-playlist-count">0</span>
-              </button>
-            </div>
           </div>
         </div>
       </section>
@@ -948,7 +915,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let currentIndex = 0;
   let lyricLines = [];
   let activeLyricIndex = -1;
-  let lyricScrollReady = false;
   let lastLyricScrollAtMs = 0;
   let loadVersion = 0;
   let currentPlaylistId = "";
@@ -1378,6 +1344,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (!lyricsEl) return;
     if (!lines.length) {
       lyricsEl.innerHTML = `<li>${isEn ? "No lyric available" : "暂无歌词"}</li>`;
+      lyricsEl.scrollTop = 0;
       return;
     }
     lyricsEl.innerHTML = lines
@@ -1390,6 +1357,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         `,
       )
       .join("");
+    // Reset scroll position to top after rendering
+    lyricsEl.scrollTop = 0;
   }
 
   function getActiveLyricIndex(currentTime) {
@@ -1426,14 +1395,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (activeLine) {
       activeLine.classList.add("active");
 
-      if (!lyricScrollReady && audio.currentTime < 2.2) {
-        return;
-      }
-      lyricScrollReady = true;
-
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
       const ACTIVE_LINE_VIEWPORT_RATIO = isMobile ? 0.72 : 0.62;
-      const targetTop = activeLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + activeLine.clientHeight / 2;
+      
+      // Use two lines before for scroll position to give a "look-ahead" effect
+      const scrollLineIndex = Math.max(0, active - 2);
+      const scrollLine = lyricsEl.querySelector(`li[data-i='${scrollLineIndex}']`) || activeLine;
+      const targetTop = scrollLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + scrollLine.clientHeight / 2;
 
       if (isMobile) {
         const nowMs = performance.now();
@@ -1493,7 +1461,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     lyricLines = buildLyricLines(track.lyric, track.tlyric);
     activeLyricIndex = -1;
-    lyricScrollReady = false;
     lastLyricScrollAtMs = 0;
     renderLyrics(lyricLines);
     if (lyricsEl) {
@@ -2076,6 +2043,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   btnMainPlay?.addEventListener("click", togglePlay);
   btnCardPlay?.addEventListener("click", togglePlay);
+  
+  // Update play button state on play/pause events for reliable UI sync
+  audio?.addEventListener("play", updatePlayButtonState);
+  audio?.addEventListener("pause", updatePlayButtonState);
   btnPrev?.addEventListener("click", async () => {
     if (!tracks.length) return;
     currentIndex = getPrevIndex();

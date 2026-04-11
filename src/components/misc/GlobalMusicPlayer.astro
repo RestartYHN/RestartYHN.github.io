@@ -744,6 +744,8 @@ import { musicConfig } from '@/data/music';
       audio.addEventListener('timeupdate', state.handlers.onTimeUpdate);
       audio.addEventListener('ended', state.handlers.onEnded);
       audio.addEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
+      audio.addEventListener('play', updatePlayButtonState);
+      audio.addEventListener('pause', updatePlayButtonState);
       progressEl.addEventListener('input', state.handlers.onProgressInput);
 
       // Play mode toggle
