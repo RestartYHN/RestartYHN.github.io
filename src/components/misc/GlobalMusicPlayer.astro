@@ -5,17 +5,6 @@ import { musicConfig } from '@/data/music';
 <div id="global-music-player" transition:persist>
   <audio id="music-audio" preload="metadata" class="hidden"></audio>
 
-  {/* Playlist Popup Modal for Global Player */}
-  <div id="global-music-playlist-modal" class="global-music-playlist-modal hidden">
-    <div class="global-music-playlist-modal-backdrop" id="global-music-playlist-modal-backdrop"></div>
-    <div class="global-music-playlist-modal-content">
-      <div class="global-music-playlist-modal-header">
-        <h3 class="global-music-playlist-modal-title">Playlist</h3>
-        <button id="global-music-playlist-modal-close" class="global-music-playlist-modal-close" type="button">×</button>
-      </div>
-      <ul id="global-music-playlist-modal-list" class="global-music-playlist-modal-list"></ul>
-    </div>
-  </div>
 
   <div class="music-bottom-player" id="music-bottom-player">
     <div class="music-bottom-cover" id="music-bottom-cover"></div>
@@ -48,9 +37,6 @@ import { musicConfig } from '@/data/music';
       <span class="music-control-icon music-control-icon-pause hidden" aria-hidden="true">❚❚</span>
     </button>
     <button id="music-next" class="music-control" type="button" aria-label="Next">▶</button>
-    <button id="music-playlist-btn" class="music-control music-playlist-btn" type="button" aria-label="Playlist" title="View playlist">
-      <span>☰</span>
-    </button>
   </div>
 </div>
 
