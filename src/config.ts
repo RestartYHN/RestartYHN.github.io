@@ -82,7 +82,13 @@ export const friendLinkConfig: FriendLink[] = [
         avatar: 'https://avatars.githubusercontent.com/u/44914786',
         url: 'https://astro.build',
         description: 'Build fast websites, faster.'
-    }
+    },
+    {
+        name: 'Peace',
+        avatar: 'https://peace0824.top/logo.jpg',
+        url: 'https://peace0824.top',
+        description: '我最好的朋友!'
+    },
     // Add more friend links here
 ]
 
