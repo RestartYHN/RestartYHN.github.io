@@ -34,7 +34,7 @@ export interface FindMeAccountItem {
 }
 
 const commentsBackendUrl =
-    (import.meta as any).env?.PUBLIC_COMMENTS_API || "https://momo-backend-worker.478929164.workers.dev";
+    (import.meta as any).env?.PUBLIC_COMMENTS_API || "https://comments.restartyhn.top";
 
 export const siteConfig: SiteConfig = {
     title: "RestartYHN",
