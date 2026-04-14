@@ -24,12 +24,6 @@ export async function getBlogEntrySort(
   };
 
   const defaultSort = (a: CollectionEntry<'blog'>, b: CollectionEntry<'blog'>) => {
-    // Pinned posts should appear first. If both have same pinned state, sort by pubDate desc.
-    const aPinned = a.data?.pinned === true ? 1 : 0;
-    const bPinned = b.data?.pinned === true ? 1 : 0;
-    if (aPinned !== bPinned) {
-      return bPinned - aPinned; // pinned (1) before unpinned (0)
-    }
     return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
   };
 
