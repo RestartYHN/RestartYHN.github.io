@@ -40,8 +40,9 @@ function getVisiblePages(current: number, total: number) {
 
 const visiblePages = getVisiblePages(currentPage, totalPages);
 
+// 返回文章列表的页面 URL（基于 /articles/ 路径），由 getRelativeLocaleUrl 处理语言前缀
 const getPageUrl = (p: number) => {
-  return p === 1 ? '/' : `/${p}/`;
+  return p === 1 ? '/articles/' : `/articles/${p}/`;
 };
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
