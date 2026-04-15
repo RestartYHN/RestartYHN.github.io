@@ -468,3 +468,26 @@ function attachSearchListener() {
 document.addEventListener('astro:page-load', attachSearchListener);
 </script>
 }
+
+<style is:global>
+@media (max-width: 775px) {
+  /* Stronger mobile overrides to ensure header buttons receive taps */
+  #main-header .ml-auto {
+    transform: translateX(-7.0rem) !important;
+    z-index: 80 !important;
+  }
+
+  /* Make header buttons higher than logo and clearly tappable */
+  #main-header .ml-auto button,
+  #main-header .ml-auto .bg-switcher-btn {
+    position: relative !important;
+    z-index: 90 !important;
+  }
+
+  /* Disable logo/site-title clicks on mobile so taps hit controls */
+  #main-header .header-logo a {
+    pointer-events: none !important;
+    cursor: default !important;
+  }
+}
+</style>
