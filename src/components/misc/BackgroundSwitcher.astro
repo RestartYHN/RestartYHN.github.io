@@ -1,0 +1,156 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const images = Astro.props.images || [
+  '/cg/1st.jpg',
+  '/cg/2nd.jpg',
+  '/cg/3rd.jpg',
+  '/cg/4th.jpg',
+  '/cg/5th.jpg',
+  '/cg/6th.jpg',
+  '/cg/7th.jpg',
+  '/cg/8th.jpg',
+  '/cg/9th.jpg',
+  '/cg/10th.jpg',
+  '/cg/xmm.jpg',
+  '/cg/dark-cg.jpg',
+];
+const id = `bg-switcher-${Math.random().toString(36).slice(2,9)}`;
+---
+
+<div id={id} class="bg-switcher" data-images={JSON.stringify(images)}>
+  <div class="bg-switcher-controls" role="group" aria-label="Background switcher">
+    <button class="bg-switcher-btn flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-lg border border-[var(--button-border-color)]" type="button" data-action="prev" title="Previous background">
+      <Icon name="fa6-solid:chevron-left" class="w-3.5 h-3.5" />
+    </button>
+    <button class="bg-switcher-btn flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-lg border border-[var(--button-border-color)]" type="button" data-action="next" title="Next background">
+      <Icon name="fa6-solid:chevron-right" class="w-3.5 h-3.5" />
+    </button>
+  </div>
+</div>
+
+<script is:inline type="module">
+  const el = document.querySelector('.bg-switcher[data-images]');
+  const images = JSON.parse(el.dataset.images || '[]');
+  let idx = 0;
+
+  // choose default based on theme: dark -> dark-cg.jpg, light -> xmm.jpg
+  const theme = document.documentElement.getAttribute('data-theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (theme === 'dark' || (!theme && prefersDark)) {
+    const i = images.findIndex((p) => p.includes('dark-cg'));
+    if (i >= 0) idx = i;
+  } else {
+    const i = images.findIndex((p) => p.includes('xmm'));
+    if (i >= 0) idx = i;
+  }
+
+  function apply() {
+    const url = images.length ? `url('${images[idx]}')` : 'none';
+    // set the same CSS variable used by global.css body::before
+    document.body.style.setProperty('--bg-image', url);
+    console.debug('[BackgroundSwitcher] apply()', { idx, url });
+  }
+
+  apply();
+
+  // bind controls rendered in template
+  const controls = el.querySelector('.bg-switcher-controls');
+  if (controls) {
+    const prevBtn = controls.querySelector('[data-action="prev"]');
+    const nextBtn = controls.querySelector('[data-action="next"]');
+      if (prevBtn) prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        idx = (idx - 1 + images.length) % images.length;
+        console.debug('[BackgroundSwitcher] prev click, idx=', idx);
+        apply();
+      });
+      if (nextBtn) nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        idx = (idx + 1) % images.length;
+        console.debug('[BackgroundSwitcher] next click, idx=', idx);
+        apply();
+      });
+
+    // no position control (reverted)
+
+    // try to attach to header tools area (next to search button)
+    const headerTools = document.querySelector('#main-header .ml-auto');
+    if (headerTools) {
+      controls.classList.add('in-header');
+      const searchBtn = headerTools.querySelector('#search-button');
+      if (searchBtn && searchBtn.parentElement === headerTools) {
+        headerTools.insertBefore(controls, searchBtn.nextSibling);
+      } else {
+        headerTools.insertBefore(controls, headerTools.firstChild);
+      }
+    } else {
+      el.appendChild(controls);
+    }
+  }
+</script>
+
+<style is:global>
+  :root {
+    --custom-bg-image: none;
+  }
+
+  body {
+    background-image: var(--custom-bg-image), var(--bg-color);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    transition: background-image 0.6s ease-in-out, background-color 0.3s ease;
+  }
+
+  .bg-switcher {
+    position: relative;
+    display: block;
+    width: 0;
+    height: 0;
+    overflow: visible;
+  }
+
+  .bg-switcher-controls {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 60;
+  }
+
+  .bg-switcher-controls.in-header {
+    position: static;
+    right: auto;
+    bottom: auto;
+    height: auto;
+    margin-left: 0.5rem;
+    z-index: 40;
+  }
+
+  .bg-switcher-btn {
+    background: color-mix(in oklab, var(--button-hover-color) 80%, transparent);
+    border: 1px solid var(--button-border-color);
+    color: var(--text-color);
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    transition: transform .15s ease, background .15s ease;
+  }
+
+  .bg-switcher-controls.in-header .bg-switcher-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 8px;
+    font-size: 1.1rem;
+  }
+
+  .bg-switcher-btn:hover { transform: translateY(-2px); }
+</style>
