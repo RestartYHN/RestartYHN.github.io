@@ -26,20 +26,25 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    /* overlay uses --bg-overlay (falls back to white semi-transparent for light mode) */
+    /* Allow per-image or per-theme overlay via --bg-overlay; default for light theme is transparent */
     background-image:
-      linear-gradient(rgba(251, 251, 251, 0.7), rgba(251, 251, 251, 0.7)),
+      linear-gradient(var(--bg-overlay, rgba(255,255,255,0)), var(--bg-overlay, rgba(255,255,255,0))),
       var(--bg-image, url('/cg/xmm.jpg'));
-    background-size: cover;
-    background-position: center;
+    background-size: var(--bg-size, cover);
+    background-position: var(--bg-position, center);
     background-repeat: no-repeat;
     transition: background-image 0.3s;
   }
 
   [data-theme="dark"] body::before {
-    background-image:
-      linear-gradient(rgba(10, 10, 10, 0.3), rgba(10, 10, 10, 0.3)),
-      url('/cg/dark-cg.jpg');
-    background-position: center 20%;
+    /* overlay uses --bg-overlay (falls back to dark semi-transparent for dark mode) */
+      /* Dark mode: allow per-image or per-theme overlay via --bg-overlay; default is a dark semi-transparent mask */
+      background-image:
+        linear-gradient(var(--bg-overlay, rgba(10,10,10,0.3)), var(--bg-overlay, rgba(10,10,10,0.3))),
+        var(--bg-image, url('/cg/dark-cg.jpg'));
+    background-position: var(--bg-position, center 20%);
+    background-size: var(--bg-size, cover);
   }
   
 
