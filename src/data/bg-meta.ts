@@ -17,7 +17,8 @@ const bgMeta: Record<
   '/cg/8th.jpg': { position: 'center 25%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
   '/cg/9th.jpg': { position: 'center 80%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
   '/cg/10th.jpg': { position: 'center 15%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
-  '/cg/xmm.jpg': { position: 'center', size: 'cover', overlayLight: 'rgba(251,251,251,0.7)', overlayDark: 'rgba(10,10,10,0.35)' },
+  // xmm.jpg 在浅色主题上原先使用较强的白色罩层（0.7）导致界面元素不可见，降低为 0.15
+  '/cg/xmm.jpg': { position: 'center', size: 'cover', overlayLight: 'rgba(255,255,255,0.15)', overlayDark: 'rgba(10,10,10,0.35)' },
   '/cg/dark-cg.jpg': { position: 'center 20%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
 };
 
