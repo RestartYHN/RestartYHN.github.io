@@ -6,6 +6,7 @@ import { profileConfig, siteConfig } from "@/config"
 import headerAvatar from "@assets/Motues.jpg"
 import ThemeIcon from "./control/ThemeIcon.astro"
 import { baseUrl } from "@utils/url-utils"
+import BackgroundSwitcher from '@components/misc/BackgroundSwitcher.astro';
 
 import { i18n } from "astro:config/client";
 import i18nit from '@i18n/translation'
@@ -73,18 +74,13 @@ if (profileConfig.indexPage) {
     </div>
     
     <!-- tools -->
-    <div class="ml-auto flex gap-1.5 md:gap-2 pl-2 md:pl-4 py-1 md:py-2 justify-end z-30">
+    <div class="ml-auto flex gap-0.3 md:gap-0.8 pl-2 md:pl-4 py-1 md:py-2 justify-end z-30">
         <!-- Search -->
       <button id="search-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Search">
         <Icon name="fa6-solid:magnifying-glass" class="w-3.5 h-3.5 md:w-4 md:h-4" />
         </button>
-        <!-- Background switcher quick controls (emit events, homepage listens) -->
-        <button id="bg-prev-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] rounded-lg border border-[var(--button-border-color)] transition-all duration-300" aria-label="Previous background" title="Previous background" onclick="window.dispatchEvent(new CustomEvent('bg-switcher-prev'))">
-          <Icon name="fa6-solid:chevron-left" class="w-3.5 h-3.5 md:w-4 md:h-4" />
-        </button>
-        <button id="bg-next-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] rounded-lg border border-[var(--button-border-color)] transition-all duration-300" aria-label="Next background" title="Next background" onclick="window.dispatchEvent(new CustomEvent('bg-switcher-next'))">
-          <Icon name="fa6-solid:chevron-right" class="w-3.5 h-3.5 md:w-4 md:h-4" />
-        </button>
+        <!-- Background switcher (single global instance rendered in header) -->
+        <BackgroundSwitcher client:load />
         <!-- Dark Mode -->
       <ThemeIcon class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] rounded-lg hover:text-current active:scale-90 border border-[var(--button-border-color)] transition-all duration-300"/>
         <!-- RSS -->
@@ -489,5 +485,51 @@ document.addEventListener('astro:page-load', attachSearchListener);
     pointer-events: none !important;
     cursor: default !important;
   }
+}
+
+/* Extra small screens: optimize layout at ~350px width */
+@media (max-width: 350px) {
+  /* Nudge the tools container further right so it doesn't overlap the site title */
+  #main-header .ml-auto {
+    transform: translateX(-1.0rem) !important;
+    z-index: 100 !important;
+  }
+
+  /* Make individual tool buttons smaller and spaced to the right */
+  #main-header .ml-auto button,
+  #main-header .ml-auto .bg-switcher-btn {
+    position: relative !important;
+    z-index: 110 !important;
+    margin-left: 0.4rem !important;
+    width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  /* Keep background switcher controls inline and compact to avoid overlapping title */
+  #main-header .bg-switcher-controls {
+    position: relative !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    display: flex !important;
+    gap: 8.6rem !important;
+    margin-left: -3.4rem !important;
+    align-items: center !important;
+    background: transparent !important;
+    padding: 0 !important;
+    /* 微调：整体向下偏移，避免覆盖站名 */
+    transform: translateY(0px) !important;
+  }
+
+  #main-header .bg-switcher-controls .bg-switcher-btn {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  /* Keep logo non-clickable on very small screens to avoid accidental taps */
+  #main-header .header-logo a { pointer-events: none !important; }
 }
 </style>

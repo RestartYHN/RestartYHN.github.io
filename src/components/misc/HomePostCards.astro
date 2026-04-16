@@ -3,7 +3,6 @@ import { getBlogEntrySort } from '@utils/content-utils';
 import { blogCoverUrl, getRelativeLocaleUrl } from '@utils/url-utils';
 import { formatFullDate } from '@/utils/time';
 import ImageModule from '@components/misc/ImageModule.astro';
-import BackgroundSwitcher from '@components/misc/BackgroundSwitcher.astro';
 import { i18n } from 'astro:config/client';
 import i18nit from '@i18n/translation';
 
@@ -13,7 +12,6 @@ const posts = (await getBlogEntrySort(currentLang)).slice(0, 3);
 ---
 
 <section class="home-post-section mx-auto mt-10 mb-8 w-full max-w-[var(--page-width)]">
-  <BackgroundSwitcher />
   <div class="mb-4 flex items-end justify-between gap-3 border-b border-[var(--button-border-color)] pb-3">
     <div>
       <h2 class="text-2xl font-bold text-[var(--text-color)]">

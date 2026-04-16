@@ -9,7 +9,7 @@ const bgMeta: Record<
 > = {
   '/cg/1st.jpg': { position: 'center 85%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
   '/cg/2nd.jpg': { position: 'center 50%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
-  '/cg/3rd.jpg': { position: 'center 20%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
+  '/cg/3rd.jpg': { position: 'center 40%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
   '/cg/4th.jpg': { position: 'center 15%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
   '/cg/5th.jpg': { position: 'center 25%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
   '/cg/6th.jpg': { position: 'center 85%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
