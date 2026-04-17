@@ -18,12 +18,7 @@ import { musicConfig } from '@/data/music';
       </div>
     </div>
     <span id="music-player-position" class="music-position-info">-</span>
-    {/* Play Mode Controls */}
-    <button id="music-mode-toggle" class="music-control music-mode-toggle" type="button" aria-label="Play Mode" title="Toggle play mode">
-      <span class="music-mode-icon music-mode-sequential">≡</span>
-      <span class="music-mode-icon music-mode-loop hidden">↻</span>
-      <span class="music-mode-icon music-mode-shuffle hidden">⤮</span>
-    </button>
+    {/* Play Mode Controls removed - fixed to sequential playback */}
     <button id="music-prev" class="music-control" type="button" aria-label="Prev">◀</button>
     <button
       id="music-main-play"
@@ -54,7 +49,7 @@ import { musicConfig } from '@/data/music';
     gap: 0.75rem;
     border: 1px solid var(--button-border-color);
     border-radius: 0.9rem;
-    background: color-mix(in oklab, var(--bg-color) 92%, transparent);
+    background: color-mix(in oklab, var(--bg-color) 70%, transparent);
     padding: 0.55rem 0.6rem;
     backdrop-filter: blur(8px);
   }
@@ -108,7 +103,7 @@ import { musicConfig } from '@/data/music';
     height: 36px;
     border-radius: 999px;
     border: 1px solid var(--button-border-color);
-    background: color-mix(in oklab, var(--bg-color) 85%, transparent);
+    background: color-mix(in oklab, var(--bg-color) 55%, transparent);
     color: var(--text-color);
     display: inline-flex;
     align-items: center;
@@ -384,8 +379,7 @@ import { musicConfig } from '@/data/music';
   function makeController() {
     const API_BASE = musicConfig.apiBase;
 
-    const PLAY_MODE_KEY = 'music-play-mode';
-    const PLAY_MODES = ['sequential', 'loop', 'shuffle'];
+    // Play mode removed; always use sequential
 
     const state = {
       tracks: [],
@@ -395,9 +389,7 @@ import { musicConfig } from '@/data/music';
       bound: false,
       handlers: {},
       els: null,
-      playMode: localStorage.getItem(PLAY_MODE_KEY) || 'sequential',
-      shuffleHistory: [],
-      shuffleIndex: -1,
+      playMode: 'sequential',
     };
 
     // Bootstrap the global player with tracks from music page
@@ -461,7 +453,7 @@ import { musicConfig } from '@/data/music';
         btnPrev: document.getElementById('music-prev'),
         btnNext: document.getElementById('music-next'),
         posEl: document.getElementById('music-player-position'),
-        btnModeToggle: document.getElementById('music-mode-toggle'),
+        btnModeToggle: null,
         btnPlaylist: document.getElementById('music-playlist-btn'),
         playlistModal: document.getElementById('global-music-playlist-modal'),
         playlistModalBackdrop: document.getElementById('global-music-playlist-modal-backdrop'),
@@ -470,64 +462,15 @@ import { musicConfig } from '@/data/music';
       };
     }
 
-    function updatePlayModeUI() {
-      const { btnModeToggle } = state.els || {};
-      if (!btnModeToggle) return;
-      const icons = btnModeToggle.querySelectorAll('.music-mode-icon');
-      icons.forEach((icon) => icon.classList.add('hidden'));
-      const activeIcon = btnModeToggle.querySelector(`.music-mode-${state.playMode}`);
-      if (activeIcon) activeIcon.classList.remove('hidden');
-    }
-
-    function cyclePlayMode() {
-      const currentIdx = PLAY_MODES.indexOf(state.playMode);
-      state.playMode = PLAY_MODES[(currentIdx + 1) % PLAY_MODES.length];
-      localStorage.setItem(PLAY_MODE_KEY, state.playMode);
-      updatePlayModeUI();
-      if (state.playMode === 'shuffle') {
-        state.shuffleHistory = [state.currentIndex];
-        state.shuffleIndex = 0;
-      }
-    }
+    // Play mode helper removed; sequential playback only
 
     function getNextIndex() {
       if (!state.tracks.length) return 0;
-      if (state.playMode === 'loop') {
-        return state.currentIndex;
-      }
-      if (state.playMode === 'shuffle') {
-        if (state.shuffleIndex < state.shuffleHistory.length - 1) {
-          state.shuffleIndex++;
-          return state.shuffleHistory[state.shuffleIndex];
-        }
-        let nextIdx;
-        do {
-          nextIdx = Math.floor(Math.random() * state.tracks.length);
-        } while (state.tracks.length > 1 && nextIdx === state.currentIndex);
-        state.shuffleHistory.push(nextIdx);
-        state.shuffleIndex = state.shuffleHistory.length - 1;
-        return nextIdx;
-      }
       return (state.currentIndex + 1) % state.tracks.length;
     }
 
     function getPrevIndex() {
       if (!state.tracks.length) return 0;
-      if (state.playMode === 'loop') {
-        return state.currentIndex;
-      }
-      if (state.playMode === 'shuffle') {
-        if (state.shuffleIndex > 0) {
-          state.shuffleIndex--;
-          return state.shuffleHistory[state.shuffleIndex];
-        }
-        let prevIdx;
-        do {
-          prevIdx = Math.floor(Math.random() * state.tracks.length);
-        } while (state.tracks.length > 1 && prevIdx === state.currentIndex);
-        state.shuffleHistory.unshift(prevIdx);
-        return prevIdx;
-      }
       return (state.currentIndex - 1 + state.tracks.length) % state.tracks.length;
     }
 
@@ -639,10 +582,15 @@ import { musicConfig } from '@/data/music';
       if (!audio) return;
 
       if (track?.audio) {
-        const previousSrc = audio.getAttribute('src') || '';
-        if (previousSrc !== track.audio) {
-          audio.src = track.audio;
-          audio.load();
+        const currentSrc = String(audio.currentSrc || audio.src || '');
+        const nextSrc = String(track.audio || '');
+        const isSameSrc = currentSrc && nextSrc && currentSrc === nextSrc;
+        const shouldPreserve = Boolean(isSameSrc && !audio.paused);
+        // If the src is already the same and audio is playing, avoid calling load()
+        // which would reset playback to the start.
+        if (!shouldPreserve) {
+          if (!isSameSrc) audio.src = nextSrc;
+          if (!isSameSrc) audio.load();
         }
       }
       updatePlayerPosition();
@@ -679,7 +627,7 @@ import { musicConfig } from '@/data/music';
       const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
       if (!audio || !btnMainPlay || !btnPrev || !btnNext || !progressEl) return;
 
-      updatePlayModeUI();
+      // play mode UI removed
 
       state.handlers.onMainPlay = async () => {
         if (!state.tracks.length && !audio.src) return;
@@ -707,11 +655,6 @@ import { musicConfig } from '@/data/music';
       };
 
       state.handlers.onEnded = async () => {
-        if (state.playMode === 'loop') {
-          audio.currentTime = 0;
-          audio.play().catch(() => {});
-          return;
-        }
         await stepNext();
       };
       state.handlers.onLoadedMetadata = () => {
@@ -736,9 +679,7 @@ import { musicConfig } from '@/data/music';
       progressEl.addEventListener('input', state.handlers.onProgressInput);
 
       // Play mode toggle
-      if (btnModeToggle) {
-        btnModeToggle.addEventListener('click', cyclePlayMode);
-      }
+      // play mode toggle removed
 
       // Playlist modal
       if (btnPlaylist) {
@@ -768,7 +709,7 @@ import { musicConfig } from '@/data/music';
       if (audio && state.handlers.onEnded) audio.removeEventListener('ended', state.handlers.onEnded);
       if (audio && state.handlers.onLoadedMetadata) audio.removeEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       if (progressEl && state.handlers.onProgressInput) progressEl.removeEventListener('input', state.handlers.onProgressInput);
-      if (btnModeToggle) btnModeToggle.removeEventListener('click', cyclePlayMode);
+      // play mode toggle removed
       if (btnPlaylist) btnPlaylist.removeEventListener('click', openPlaylistModal);
       if (playlistModalBackdrop) playlistModalBackdrop.removeEventListener('click', closePlaylistModal);
       if (playlistModalClose) playlistModalClose.removeEventListener('click', closePlaylistModal);

@@ -25,8 +25,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     <Cover
       title={isEn ? 'Music' : '音乐'}
       subTitle={isEn
-        ? 'NetEase web player(web recommended): You can select any playlist and start listening.Stay before the page and you can appreciate the lyrics.Moreover,the global player is enabled, so opening other sibling pages will not affect the current playlist playback. However, re-entering the music page will fail to load properly (not fixed yet). To reselect a playlist, please refresh the entire page to reinitialize, then choose the playlist you want to listen to. Summary: Open the music page, select a playlist to listen, refresh the page to reselect. Note: Only public playlist info is loaded, VIP tracks cannot be played in full.'
-        : '网易云网页播放(推荐网页端)：你可以选择任一歌单然后开听,保持在此页面可欣赏歌词.另外已设置全局播放器,打开其他同级页面不影响当前歌单播放，但在再次进入音乐页时会无法正常加载（还没修好）,如要重新选择歌单请刷新整个页面重新初始化,再选择想听的歌单.\n一句话概括:打开音乐页面、选歌单收听、刷新整个页面重新选.\n另外,页面读取的是公开歌单信息,vip曲目不能播放全曲,还请注意.'
+        ? 'NetEase Cloud web player (web recommended): if the default track does not play, the media file may not have been retrieved — try clicking another track and playback should start on subsequent attempts. Choose any playlist and start listening; stay on this page to view synchronized lyrics. A global player is enabled, so opening sibling pages will not interrupt the current playlist. Note: only public playlist data is used; VIP/paid tracks may not play in full.'
+        : '网易云网页播放（推荐使用网页版）：若默认歌曲点击后无法播放，说明未读取到媒体文件，请尝试点击其他歌曲，后续播放流程会恢复。你可以选择任意公开歌单开始收听，并在该页面欣赏同步歌词。页面已内置全局播放器，打开同级页面不会中断当前歌单播放。注意：仅读取公开歌单信息，VIP/付费曲目可能无法播放完整。'
       }
     />
 
@@ -887,29 +887,64 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   const NETEASE_REAL_IP = musicConfig.neteaseRealIp || "";
   const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
 
-  const audio = document.getElementById("music-audio");
-  const trackListEl = document.getElementById("music-track-list");
-  const cover = document.getElementById("music-cover");
-  const titleEl = document.getElementById("music-title");
-  const artistEl = document.getElementById("music-artist");
-  const lyricsEl = document.getElementById("music-lyrics");
-  const heroBg = document.getElementById("music-hero-bg");
-  const statusEl = document.getElementById("music-status");
-  const bottomCover = document.getElementById("music-bottom-cover");
-  const bottomTitle = document.getElementById("music-bottom-title");
-  const bottomArtist = document.getElementById("music-bottom-artist");
-  const progressEl = document.getElementById("music-progress");
-  const currentTimeEl = document.getElementById("music-current-time");
-  const totalTimeEl = document.getElementById("music-total-time");
-  const playlistListEl = document.getElementById("music-playlist-list");
-  const playlistSubtitleEl = document.getElementById("music-playlist-subtitle");
-  const btnMainPlay = document.getElementById("music-main-play");
-  const btnCardPlay = document.getElementById("music-play-toggle");
-  const btnPrev = document.getElementById("music-prev");
-  const btnNext = document.getElementById("music-next");
-  const progressWrap = document.querySelector(".music-progress-wrap");
-  const playIcon = btnMainPlay?.querySelector(".music-control-icon-play");
-  const pauseIcon = btnMainPlay?.querySelector(".music-control-icon-pause");
+  // Page elements: use `let` and re-query on init to survive Astro partial navigation
+  let audio;
+  let trackListEl;
+  let cover;
+  let titleEl;
+  let artistEl;
+  let lyricsEl;
+  let heroBg;
+  let statusEl;
+  let bottomCover;
+  let bottomTitle;
+  let bottomArtist;
+  let progressEl;
+  let currentTimeEl;
+  let totalTimeEl;
+  let playlistListEl;
+  let playlistSubtitleEl;
+  let btnMainPlay;
+  let btnCardPlay;
+  let btnPrev;
+  let btnNext;
+  let progressWrap;
+  let playIcon;
+  let pauseIcon;
+
+  function queryPageEls() {
+    audio = document.getElementById("music-audio");
+    trackListEl = document.getElementById("music-track-list");
+    cover = document.getElementById("music-cover");
+    titleEl = document.getElementById("music-title");
+    artistEl = document.getElementById("music-artist");
+    lyricsEl = document.getElementById("music-lyrics");
+    heroBg = document.getElementById("music-hero-bg");
+    statusEl = document.getElementById("music-status");
+    bottomCover = document.getElementById("music-bottom-cover");
+    bottomTitle = document.getElementById("music-bottom-title");
+    bottomArtist = document.getElementById("music-bottom-artist");
+    progressEl = document.getElementById("music-progress");
+    currentTimeEl = document.getElementById("music-current-time");
+    totalTimeEl = document.getElementById("music-total-time");
+    playlistListEl = document.getElementById("music-playlist-list");
+    playlistSubtitleEl = document.getElementById("music-playlist-subtitle");
+    btnMainPlay = document.getElementById("music-main-play");
+    btnCardPlay = document.getElementById("music-play-toggle");
+    btnPrev = document.getElementById("music-prev");
+    btnNext = document.getElementById("music-next");
+    progressWrap = document.querySelector(".music-progress-wrap");
+    playIcon = btnMainPlay?.querySelector(".music-control-icon-play");
+    pauseIcon = btnMainPlay?.querySelector(".music-control-icon-pause");
+    // Ensure crossOrigin is set before any src assignment to allow CORS-enabled hosts
+    try {
+      if (audio && audio.crossOrigin !== 'anonymous') {
+        audio.crossOrigin = 'anonymous';
+      }
+    } catch (e) {
+      console.debug('[music] set crossOrigin failed', e);
+    }
+  }
 
   let tracks = [];
   let currentIndex = 0;
@@ -960,9 +995,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return false;
   }
 
-  // Play mode: 'sequential' | 'loop' | 'shuffle'
-  const PLAY_MODE_KEY = "music-play-mode";
-  let playMode = localStorage.getItem(PLAY_MODE_KEY) || "sequential";
+  // Play mode removed; always sequential
+  const playMode = 'sequential';
 
   // Playlist modal elements
   const playlistModal = document.getElementById("music-playlist-modal");
@@ -970,14 +1004,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   const playlistModalClose = document.getElementById("music-playlist-modal-close");
   const playlistModalList = document.getElementById("music-playlist-modal-list");
   const playlistCountEl = document.getElementById("music-playlist-count");
-  const btnModeSequential = document.getElementById("music-mode-sequential");
-  const btnModeLoop = document.getElementById("music-mode-loop");
-  const btnModeShuffle = document.getElementById("music-mode-shuffle");
+  // play mode buttons removed
   const btnPlaylistToggle = document.getElementById("music-playlist-toggle");
 
-  // Shuffle history for navigation
-  let shuffleHistory = [];
-  let shuffleIndex = -1;
+  // shuffle removed
 
   function showStatus(text, level = "info") {
     if (!statusEl) return;
@@ -997,69 +1027,15 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     statusEl.classList.add("hidden");
   }
 
-  // Play mode management
-  function updatePlayModeUI() {
-    [btnModeSequential, btnModeLoop, btnModeShuffle].forEach((btn) => btn?.classList.remove("active"));
-    if (playMode === "sequential" && btnModeSequential) btnModeSequential.classList.add("active");
-    if (playMode === "loop" && btnModeLoop) btnModeLoop.classList.add("active");
-    if (playMode === "shuffle" && btnModeShuffle) btnModeShuffle.classList.add("active");
-  }
-
-  function setPlayMode(mode) {
-    playMode = mode;
-    localStorage.setItem(PLAY_MODE_KEY, mode);
-    updatePlayModeUI();
-    // Reset shuffle history when mode changes
-    if (mode === "shuffle") {
-      shuffleHistory = [currentIndex];
-      shuffleIndex = 0;
-    }
-  }
+  // Play mode removed; sequential playback only
 
   function getNextIndex() {
     if (!tracks.length) return 0;
-    if (playMode === "loop") {
-      return currentIndex; // Same track
-    }
-    if (playMode === "shuffle") {
-      // If we're not at the end of shuffle history, move forward
-      if (shuffleIndex < shuffleHistory.length - 1) {
-        shuffleIndex++;
-        return shuffleHistory[shuffleIndex];
-      }
-      // Generate new random index
-      let nextIdx;
-      do {
-        nextIdx = Math.floor(Math.random() * tracks.length);
-      } while (tracks.length > 1 && nextIdx === currentIndex);
-      shuffleHistory.push(nextIdx);
-      shuffleIndex = shuffleHistory.length - 1;
-      return nextIdx;
-    }
-    // Sequential mode
     return (currentIndex + 1) % tracks.length;
   }
 
   function getPrevIndex() {
     if (!tracks.length) return 0;
-    if (playMode === "loop") {
-      return currentIndex; // Same track
-    }
-    if (playMode === "shuffle") {
-      // If we have history to go back to
-      if (shuffleIndex > 0) {
-        shuffleIndex--;
-        return shuffleHistory[shuffleIndex];
-      }
-      // Generate new random index for "previous"
-      let prevIdx;
-      do {
-        prevIdx = Math.floor(Math.random() * tracks.length);
-      } while (tracks.length > 1 && prevIdx === currentIndex);
-      shuffleHistory.unshift(prevIdx);
-      return prevIdx;
-    }
-    // Sequential mode
     return (currentIndex - 1 + tracks.length) % tracks.length;
   }
 
@@ -1128,16 +1104,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
-  // Event listeners for play mode buttons
-  btnModeSequential?.addEventListener("click", () => setPlayMode("sequential"));
-  btnModeLoop?.addEventListener("click", () => setPlayMode("loop"));
-  btnModeShuffle?.addEventListener("click", () => setPlayMode("shuffle"));
-  btnPlaylistToggle?.addEventListener("click", openPlaylistModal);
-  playlistModalBackdrop?.addEventListener("click", closePlaylistModal);
-  playlistModalClose?.addEventListener("click", closePlaylistModal);
-
-  // Initialize play mode UI
-  updatePlayModeUI();
+  // playlist modal bindings will be attached in initMusicPage()
 
   function updatePlayButtonState() {
     if (!btnMainPlay || !audio) return;
@@ -1445,10 +1412,17 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       if (track.audio) {
         const currentSrc = String(audio.currentSrc || audio.src || "");
         const nextSrc = String(track.audio || "");
-        const shouldPreserve = preserveActivePlayback && currentSrc && currentSrc !== nextSrc;
+        const isSameSrc = currentSrc && nextSrc && currentSrc === nextSrc;
+        const shouldPreserve = Boolean(preserveActivePlayback && isSameSrc && !audio.paused);
+        // If preserving active playback and the src is already the same and audio is playing,
+        // avoid calling load() which would reset playback to start.
         if (!shouldPreserve) {
-          audio.src = nextSrc;
-          audio.load();
+          if (!isSameSrc) {
+            console.debug('[music] setting audio.src ->', nextSrc, { isSameSrc, preserveActivePlayback });
+            audio.src = nextSrc;
+          }
+          // Only call load when we actually changed the src or explicitly need to reset
+          if (!isSameSrc) audio.load();
         }
       } else {
         if (!preserveActivePlayback) {
@@ -2041,8 +2015,36 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
-  btnMainPlay?.addEventListener("click", togglePlay);
-  btnCardPlay?.addEventListener("click", togglePlay);
+  // Delegate play/pause clicks to avoid binding-order issues and duplicate handlers.
+  function delegateMusicClicks(e) {
+    const btn = e.target.closest('#music-main-play, #music-play-toggle');
+    if (!btn) return;
+
+    // On the music page, let the page handle bottom player clicks (page owns playback UI).
+    if (/\/music\/?$/i.test(window.location.pathname)) {
+      e.preventDefault();
+      togglePlay();
+      return;
+    }
+
+    // Off music page: if a global controller exists, prefer it (avoid double-toggle).
+    try {
+      const globalController = window[GLOBAL_MUSIC_KEY];
+      if (btn.matches && btn.matches('#music-main-play') && globalController) {
+        return;
+      }
+    } catch (err) {
+      // ignore and continue
+    }
+
+    e.preventDefault();
+    togglePlay();
+  }
+
+  if (!document._musicDelegationBound) {
+    document.addEventListener('click', delegateMusicClicks);
+    document._musicDelegationBound = true;
+  }
   
   // Update play button state on play/pause events for reliable UI sync
   audio?.addEventListener("play", updatePlayButtonState);
@@ -2097,13 +2099,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   });
   audio?.addEventListener("ended", async () => {
     if (!tracks.length) return;
-    // For loop mode, just replay the current track
-    if (playMode === "loop") {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
-      return;
-    }
-    // For sequential and shuffle modes, go to next track
     currentIndex = getNextIndex();
     const current = await prepareTrackForPlayback(currentIndex);
     if (!current) return;
@@ -2124,7 +2119,120 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     audio.currentTime = ratio * audio.duration;
   });
 
-  (async () => {
+  async function initMusicPage() {
+    queryPageEls();
+
+    // Bind media and control event handlers idempotently (re-run on partial navigation)
+    if (audio && !audio._musicHandlersBound) {
+      audio.addEventListener("play", updatePlayButtonState);
+      audio.addEventListener("pause", updatePlayButtonState);
+      audio.addEventListener("timeupdate", syncLyrics);
+      audio.addEventListener("loadedmetadata", () => {
+        if (totalTimeEl) totalTimeEl.textContent = formatClock(audio?.duration || 0);
+      });
+      audio.addEventListener("timeupdate", () => {
+        if (!audio) return;
+        if (currentTimeEl) currentTimeEl.textContent = formatClock(audio.currentTime);
+        if (progressEl && Number.isFinite(audio.duration) && audio.duration > 0) {
+          const ratio = audio.currentTime / audio.duration;
+          progressEl.value = String(Math.min(1000, Math.max(0, Math.round(ratio * 1000))));
+          updateProgressVisual();
+        }
+      });
+      audio.addEventListener("ended", async () => {
+        if (!tracks.length) return;
+        currentIndex = getNextIndex();
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        updatePlaylistCount();
+        syncToGlobalPlayer();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio.play().catch(() => {});
+        }
+      });
+      // Log loading/playing errors and expose a helpful status message
+      if (!audio._musicErrorBound) {
+        audio.addEventListener('error', (ev) => {
+          try {
+            console.debug('[music] audio.onerror', { src: audio.currentSrc || audio.src, code: audio.error?.code, message: audio.error?.message, event: ev });
+          } catch (e) {
+            console.debug('[music] audio.onerror (dump failed)', e);
+          }
+          showStatus(isEn ? 'Audio failed to load (check network/CORS).' : '音频加载失败（请检查网络或跨域）', 'error');
+        });
+        audio._musicErrorBound = true;
+      }
+      audio._musicHandlersBound = true;
+    }
+
+    if (btnPrev && !btnPrev._musicBound) {
+      btnPrev.addEventListener("click", async () => {
+        if (!tracks.length) return;
+        currentIndex = getPrevIndex();
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        updatePlaylistCount();
+        syncToGlobalPlayer();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio?.play().catch(() => {});
+        } else {
+          showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
+        }
+      });
+      btnPrev._musicBound = true;
+    }
+
+    if (btnNext && !btnNext._musicBound) {
+      btnNext.addEventListener("click", async () => {
+        if (!tracks.length) return;
+        currentIndex = getNextIndex();
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        updatePlaylistCount();
+        syncToGlobalPlayer();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio?.play().catch(() => {});
+        } else {
+          showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
+        }
+      });
+      btnNext._musicBound = true;
+    }
+
+    if (progressEl && !progressEl._musicBound) {
+      progressEl.addEventListener("input", () => {
+        if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+        const ratio = Number(progressEl.value || 0) / 1000;
+        audio.currentTime = ratio * audio.duration;
+      });
+      progressEl._musicBound = true;
+    }
+
+    // Playlist modal bindings
+    if (btnPlaylistToggle && !btnPlaylistToggle._musicBound) {
+      btnPlaylistToggle.addEventListener("click", openPlaylistModal);
+      btnPlaylistToggle._musicBound = true;
+    }
+    if (playlistModalBackdrop && !playlistModalBackdrop._musicBound) {
+      playlistModalBackdrop.addEventListener("click", closePlaylistModal);
+      playlistModalBackdrop._musicBound = true;
+    }
+    if (playlistModalClose && !playlistModalClose._musicBound) {
+      playlistModalClose.addEventListener("click", closePlaylistModal);
+      playlistModalClose._musicBound = true;
+    }
     // Warmup API in parallel (don't await)
     warmupNeteaseApi();
 
@@ -2136,7 +2244,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       renderPlaylistList();
       renderTrackList();
       if (tracks[currentIndex]) {
-        updateNowPlaying(tracks[currentIndex]);
+        updateNowPlaying(tracks[currentIndex], { preserveActivePlayback: shouldPreservePlaybackOnInit });
       }
       updatePlayerPosition();
       updatePlaylistCount();
@@ -2198,5 +2306,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
 
     renderTrackList();
-  })();
+  }
+
+  // Initialize now and on Astro partial navigation
+  initMusicPage();
+  document.addEventListener('astro:after-swap', initMusicPage);
+  document.addEventListener('astro:page-load', initMusicPage);
 </script>
