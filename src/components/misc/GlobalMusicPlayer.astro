@@ -32,7 +32,100 @@ import { musicConfig } from '@/data/music';
       <span class="music-control-icon music-control-icon-pause hidden" aria-hidden="true">❚❚</span>
     </button>
     <button id="music-next" class="music-control" type="button" aria-label="Next">▶</button>
+    <button id="music-playlist-btn" class="music-control music-playlist-btn" type="button" aria-label="Playlist">☰</button>
   </div>
+  
+  <!-- Minimal playlist modal (only DOM + lightweight client script). Controller will render list when available. -->
+  <div id="global-music-playlist-modal" class="global-music-playlist-modal hidden" aria-hidden="true">
+    <div id="global-music-playlist-modal-backdrop" class="global-music-playlist-modal-backdrop"></div>
+    <div class="global-music-playlist-modal-content" role="dialog" aria-label="Global Playlist">
+      <div class="global-music-playlist-modal-header">
+        <h3 class="global-music-playlist-modal-title">Playlist</h3>
+        <button id="global-music-playlist-modal-close" class="global-music-playlist-modal-close" type="button">×</button>
+      </div>
+      <ul id="global-music-playlist-modal-list" class="global-music-playlist-modal-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const KEY = '__globalMusicBootstrapV1';
+      const modal = document.getElementById('global-music-playlist-modal');
+      const backdrop = document.getElementById('global-music-playlist-modal-backdrop');
+      const closeBtn = document.getElementById('global-music-playlist-modal-close');
+      const listEl = document.getElementById('global-music-playlist-modal-list');
+
+      function openModal() {
+        // prefer controller's modal if it exposes openPlaylistModal
+        try {
+          const ctrl = window[KEY];
+          if (ctrl && typeof ctrl.openPlaylistModal === 'function') {
+            ctrl.openPlaylistModal();
+            return;
+          }
+        } catch (e) {}
+
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        // try to render via controller.getState()
+        try {
+          const ctrl = window[KEY];
+          if (ctrl && typeof ctrl.getState === 'function' && listEl) {
+            const state = ctrl.getState() || { tracks: [], currentIndex: 0 };
+            const tracks = Array.isArray(state.tracks) ? state.tracks : [];
+            if (!tracks.length) {
+              listEl.innerHTML = '<li class="global-music-playlist-modal-item" style="justify-content:center;color:var(--text-color-70)">No tracks</li>';
+            } else {
+              listEl.innerHTML = tracks.map((t, i) => `\n                <li class="global-music-playlist-modal-item ${i===state.currentIndex? 'active':''}" data-idx="${i}">\n                  <div class="global-music-playlist-modal-item-index">${i===state.currentIndex ? '▶' : String(i+1).padStart(2,'0')}</div>\n                  <div class="global-music-playlist-modal-item-info">\n                    <div class="global-music-playlist-modal-item-title">${t.title || 'Unknown'}</div>\n                    <div class="global-music-playlist-modal-item-artist">${t.artist || ''}</div>\n                  </div>\n                </li>`).join('');
+              listEl.querySelectorAll('.global-music-playlist-modal-item').forEach(el => {
+                el.addEventListener('click', () => {
+                  const idx = Number(el.getAttribute('data-idx') || '0');
+                  // If we're on the music page, try to reuse page handlers by clicking the page's track card or playlist item
+                  try {
+                    if (/\/music\/?$/i.test(window.location.pathname)) {
+                      const pageTrack = document.querySelector(`#music-track-list .music-track-card[data-idx="${idx}"]`);
+                      if (pageTrack) {
+                        (pageTrack as HTMLElement).click();
+                        closeModal();
+                        return;
+                      }
+                      const pagePlaylistItem = document.querySelector(`#music-playlist-modal-list .music-playlist-modal-item[data-idx="${idx}"]`);
+                      if (pagePlaylistItem) {
+                        (pagePlaylistItem as HTMLElement).click();
+                        closeModal();
+                        return;
+                      }
+                    }
+                  } catch (e) {}
+
+                  // Fallback: sync to global controller and trigger play button
+                  try { if (window[KEY] && typeof window[KEY].syncState === 'function') window[KEY].syncState({ currentIndex: idx }); } catch (e) {}
+                  const playBtn = document.getElementById('music-main-play');
+                  if (playBtn) playBtn.click();
+                  closeModal();
+                });
+              });
+            }
+          }
+        } catch (e) {}
+      }
+
+      function closeModal() {
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      document.getElementById('music-playlist-btn')?.addEventListener('click', openModal);
+      backdrop?.addEventListener('click', closeModal);
+      closeBtn?.addEventListener('click', closeModal);
+      // expose fallback
+      try { window.openGlobalPlaylist = openModal; } catch (e) {}
+    })();
+  </script>
 </div>
 
 <style is:global>
