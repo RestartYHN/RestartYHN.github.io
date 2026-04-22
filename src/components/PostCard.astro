@@ -40,6 +40,9 @@ const { remarkPluginFrontmatter } = await render(entry);
     <div class="content p-6">
         <a href={pageUrl} class="title text-xl font-semibold text-[var(--text-color)] mb-3 hover:text-[var(--link-color)] active:text-[var(--link-color)] flex items-center group transition-colors duration-300 ease-in-out">
             <span>{title}</span>
+                {entry.data.pinned && Number(entry.data.pinned) > 0 && (
+                    <span class="ml-2 inline-block text-[12px] font-semibold text-white bg-[#d5a56a] px-2 py-0.5 rounded">置顶</span>
+                )}
             <Icon 
                 name="fa6-solid:angle-right" 
                 class="ml-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transform md:translate-x-[-5px] md:group-hover:translate-x-0 transition-all duration-300 ease-in-out text-[var(--text-color)] group-hover:text-[var(--link-color)] group-active:text-[var(--link-color)]"

@@ -60,6 +60,9 @@ const posts = (await getBlogEntrySort(currentLang)).slice(0, 3);
 
             <h3 class="mb-1.5 text-base font-bold leading-snug text-[var(--text-color)] transition-colors group-hover:text-[var(--link-color)]">
               {post.data.title}
+              {post.data.pinned && Number(post.data.pinned) > 0 && (
+                <span class="ml-2 inline-block text-[11px] font-semibold text-white bg-[#d5a56a] px-2 py-0.5 rounded">置顶</span>
+              )}
             </h3>
 
             <p class="home-post-desc text-xs leading-5 text-[var(--text-color-70)]">

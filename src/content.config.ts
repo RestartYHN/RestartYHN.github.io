@@ -10,6 +10,8 @@ const blogCollection = defineCollection({
         description: z.string().optional().default(''),
         image: z.string().optional().default(''),
         slugId: z.string(),
+        // pinned: optional numeric priority; if absent, article is not pinned
+        pinned: z.number().optional(),
         category: z.string().optional(),
     }),
 })

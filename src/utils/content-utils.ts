@@ -24,6 +24,10 @@ export async function getBlogEntrySort(
   };
 
   const defaultSort = (a: CollectionEntry<'blog'>, b: CollectionEntry<'blog'>) => {
+    // Sort by pinned priority first (higher pinned value comes first), then by pubDate desc
+    const pa = Number(a.data?.pinned || 0);
+    const pb = Number(b.data?.pinned || 0);
+    if (pb !== pa) return pb - pa;
     return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
   };
 
