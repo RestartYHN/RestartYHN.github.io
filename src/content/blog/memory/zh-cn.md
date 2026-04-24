@@ -5,6 +5,7 @@ description: 纪念逝去的......
 category: 随笔
 image: ""
 draft: false
+pinned: 1
 slugId: momo/memory
 ---
 

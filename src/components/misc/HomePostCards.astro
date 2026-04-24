@@ -8,7 +8,9 @@ import i18nit from '@i18n/translation';
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
 const t = i18nit(currentLang);
-const posts = (await getBlogEntrySort(currentLang)).slice(0, 3);
+const allPosts = await getBlogEntrySort(currentLang);
+// Latest posts: strictly by pubDate desc (do not let pinned affect ordering)
+const posts = allPosts.slice().sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);
 ---
 
 <section class="home-post-section mx-auto mt-10 mb-8 w-full max-w-[var(--page-width)]">
@@ -25,6 +27,8 @@ const posts = (await getBlogEntrySort(currentLang)).slice(0, 3);
       {currentLang === 'en' ? 'View all' : '查看全部'} →
     </a>
   </div>
+
+  
 
   <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {posts.map((post) => {
