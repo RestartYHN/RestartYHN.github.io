@@ -72,8 +72,12 @@ category: 随笔
 
 （拓展内容：
 普希金《风暴》
+
 vietra《dream》
-泰戈尔《飞鸟集》8th:"Her wistful face haunts my dreams like the rain at night."）
+
+泰戈尔《飞鸟集》8th:
+
+"Her wistful face haunts my dreams like the rain at night."）
 
 ![Deepseek的评价](./image/Deepseek的评价.png "Deepseek的评价")
 
