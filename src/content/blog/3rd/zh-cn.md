@@ -36,7 +36,7 @@ category: 随笔
 
 ## 三行诗
 ![三行情书宣传海报](./image/三行情书宣传海报.jpg "宣传海报")
-[链接](https://mp.weixin.qq.com/s/kPOk-HRPdtCpMw7e19Secw "湖畔三行，泗水情深|这个春天，让我们赋予文字心跳")！
+（[链接](https://mp.weixin.qq.com/s/kPOk-HRPdtCpMw7e19Secw "湖畔三行，泗水情深|这个春天，让我们赋予文字心跳")！）
 一开始看到投票制的时候，我其实没什么参加的欲望，毕竟如果不加宣传，恐怕我的作品都没几个人能看到（叹），但奈何还是想为自己的存在留下点痕迹，"或许就和写个签一样吧。"抱着这样的想法写了几首:
 :::quote
 
@@ -69,6 +69,11 @@ category: 随笔
 <br><right>——《梦中的捉迷藏》</right>
 :::
 不得不说，想要在三行间做好凝练、清晰和动人的平衡绝非易事，每一首都或多或少都做了取舍：第一首的感性偏重，第二首未免显得空泛，不过第三首我倒挺满意的（Deepseek给出的评价是最佳，不过我更想听听读者的想法！）。
+
+（拓展内容：
+普希金《风暴》
+vietra《dream》
+泰戈尔《飞鸟集》8th:"Her wistful face haunts my dreams like the rain at night."）
 
 ![Deepseek的评价](./image/Deepseek的评价.png "Deepseek的评价")
 
