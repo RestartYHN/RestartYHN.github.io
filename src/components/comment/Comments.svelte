@@ -197,14 +197,8 @@
     btn.style.background = 'rgba(255,255,255,0.9)';
     btn.style.cursor = 'pointer';
     btn.addEventListener('click', () => {
-      const EMOJI = '😊';
-      const start = (ta as HTMLTextAreaElement).selectionStart ?? ta.value.length;
-      const end = (ta as HTMLTextAreaElement).selectionEnd ?? ta.value.length;
-      (ta as HTMLTextAreaElement).value = ta.value.slice(0, start) + EMOJI + ta.value.slice(end);
-      const pos = start + EMOJI.length;
-      (ta as HTMLTextAreaElement).selectionStart = (ta as HTMLTextAreaElement).selectionEnd = pos;
-      (ta as HTMLTextAreaElement).focus();
-      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      const taEl = ta as HTMLTextAreaElement;
+      setupFallbackPortal(taEl);
     });
     // insert after the textarea
     ta.parentNode?.insertBefore(btn, ta.nextSibling);
@@ -232,6 +226,100 @@
     // slight delay so initial comments/rendering can run
     setTimeout(() => setupFallbackInjector(), 200);
   });
+
+  // --- Fallback portal implementation ---
+  let fallbackPortal: HTMLElement | null = null;
+  let fallbackCloseHandler: ((e: Event) => void) | null = null;
+
+  const FALLBACK_EMOJIS = ['😀','😂','😍','👍','🎉','😮','❤️','🚀','👀','😉'];
+  const FALLBACK_KAOMOJI = ['(๑•́ ₃ •̀๑)','(つω`｡)','OwO','( ͡° ͜ʖ ͡°)'];
+
+  function destroyFallbackPortal() {
+    if (fallbackPortal && fallbackPortal.parentNode) fallbackPortal.parentNode.removeChild(fallbackPortal);
+    fallbackPortal = null;
+    if (fallbackCloseHandler) {
+      window.removeEventListener('click', fallbackCloseHandler, true);
+      fallbackCloseHandler = null;
+    }
+  }
+
+  function setupFallbackPortal(ta: HTMLTextAreaElement) {
+    destroyFallbackPortal();
+    fallbackPortal = document.createElement('div');
+    fallbackPortal.className = 'fallback-emoji-portal';
+    Object.assign(fallbackPortal.style, {
+      position: 'fixed',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      bottom: '6rem',
+      padding: '10px',
+      background: 'rgba(255,255,255,0.95)',
+      backdropFilter: 'blur(6px)',
+      border: '1px solid rgba(0,0,0,0.08)',
+      borderRadius: '10px',
+      boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+      zIndex: '99999',
+      width: '360px',
+    });
+
+    const grid = document.createElement('div');
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(5,1fr)';
+    grid.style.gap = '6px';
+
+    for (const em of FALLBACK_EMOJIS) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = em;
+      Object.assign(b.style, { padding: '6px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent' });
+      b.addEventListener('click', () => {
+        insertEmojiToTextarea(ta, em);
+        destroyFallbackPortal();
+      });
+      grid.appendChild(b);
+    }
+
+    const kaobox = document.createElement('div');
+    kaobox.style.marginTop = '8px';
+    kaobox.style.display = 'grid';
+    kaobox.style.gridTemplateColumns = 'repeat(2,1fr)';
+    kaobox.style.gap = '6px';
+
+    for (const k of FALLBACK_KAOMOJI) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = k;
+      Object.assign(b.style, { padding: '6px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', textAlign: 'left' });
+      b.addEventListener('click', () => {
+        insertEmojiToTextarea(ta, k);
+        destroyFallbackPortal();
+      });
+      kaobox.appendChild(b);
+    }
+
+    fallbackPortal.appendChild(grid);
+    fallbackPortal.appendChild(kaobox);
+    document.body.appendChild(fallbackPortal);
+
+    // close when clicking outside
+    fallbackCloseHandler = (e: Event) => {
+      if (!fallbackPortal) return;
+      const target = e.target as Node;
+      if (fallbackPortal.contains(target)) return;
+      destroyFallbackPortal();
+    };
+    window.addEventListener('click', fallbackCloseHandler, true);
+  }
+
+  function insertEmojiToTextarea(ta: HTMLTextAreaElement, emoji: string) {
+    const start = ta.selectionStart ?? ta.value.length;
+    const end = ta.selectionEnd ?? ta.value.length;
+    ta.value = ta.value.slice(0, start) + emoji + ta.value.slice(end);
+    const pos = start + emoji.length;
+    ta.selectionStart = ta.selectionEnd = pos;
+    ta.focus();
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  }
 </script>
 
 <div class="mt-4 max-w-3xl mx-auto border-t border-[var(--button-border-color)]" id="comments">
