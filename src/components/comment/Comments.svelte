@@ -37,6 +37,17 @@
   // 本地存储键名
   const STORAGE_KEY = 'comment_user_info';
 
+  // 要隐藏的评论 ID 列表（本地过滤）
+  const HIDDEN_COMMENT_IDS: number[] = [13, 14];
+
+  // 递归移除指定 id 的评论及其子孙
+  function removeCommentsByIds(list: any[], ids: number[]) {
+    if (!list || !list.length) return [];
+    return list
+      .filter(c => !ids.includes(Number(c.id)))
+      .map(c => ({ ...c, replies: c.replies ? removeCommentsByIds(c.replies, ids) : [] }));
+  }
+
   // 从本地存储加载用户信息
   function loadUserInfoFromStorage() {
     try {
@@ -83,7 +94,10 @@
       );
       if (!res.ok) throw new Error(t('comments.loadFailed') || '加载失败');
       const data = await res.json();
-      comments = data.data.comments;
+      // 先取原始评论列表
+      let loaded = data.data.comments;
+      // 过滤掉要隐藏的评论
+      comments = removeCommentsByIds(loaded, HIDDEN_COMMENT_IDS);
       hasMore = data.data.pagination.totalPage > page;
     } catch (err: any) {
       error = err.message;
