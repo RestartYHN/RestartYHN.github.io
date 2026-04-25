@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import CommentItem from './CommentItem.svelte';
-	import { formatFullDate as _formatFullDate } from '../../utils/date';
+	import { formatFullDate as _formatFullDate } from '../../utils/time';
 	import { t } from '../../i18n/key';
 
 	export let c: any;
