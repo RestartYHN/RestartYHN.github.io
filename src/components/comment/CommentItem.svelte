@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import CommentItem from './CommentItem.svelte';
 	import { formatFullDate as _formatFullDate } from '../../utils/time';
-	import { t } from '../../i18n/key';
+	import i18nit from '../../i18n/translation.ts';
 
 	export let c: any;
 	export let postSlug: string;
@@ -17,6 +17,8 @@
 	export let replyingToId: string | null = null;
 
 	const dispatch = createEventDispatcher();
+
+	const t = i18nit(language);
 
 	let replyAuthor = '';
 	let replyEmail = '';
