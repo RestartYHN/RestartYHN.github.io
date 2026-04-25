@@ -180,6 +180,58 @@
     loadUserInfoFromStorage();
     loadComments();
   });
+
+  // --- Fallback DOM injector: ensure reply forms get an emoji button even if other components fail to render ---
+  function addEmojiButtonToForm(form: HTMLFormElement) {
+    if (!form) return;
+    if (form.querySelector('.__emoji_inject_btn')) return;
+    const ta = form.querySelector('textarea');
+    if (!ta) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = '__emoji_inject_btn';
+    btn.textContent = '表情 😊';
+    btn.style.marginLeft = '8px';
+    btn.style.padding = '6px 10px';
+    btn.style.border = '1px solid rgba(0,0,0,0.12)';
+    btn.style.background = 'rgba(255,255,255,0.9)';
+    btn.style.cursor = 'pointer';
+    btn.addEventListener('click', () => {
+      const EMOJI = '😊';
+      const start = (ta as HTMLTextAreaElement).selectionStart ?? ta.value.length;
+      const end = (ta as HTMLTextAreaElement).selectionEnd ?? ta.value.length;
+      (ta as HTMLTextAreaElement).value = ta.value.slice(0, start) + EMOJI + ta.value.slice(end);
+      const pos = start + EMOJI.length;
+      (ta as HTMLTextAreaElement).selectionStart = (ta as HTMLTextAreaElement).selectionEnd = pos;
+      (ta as HTMLTextAreaElement).focus();
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    // insert after the textarea
+    ta.parentNode?.insertBefore(btn, ta.nextSibling);
+  }
+
+  function setupFallbackInjector() {
+    // inject into existing forms
+    document.querySelectorAll('#comments form').forEach((f) => addEmojiButtonToForm(f as HTMLFormElement));
+
+    // watch for new forms (reply forms appear dynamically)
+    const obs = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const n of Array.from(m.addedNodes)) {
+          if (!(n as Element).querySelector) continue;
+          if ((n as Element).matches && (n as Element).matches('#comments form')) addEmojiButtonToForm(n as HTMLFormElement);
+          (n as Element).querySelectorAll && (n as Element).querySelectorAll('#comments form').forEach((f) => addEmojiButtonToForm(f as HTMLFormElement));
+        }
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // start injector after mount
+  onMount(() => {
+    // slight delay so initial comments/rendering can run
+    setTimeout(() => setupFallbackInjector(), 200);
+  });
 </script>
 
 <div class="mt-4 max-w-3xl mx-auto border-t border-[var(--button-border-color)]" id="comments">
