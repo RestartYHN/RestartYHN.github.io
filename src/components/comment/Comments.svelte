@@ -3,6 +3,8 @@
   import { siteConfig } from '@/config.ts';
   import CommentItem from './CommentItem.svelte';
   import i18nit from '../../i18n/translation.ts';
+  import { openPicker } from './emojiPickerStore';
+  import EmojiPicker from './EmojiPicker.svelte';
 
   export let postSlug: string;
   export let language: string = 'zh-cn';
@@ -24,6 +26,7 @@
   let email = '';
   let url = '';
   let content = '';
+  let contentArea: HTMLTextAreaElement | null = null;
 
   // 防止重复提交
   let submitting = false;
@@ -205,7 +208,21 @@
       <div>
         <textarea placeholder={t('comments.welcome')}
           class="rounded w-full border text-[var(--text-color)] border-[var(--button-border-color)]  focus:outline-none focus:border-[var(--link-color)] text-sm p-3 min-h-[100px]"
-          bind:value={content}></textarea>
+          bind:value={content} bind:this={contentArea}></textarea>
+        <div class="mt-2 inline-block">
+          <button type="button" on:click={() => openPicker((emoji: string, target?: HTMLElement | null) => {
+            const ta = (target ?? contentArea) as HTMLTextAreaElement | null;
+            if (!ta) return;
+            const start = ta.selectionStart ?? content.length;
+            const end = ta.selectionEnd ?? content.length;
+            content = content.slice(0, start) + emoji + content.slice(end);
+            requestAnimationFrame(() => {
+              const pos = start + emoji.length;
+              ta.selectionStart = ta.selectionEnd = pos;
+              ta.focus();
+            });
+          }, contentArea)} aria-label="插入表情" class="text-sm px-2 py-1 border rounded bg-[var(--button-border-color)]">😊</button>
+        </div>
         <div class="text-right text-sm text-[var(--text-color-70)] mt-1">
           <!-- {getWordCount(content).chars} {t('comments.characters')} / {getWordCount(content).words} {t('comments.words')} -->
           {#if !isContentWithinLimit(content)}
@@ -253,4 +270,5 @@
       {/if}
     {/if}
   </div>
+  <EmojiPicker />
 </div>
