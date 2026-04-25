@@ -191,11 +191,8 @@
     btn.type = 'button';
     btn.className = '__emoji_inject_btn';
     btn.textContent = '表情 😊';
+    // 使用 CSS 类来控制外观（半透明并适应主题/背景）
     btn.style.marginLeft = '8px';
-    btn.style.padding = '6px 10px';
-    btn.style.border = '1px solid rgba(0,0,0,0.12)';
-    btn.style.background = 'rgba(255,255,255,0.9)';
-    btn.style.cursor = 'pointer';
     btn.addEventListener('click', () => {
       const taEl = ta as HTMLTextAreaElement;
       // 使用统一的全局 picker（openPicker），避免与旧的 fallback portal 冲突
@@ -320,3 +317,22 @@
   </div>
   <EmojiPicker />
 </div>
+
+<style>
+  .__emoji_inject_btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.08);
+    /* 使用主题背景色并带半透明以适应图片背景；在支持的浏览器上使用 backdrop-filter 增强视觉 */
+    background: color-mix(in srgb, var(--bg-color) 70%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: var(--text-color);
+    cursor: pointer;
+  }
+
+  /* 在深色模式或当 --bg-color 接近黑色时，给边框更浅的高亮 */
+  @media (prefers-color-scheme: dark) {
+    .__emoji_inject_btn { border-color: rgba(255,255,255,0.06); }
+  }
+</style>
