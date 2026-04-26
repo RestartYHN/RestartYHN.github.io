@@ -1242,20 +1242,46 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   function parseLrc(text) {
     if (!text) return { lines: [], offsetSec: 0 };
 
-    const offsetMatch = text.match(/^\[offset:([+-]?\d+)\]$/m);
+    // Trim BOM and normalize line endings
+    let cleanText = String(text || "").replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+
+    // Offset may appear anywhere in the file, not necessarily alone on a line
+    const offsetMatch = cleanText.match(/\[\s*offset\s*[:：]\s*([+-]?\d+)\s*\]/i);
     const offsetSec = offsetMatch ? Number(offsetMatch[1]) / 1000 : 0;
+
     const lines = [];
 
-    text.split("\n").forEach((rawLine) => {
+    // Support timestamps like [mm:ss], [mm:ss.xx], [mm:ss:ms], with optional spaces
+    const timeTagRe = /\[\s*(\d+)\s*:\s*(\d{1,2})(?:\s*([:.])\s*(\d{1,3}))?\s*\]/g;
+
+    cleanText.split("\n").forEach((rawLine) => {
       const line = String(rawLine || "").trim();
       if (!line) return;
 
-      const tags = [...line.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];
+      // Find all time tags in the line
+      const tags = [...line.matchAll(timeTagRe)];
       if (!tags.length) return;
 
-      const plainText = line.replace(/\[(\d+):(\d+(?:\.\d+)?)\]/g, "").trim();
+      // Remove all time tags to get the plain lyric text
+      const plainText = line.replace(timeTagRe, "").trim();
+
       tags.forEach((tag) => {
-        const t = Number(tag[1]) * 60 + Number(tag[2]) + offsetSec;
+        const mm = Number(tag[1]);
+        const ss = Number(tag[2]);
+        const sep = tag[3];
+        const frac = tag[4];
+        let seconds = mm * 60 + ss;
+        if (sep && frac !== undefined) {
+          if (sep === '.') {
+            // fractional part like .23 -> 0.23 seconds; length determines divisor
+            seconds += Number(frac) / Math.pow(10, String(frac).length);
+          } else {
+            // separator ':' treated as milliseconds (e.g. mm:ss:ms)
+            seconds += Number(frac) / 1000;
+          }
+        }
+
+        const t = seconds + offsetSec;
         lines.push({
           time: Math.max(0, t),
           text: plainText,
