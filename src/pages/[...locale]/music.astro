@@ -2326,193 +2326,117 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     document._musicDelegationBound = true;
   }
   
-  // Update play button state on play/pause events for reliable UI sync
-  audio?.addEventListener("play", updatePlayButtonState);
-  audio?.addEventListener("pause", updatePlayButtonState);
-  btnPrev?.addEventListener("click", async () => {
-    if (!/\/music\/?$/i.test(window.location.pathname)) return;
-    if (!tracks.length) return;
-    currentIndex = getPrevIndex();
-    const current = await prepareTrackForPlayback(currentIndex);
-    if (!current) return;
-    updateNowPlaying(current);
-    renderTrackList();
-    updatePlayerPosition();
-    updatePlaylistCount();
-    syncPlaylistModalIfOpen();
-    syncToGlobalPlayer();
-    if (current?.audio && audio?.src) {
-      hideStatus();
-      audio?.play().catch(() => {});
-    } else {
-      showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
-    }
-  });
-  btnNext?.addEventListener("click", async () => {
-    if (!/\/music\/?$/i.test(window.location.pathname)) return;
-    if (!tracks.length) return;
-    currentIndex = getNextIndex();
-    const current = await prepareTrackForPlayback(currentIndex);
-    if (!current) return;
-    updateNowPlaying(current);
-    renderTrackList();
-    updatePlayerPosition();
-    updatePlaylistCount();
-    syncPlaylistModalIfOpen();
-    syncToGlobalPlayer();
-    if (current?.audio && audio?.src) {
-      hideStatus();
-      audio?.play().catch(() => {});
-    } else {
-      showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
-    }
-  });
 
-  audio?.addEventListener("timeupdate", syncLyrics);
-  audio?.addEventListener("loadedmetadata", () => {
-    if (totalTimeEl) totalTimeEl.textContent = formatClock(audio?.duration || 0);
-  });
-  audio?.addEventListener("timeupdate", () => {
-    if (!audio) return;
-    if (currentTimeEl) currentTimeEl.textContent = formatClock(audio.currentTime);
-    if (progressEl && Number.isFinite(audio.duration) && audio.duration > 0) {
-      const ratio = audio.currentTime / audio.duration;
-      progressEl.value = String(Math.min(1000, Math.max(0, Math.round(ratio * 1000))));
-      updateProgressVisual();
-    }
-  });
-  audio?.addEventListener("ended", async () => {
-    if (!/\/music\/?$/i.test(window.location.pathname)) return;
-    if (!tracks.length) return;
-    currentIndex = getNextIndex();
-    const current = await prepareTrackForPlayback(currentIndex);
-    if (!current) return;
-    updateNowPlaying(current);
-    renderTrackList();
-    updatePlayerPosition();
-    updatePlaylistCount();
-    syncPlaylistModalIfOpen();
-    syncToGlobalPlayer();
-    if (current?.audio && audio?.src) {
-      hideStatus();
-      audio.play().catch(() => {});
-    }
-  });
+  let _musicHandlers = {};
 
-  progressEl?.addEventListener("input", () => {
-    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
-    const ratio = Number(progressEl.value || 0) / 1000;
-    audio.currentTime = ratio * audio.duration;
-  });
+  function musicBind() {
+    if (!audio || !btnPrev || !btnNext || !progressEl) return;
+
+    _musicHandlers.onPlay = () => updatePlayButtonState();
+    _musicHandlers.onPause = () => updatePlayButtonState();
+    _musicHandlers.onPrev = async () => {
+      if (!tracks.length) return;
+      currentIndex = getPrevIndex();
+      const current = await prepareTrackForPlayback(currentIndex);
+      if (!current) return;
+      updateNowPlaying(current);
+      renderTrackList();
+      updatePlayerPosition();
+      updatePlaylistCount();
+      syncPlaylistModalIfOpen();
+      syncToGlobalPlayer();
+      if (current?.audio && audio?.src) {
+        hideStatus();
+        audio?.play().catch(() => {});
+      } else {
+        showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
+      }
+    };
+    _musicHandlers.onNext = async () => {
+      if (!tracks.length) return;
+      currentIndex = getNextIndex();
+      const current = await prepareTrackForPlayback(currentIndex);
+      if (!current) return;
+      updateNowPlaying(current);
+      renderTrackList();
+      updatePlayerPosition();
+      updatePlaylistCount();
+      syncPlaylistModalIfOpen();
+      syncToGlobalPlayer();
+      if (current?.audio && audio?.src) {
+        hideStatus();
+        audio?.play().catch(() => {});
+      } else {
+        showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
+      }
+    };
+    _musicHandlers.onEnded = async () => {
+      if (!tracks.length) return;
+      currentIndex = getNextIndex();
+      const current = await prepareTrackForPlayback(currentIndex);
+      if (!current) return;
+      updateNowPlaying(current);
+      renderTrackList();
+      updatePlayerPosition();
+      updatePlaylistCount();
+      syncPlaylistModalIfOpen();
+      syncToGlobalPlayer();
+      if (current?.audio && audio?.src) {
+        hideStatus();
+        audio.play().catch(() => {});
+      }
+    };
+    _musicHandlers.onTimeUpdate = syncLyrics;
+    _musicHandlers.onProgressTimeUpdate = () => {
+      if (!audio) return;
+      if (currentTimeEl) currentTimeEl.textContent = formatClock(audio.currentTime);
+      if (progressEl && Number.isFinite(audio.duration) && audio.duration > 0) {
+        const ratio = audio.currentTime / audio.duration;
+        progressEl.value = String(Math.min(1000, Math.max(0, Math.round(ratio * 1000))));
+        updateProgressVisual();
+      }
+    };
+    _musicHandlers.onLoadedMetadata = () => {
+      if (totalTimeEl) totalTimeEl.textContent = formatClock(audio?.duration || 0);
+    };
+    _musicHandlers.onProgressInput = () => {
+      if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+      const ratio = Number(progressEl.value || 0) / 1000;
+      audio.currentTime = ratio * audio.duration;
+    };
+
+    audio.addEventListener("play", _musicHandlers.onPlay);
+    audio.addEventListener("pause", _musicHandlers.onPause);
+    audio.addEventListener("timeupdate", _musicHandlers.onTimeUpdate);
+    audio.addEventListener("timeupdate", _musicHandlers.onProgressTimeUpdate);
+    audio.addEventListener("loadedmetadata", _musicHandlers.onLoadedMetadata);
+    audio.addEventListener("ended", _musicHandlers.onEnded);
+    btnPrev.addEventListener("click", _musicHandlers.onPrev);
+    btnNext.addEventListener("click", _musicHandlers.onNext);
+    progressEl.addEventListener("input", _musicHandlers.onProgressInput);
+  }
+
+  function musicUnbind() {
+    if (_musicHandlers.onPlay) audio?.removeEventListener("play", _musicHandlers.onPlay);
+    if (_musicHandlers.onPause) audio?.removeEventListener("pause", _musicHandlers.onPause);
+    if (_musicHandlers.onTimeUpdate) audio?.removeEventListener("timeupdate", _musicHandlers.onTimeUpdate);
+    if (_musicHandlers.onProgressTimeUpdate) audio?.removeEventListener("timeupdate", _musicHandlers.onProgressTimeUpdate);
+    if (_musicHandlers.onLoadedMetadata) audio?.removeEventListener("loadedmetadata", _musicHandlers.onLoadedMetadata);
+    if (_musicHandlers.onEnded) audio?.removeEventListener("ended", _musicHandlers.onEnded);
+    if (_musicHandlers.onPrev) btnPrev?.removeEventListener("click", _musicHandlers.onPrev);
+    if (_musicHandlers.onNext) btnNext?.removeEventListener("click", _musicHandlers.onNext);
+    if (_musicHandlers.onProgressInput) progressEl?.removeEventListener("input", _musicHandlers.onProgressInput);
+    _musicHandlers = {};
+  }
 
   async function initMusicPage() {
-    if (!/\/music\/?$/i.test(window.location.pathname)) return;
     queryPageEls();
 
-    // Bind media and control event handlers idempotently (re-run on partial navigation)
-    if (audio && !audio._musicHandlersBound) {
-      audio.addEventListener("play", updatePlayButtonState);
-      audio.addEventListener("pause", updatePlayButtonState);
-      audio.addEventListener("timeupdate", syncLyrics);
-      audio.addEventListener("loadedmetadata", () => {
-        if (totalTimeEl) totalTimeEl.textContent = formatClock(audio?.duration || 0);
-      });
-      audio.addEventListener("timeupdate", () => {
-        if (!audio) return;
-        if (currentTimeEl) currentTimeEl.textContent = formatClock(audio.currentTime);
-        if (progressEl && Number.isFinite(audio.duration) && audio.duration > 0) {
-          const ratio = audio.currentTime / audio.duration;
-          progressEl.value = String(Math.min(1000, Math.max(0, Math.round(ratio * 1000))));
-          updateProgressVisual();
-        }
-      });
-      audio.addEventListener("ended", async () => {
-        if (!tracks.length) return;
-        currentIndex = getNextIndex();
-        const current = await prepareTrackForPlayback(currentIndex);
-        if (!current) return;
-        updateNowPlaying(current);
-        renderTrackList();
-        updatePlayerPosition();
-        updatePlaylistCount();
-        syncPlaylistModalIfOpen();
-        syncToGlobalPlayer();
-        if (current?.audio && audio?.src) {
-          hideStatus();
-          audio.play().catch(() => {});
-        }
-      });
-      // Log loading/playing errors and expose a helpful status message
-      if (!audio._musicErrorBound) {
-        audio.addEventListener('error', (ev) => {
-          try {
-            console.debug('[music] audio.onerror', { src: audio.currentSrc || audio.src, code: audio.error?.code, message: audio.error?.message, event: ev });
-          } catch (e) {
-            console.debug('[music] audio.onerror (dump failed)', e);
-          }
-          showStatus(isEn ? 'Audio failed to load (check network/CORS).' : '音频加载失败（请检查网络或跨域）', 'error');
-        });
-        audio._musicErrorBound = true;
-      }
-      audio._musicHandlersBound = true;
+    if (!/\/music\/?$/i.test(window.location.pathname)) {
+      musicUnbind();
+      return;
     }
-
-    if (btnPrev && !btnPrev._musicBound) {
-      btnPrev.addEventListener("click", async () => {
-        if (!tracks.length) return;
-        currentIndex = getPrevIndex();
-        const current = await prepareTrackForPlayback(currentIndex);
-        if (!current) return;
-        updateNowPlaying(current);
-        renderTrackList();
-        updatePlayerPosition();
-        updatePlaylistCount();
-        syncPlaylistModalIfOpen();
-        syncToGlobalPlayer();
-        if (current?.audio && audio?.src) {
-          hideStatus();
-          audio?.play().catch(() => {});
-        } else {
-          showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
-        }
-      });
-      btnPrev._musicBound = true;
-    }
-
-    if (btnNext && !btnNext._musicBound) {
-      btnNext.addEventListener("click", async () => {
-        if (!tracks.length) return;
-        currentIndex = getNextIndex();
-        const current = await prepareTrackForPlayback(currentIndex);
-        if (!current) return;
-        updateNowPlaying(current);
-        renderTrackList();
-        updatePlayerPosition();
-        updatePlaylistCount();
-        syncPlaylistModalIfOpen();
-        syncToGlobalPlayer();
-        if (current?.audio && audio?.src) {
-          hideStatus();
-          audio?.play().catch(() => {});
-        } else {
-          showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
-        }
-      });
-      btnNext._musicBound = true;
-    }
-
-    
-
-    
-
-    if (progressEl && !progressEl._musicBound) {
-      progressEl.addEventListener("input", () => {
-        if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
-        const ratio = Number(progressEl.value || 0) / 1000;
-        audio.currentTime = ratio * audio.duration;
-      });
-      progressEl._musicBound = true;
-    }
+    musicBind();
 
     // Playlist modal bindings
     if (btnPlaylistToggle && !btnPlaylistToggle._musicBound) {
