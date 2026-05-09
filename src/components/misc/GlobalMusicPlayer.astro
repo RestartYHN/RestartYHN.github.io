@@ -859,8 +859,7 @@ import { musicConfig } from '@/data/music';
     }
 
     function bindPersistentControls() {
-      const els = getEls();
-      if (!els) return;
+      if (state._persistentBound) return;
 
       state.handlers.onModeToggle = () => {
         const idx = PLAY_MODES.indexOf(state.playMode);
@@ -868,25 +867,28 @@ import { musicConfig } from '@/data/music';
         state.shuffleQueue = [];
         updateModeButtonUI();
       };
+      state.handlers.onPlaylistOpen = () => openPlaylistModal();
+      state.handlers.onPlaylistClose = () => closePlaylistModal();
 
-      if (els.btnModeToggle && !els.btnModeToggle._modeToggleBound) {
+      const els = getEls();
+      if (!els) return;
+
+      if (els.btnModeToggle) {
         els.btnModeToggle.addEventListener('click', state.handlers.onModeToggle);
-        els.btnModeToggle._modeToggleBound = true;
       }
       updateModeButtonUI();
 
-      if (els.btnPlaylist && !els.btnPlaylist._playlistBound) {
-        els.btnPlaylist.addEventListener('click', openPlaylistModal);
-        els.btnPlaylist._playlistBound = true;
+      if (els.btnPlaylist) {
+        els.btnPlaylist.addEventListener('click', state.handlers.onPlaylistOpen);
       }
-      if (els.playlistModalBackdrop && !els.playlistModalBackdrop._playlistModalBound) {
-        els.playlistModalBackdrop.addEventListener('click', closePlaylistModal);
-        els.playlistModalBackdrop._playlistModalBound = true;
+      if (els.playlistModalBackdrop) {
+        els.playlistModalBackdrop.addEventListener('click', state.handlers.onPlaylistClose);
       }
-      if (els.playlistModalClose && !els.playlistModalClose._playlistModalBound) {
-        els.playlistModalClose.addEventListener('click', closePlaylistModal);
-        els.playlistModalClose._playlistModalBound = true;
+      if (els.playlistModalClose) {
+        els.playlistModalClose.addEventListener('click', state.handlers.onPlaylistClose);
       }
+
+      state._persistentBound = true;
     }
 
     function onRouteChange() {
