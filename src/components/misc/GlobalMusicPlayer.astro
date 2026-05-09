@@ -409,6 +409,74 @@ import { musicConfig } from '@/data/music';
 
   function makeController() {
     const API_BASE = musicConfig.apiBase;
+    const NETEASE_API_BASE = musicConfig.neteaseApiBase || "";
+    const NETEASE_REAL_IP = musicConfig.neteaseRealIp || "";
+    const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
+
+    // Direct NetEase API helpers
+    function withTimestamp(params = {}) {
+      return { ...params, timestamp: Date.now() };
+    }
+
+    function buildUrl(base, path, params = {}) {
+      const cleanBase = String(base || "").replace(/\/+$/, "");
+      const cleanPath = String(path || "").replace(/^\/+/, "");
+      const url = new URL(`${cleanBase}/${cleanPath}`);
+      Object.entries(params).forEach(([k, v]) => {
+        if (v === undefined || v === null || v === "") return;
+        url.searchParams.set(k, String(v));
+      });
+      return url.toString();
+    }
+
+    async function getNeteaseJson(path, params = {}) {
+      if (!NETEASE_API_BASE) throw new Error("Netease API not configured");
+      const url = buildUrl(NETEASE_API_BASE, path, withTimestamp(params));
+      const res = await fetch(url, { referrerPolicy: 'no-referrer' });
+      if (!res.ok) throw new Error(`Netease HTTP ${res.status}`);
+      return res.json();
+    }
+
+    function withPreferredRealIP(params = {}) {
+      if (!NETEASE_REAL_IP) return params;
+      return { ...params, realIP: NETEASE_REAL_IP };
+    }
+
+    async function getBestDirectAudioUrl(id) {
+      const levels = ["standard", "higher", "exhigh", "lossless"];
+      const realIpCandidates = Array.from(
+        new Set([
+          "",
+          NETEASE_REAL_IP,
+          "211.161.244.70",
+        ].filter(Boolean)),
+      );
+
+      for (const level of levels) {
+        for (const realIP of realIpCandidates) {
+          try {
+            const params = realIP ? { id, level, realIP } : { id, level };
+            const urlResp = await getNeteaseJson("/song/url/v1", params);
+            const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+            const normalized = normalizeAudioUrl(urlItem?.url || "");
+            if (normalized) return normalized;
+          } catch (e) {}
+        }
+      }
+
+      for (const realIP of realIpCandidates) {
+        try {
+          const params = realIP ? { id, br: 320000, realIP } : { id, br: 320000 };
+          const legacyResp = await getNeteaseJson("/song/url", params);
+          const legacyItem = Array.isArray(legacyResp?.data) ? legacyResp.data[0] : null;
+          const normalized = normalizeAudioUrl(legacyItem?.url || "");
+          if (normalized) return normalized;
+        } catch (e) {}
+      }
+
+      return "";
+    }
+    // End direct NetEase API helpers
 
     // Play mode removed; always use sequential
 
@@ -586,13 +654,42 @@ import { musicConfig } from '@/data/music';
     }
 
     async function loadTrack(id) {
-      const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
-      if (result?.code === 200 && result?.data) {
-        return {
-          ...result.data,
-          audio: normalizeAudioUrl(result.data?.audio || ''),
-        };
+      if (USE_DIRECT_NETEASE_API) {
+        try {
+          const [detailResp, lrcResp] = await Promise.all([
+            getNeteaseJson("/song/detail", withPreferredRealIP({ ids: id })),
+            getNeteaseJson("/lyric", withPreferredRealIP({ id })),
+          ]);
+          const song = Array.isArray(detailResp?.songs) ? detailResp.songs[0] : null;
+          const audioUrl = await getBestDirectAudioUrl(id);
+          return {
+            id: String(id),
+            title: song?.name || `Song ${id}`,
+            artist: Array.isArray(song?.ar)
+              ? song.ar.map((item) => item?.name || "Unknown").join(", ")
+              : "Unknown Artist",
+            cover: song?.al?.picUrl || "",
+            audio: audioUrl,
+            lyric: typeof lrcResp?.lrc?.lyric === "string" ? lrcResp.lrc.lyric : "",
+            tlyric: typeof lrcResp?.tlyric?.lyric === "string" ? lrcResp.tlyric.lyric : "",
+          };
+        } catch (error) {
+          console.warn("[global-music] direct track load failed for", id, error);
+        }
       }
+
+      try {
+        const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
+        if (result?.code === 200 && result?.data) {
+          return {
+            ...result.data,
+            audio: normalizeAudioUrl(result.data?.audio || ''),
+          };
+        }
+      } catch (error) {
+        console.warn("[global-music] proxy track load failed for", id, error);
+      }
+
       return null;
     }
 
@@ -602,7 +699,16 @@ import { musicConfig } from '@/data/music';
       if (current.audio) return current;
       const full = await loadTrack(current.id);
       if (!full) return current;
-      const merged = { ...current, ...full };
+      const keepTitle = current.title && current.title !== `Song ${current.id}` && current.title !== 'Unknown';
+      const keepArtist = current.artist && current.artist !== 'Unknown Artist' && current.artist !== 'Unknown';
+      const keepCover = Boolean(current.cover);
+      const merged = {
+        ...current,
+        ...full,
+        title: keepTitle ? current.title : full.title,
+        artist: keepArtist ? current.artist : full.artist,
+        cover: keepCover ? current.cover : full.cover,
+      };
       state.tracks[idx] = merged;
       return merged;
     }
