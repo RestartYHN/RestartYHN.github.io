@@ -483,6 +483,12 @@ import { musicConfig } from '@/data/music';
       shuffleQueue: [],
     };
 
+    function notifyState() {
+      try {
+        document.dispatchEvent(new CustomEvent('global-music-synced'));
+      } catch (e) { /* ignore */ }
+    }
+
     // Bootstrap the global player with tracks from music page
     function bootstrap(options) {
       if (!options) return;
@@ -504,6 +510,7 @@ import { musicConfig } from '@/data/music';
           updatePlayButtonState();
           updateModeButtonUI();
         }
+        notifyState();
       }
     }
 
@@ -529,6 +536,7 @@ import { musicConfig } from '@/data/music';
         updatePlayButtonState();
         updateModeButtonUI();
       }
+      notifyState();
     }
 
     // Get current state for external access
@@ -896,12 +904,13 @@ import { musicConfig } from '@/data/music';
       state.els = getEls();
       if (isMusicPagePath()) {
         unbind();
-        return;
+      } else {
+        bind();
+        if (state.tracks[state.currentIndex]) {
+          updateNowPlaying(state.tracks[state.currentIndex]);
+        }
       }
-      bind();
-      if (state.tracks[state.currentIndex]) {
-        updateNowPlaying(state.tracks[state.currentIndex]);
-      }
+      if (state.tracks.length) notifyState();
     }
 
     return {

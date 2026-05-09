@@ -2301,9 +2301,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     const shouldPreservePlaybackOnInit = Boolean(audio && !audio.paused && (audio.currentSrc || audio.src));
 
-    // Try to restore from global player first (for page re-entry)
-    const hasGlobalState = restoreFromGlobalPlayer();
-    if (hasGlobalState) {
+    // Event-driven restore: listen for global-music-synced, fall back to timeout
+    let resolved = false;
+
+    async function tryRestoreFromGlobalPlayer() {
+      if (resolved) return;
+      if (!restoreFromGlobalPlayer()) return;
+      resolved = true;
+
       renderPlaylistList();
       renderTrackList();
       if (tracks[currentIndex]) {
@@ -2314,63 +2319,61 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       }
       updatePlayerPosition();
       showStatus(isEn ? "Restored playlist from global player." : "已从全局播放器恢复歌单。");
-      return;
     }
 
-    const hasTokenData = await restoreUserDataByToken();
-    if (!hasTokenData) {
-      const hasCookieData = await loadCookieProfileIfConfigured();
-      if (hasCookieData) {
-        showStatus(
-          isEn
-            ? "Loaded private profile songs from backend cookie mode (no QR)."
-            : "已从后端 Cookie 模式加载私有歌曲（免扫码）。",
-        );
-      } else {
-        const hasPublicData = await loadPublicProfileIfConfigured();
-        if (hasPublicData) {
-          showStatus(
-            isEn
-              ? USE_DIRECT_NETEASE_API
-                ? "Loaded public profile songs from direct NetEase API mode."
-                : "Loaded public profile songs without QR login."
-              : USE_DIRECT_NETEASE_API
-                ? "已通过直连网易云 API 模式加载公开资料歌曲。"
-                : "已加载公开资料歌曲（免扫码模式）。",
-          );
+    async function loadDefaultPlaylistIfNeeded() {
+      if (resolved) return;
+      resolved = true;
+
+      const hasTokenData = await restoreUserDataByToken();
+      if (!hasTokenData) {
+        const hasCookieData = await loadCookieProfileIfConfigured();
+        if (hasCookieData) {
+          showStatus(isEn ? "Loaded private profile songs from backend cookie mode (no QR)." : "已从后端 Cookie 模式加载私有歌曲（免扫码）。");
         } else {
-          showStatus(
-            isEn
-              ? USE_DIRECT_NETEASE_API
-                ? "No public profile data. Check PUBLIC_NETEASE_API and neteaseUserId."
-                : "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
-              : USE_DIRECT_NETEASE_API
-                ? "未读取到公开资料数据，请检查 PUBLIC_NETEASE_API 与 neteaseUserId。"
-                : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。",
-          );
+          const hasPublicData = await loadPublicProfileIfConfigured();
+          if (hasPublicData) {
+            showStatus(isEn
+              ? USE_DIRECT_NETEASE_API ? "Loaded public profile songs from direct NetEase API mode." : "Loaded public profile songs without QR login."
+              : USE_DIRECT_NETEASE_API ? "已通过直连网易云 API 模式加载公开资料歌曲。" : "已加载公开资料歌曲（免扫码模式）。");
+          } else {
+            showStatus(isEn
+              ? USE_DIRECT_NETEASE_API ? "No public profile data. Check PUBLIC_NETEASE_API and neteaseUserId." : "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
+              : USE_DIRECT_NETEASE_API ? "未读取到公开资料数据，请检查 PUBLIC_NETEASE_API 与 neteaseUserId。" : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。");
+          }
         }
+      } else {
+        showStatus(isEn ? "Restored login session from local storage." : "已从本地恢复登录会话。", "info");
       }
-    } else {
-      showStatus(isEn ? "Restored login session from local storage." : "已从本地恢复登录会话。", "info");
-    }
 
-    renderPlaylistList();
+      renderPlaylistList();
 
-    if (musicConfig.defaultPlaylistId) {
-      currentPlaylistId = musicConfig.defaultPlaylistId;
-      await loadPlaylistSongs(musicConfig.defaultPlaylistId, { preserveActivePlayback: shouldPreservePlaybackOnInit });
-      return;
-    }
-
-    if (Array.isArray(userData?.playlists) && userData.playlists.length) {
-      currentPlaylistId = String(userData.playlists[0].id || "");
-      if (currentPlaylistId) {
-        await loadPlaylistSongs(currentPlaylistId, { preserveActivePlayback: shouldPreservePlaybackOnInit });
+      if (musicConfig.defaultPlaylistId) {
+        currentPlaylistId = musicConfig.defaultPlaylistId;
+        await loadPlaylistSongs(musicConfig.defaultPlaylistId, { preserveActivePlayback: shouldPreservePlaybackOnInit });
         return;
       }
+
+      if (Array.isArray(userData?.playlists) && userData.playlists.length) {
+        currentPlaylistId = String(userData.playlists[0].id || "");
+        if (currentPlaylistId) {
+          await loadPlaylistSongs(currentPlaylistId, { preserveActivePlayback: shouldPreservePlaybackOnInit });
+          return;
+        }
+      }
+
+      renderTrackList();
     }
 
-    renderTrackList();
+    // Listen for global-music-synced event from global player
+    document.addEventListener('global-music-synced', () => { tryRestoreFromGlobalPlayer(); }, { once: true });
+
+    // Immediate check + delayed fallback
+    await tryRestoreFromGlobalPlayer();
+    if (!resolved) {
+      await new Promise(r => setTimeout(r, 300));
+      await loadDefaultPlaylistIfNeeded();
+    }
   }
 
   // Initialize now and on Astro partial navigation
