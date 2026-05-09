@@ -867,36 +867,41 @@ import { musicConfig } from '@/data/music';
     }
 
     function bindPersistentControls() {
-      if (state._persistentBound) return;
+      if (!state.persistentHandlers) {
+        state.persistentHandlers = {
+          onModeToggle: () => {
+            const idx = PLAY_MODES.indexOf(state.playMode);
+            state.playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
+            state.shuffleQueue = [];
+            updateModeButtonUI();
+          },
+          onPlaylistOpen: () => openPlaylistModal(),
+          onModalClose: () => closePlaylistModal(),
+        };
+      }
 
-      state.handlers.onModeToggle = () => {
-        const idx = PLAY_MODES.indexOf(state.playMode);
-        state.playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
-        state.shuffleQueue = [];
-        updateModeButtonUI();
-      };
-      state.handlers.onPlaylistOpen = () => openPlaylistModal();
-      state.handlers.onPlaylistClose = () => closePlaylistModal();
-
+      const ph = state.persistentHandlers;
       const els = getEls();
       if (!els) return;
 
       if (els.btnModeToggle) {
-        els.btnModeToggle.addEventListener('click', state.handlers.onModeToggle);
+        els.btnModeToggle.removeEventListener('click', ph.onModeToggle);
+        els.btnModeToggle.addEventListener('click', ph.onModeToggle);
       }
       updateModeButtonUI();
 
       if (els.btnPlaylist) {
-        els.btnPlaylist.addEventListener('click', state.handlers.onPlaylistOpen);
+        els.btnPlaylist.removeEventListener('click', ph.onPlaylistOpen);
+        els.btnPlaylist.addEventListener('click', ph.onPlaylistOpen);
       }
       if (els.playlistModalBackdrop) {
-        els.playlistModalBackdrop.addEventListener('click', state.handlers.onPlaylistClose);
+        els.playlistModalBackdrop.removeEventListener('click', ph.onModalClose);
+        els.playlistModalBackdrop.addEventListener('click', ph.onModalClose);
       }
       if (els.playlistModalClose) {
-        els.playlistModalClose.addEventListener('click', state.handlers.onPlaylistClose);
+        els.playlistModalClose.removeEventListener('click', ph.onModalClose);
+        els.playlistModalClose.addEventListener('click', ph.onModalClose);
       }
-
-      state._persistentBound = true;
     }
 
     function onRouteChange() {
