@@ -2330,6 +2330,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   audio?.addEventListener("play", updatePlayButtonState);
   audio?.addEventListener("pause", updatePlayButtonState);
   btnPrev?.addEventListener("click", async () => {
+    if (!/\/music\/?$/i.test(window.location.pathname)) return;
     if (!tracks.length) return;
     currentIndex = getPrevIndex();
     const current = await prepareTrackForPlayback(currentIndex);
@@ -2348,6 +2349,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   });
   btnNext?.addEventListener("click", async () => {
+    if (!/\/music\/?$/i.test(window.location.pathname)) return;
     if (!tracks.length) return;
     currentIndex = getNextIndex();
     const current = await prepareTrackForPlayback(currentIndex);
@@ -2380,6 +2382,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   });
   audio?.addEventListener("ended", async () => {
+    if (!/\/music\/?$/i.test(window.location.pathname)) return;
     if (!tracks.length) return;
     currentIndex = getNextIndex();
     const current = await prepareTrackForPlayback(currentIndex);
@@ -2403,6 +2406,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   });
 
   async function initMusicPage() {
+    if (!/\/music\/?$/i.test(window.location.pathname)) return;
     queryPageEls();
 
     // Bind media and control event handlers idempotently (re-run on partial navigation)
