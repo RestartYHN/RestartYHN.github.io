@@ -2434,19 +2434,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     audio.currentTime = ratio * audio.duration;
   });
 
-  let _initMusicPageRunning = false;
-
   async function initMusicPage() {
-    if (_initMusicPageRunning) return;
-    _initMusicPageRunning = true;
-    try {
-      await _doInitMusicPage();
-    } finally {
-      _initMusicPageRunning = false;
-    }
-  }
-
-  async function _doInitMusicPage() {
     queryPageEls();
 
     // Bind media and control event handlers idempotently (re-run on partial navigation)
@@ -2704,9 +2692,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   // Initialize now and on Astro partial navigation
   initMusicPage();
-  if (!document._musicPageRouteListener) {
-    document._musicPageRouteListener = true;
-    document.addEventListener('astro:after-swap', initMusicPage);
-    document.addEventListener('astro:page-load', initMusicPage);
-  }
+  document.addEventListener('astro:after-swap', initMusicPage);
+  document.addEventListener('astro:page-load', initMusicPage);
 </script>

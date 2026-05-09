@@ -782,39 +782,10 @@ import { musicConfig } from '@/data/music';
       await playCurrent();
     }
 
-    function bindPersistentControls() {
-      const els = getEls();
-      if (!els) return;
-      state.els = els;
-
-      state.handlers.onModeToggle = () => {
-        const idx = PLAY_MODES.indexOf(state.playMode);
-        state.playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
-        state.shuffleQueue = [];
-        updateModeButtonUI();
-      };
-
-      if (els.btnModeToggle) {
-        els.btnModeToggle.addEventListener('click', state.handlers.onModeToggle);
-        updateModeButtonUI();
-      }
-
-      if (els.btnPlaylist) {
-        els.btnPlaylist.addEventListener('click', openPlaylistModal);
-      }
-
-      if (els.playlistModalBackdrop) {
-        els.playlistModalBackdrop.addEventListener('click', closePlaylistModal);
-      }
-      if (els.playlistModalClose) {
-        els.playlistModalClose.addEventListener('click', closePlaylistModal);
-      }
-    }
-
     function bind() {
       if (state.bound || isMusicPagePath()) return;
       state.els = getEls();
-      const { audio, btnMainPlay, btnPrev, btnNext, progressEl } = state.els;
+      const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
       if (!audio || !btnMainPlay || !btnPrev || !btnNext || !progressEl) return;
 
       state.handlers.onMainPlay = async () => {
@@ -887,7 +858,39 @@ import { musicConfig } from '@/data/music';
       state.bound = false;
     }
 
+    function bindPersistentControls() {
+      const els = getEls();
+      if (!els) return;
+
+      state.handlers.onModeToggle = () => {
+        const idx = PLAY_MODES.indexOf(state.playMode);
+        state.playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
+        state.shuffleQueue = [];
+        updateModeButtonUI();
+      };
+
+      if (els.btnModeToggle && !els.btnModeToggle._modeToggleBound) {
+        els.btnModeToggle.addEventListener('click', state.handlers.onModeToggle);
+        els.btnModeToggle._modeToggleBound = true;
+      }
+      updateModeButtonUI();
+
+      if (els.btnPlaylist && !els.btnPlaylist._playlistBound) {
+        els.btnPlaylist.addEventListener('click', openPlaylistModal);
+        els.btnPlaylist._playlistBound = true;
+      }
+      if (els.playlistModalBackdrop && !els.playlistModalBackdrop._playlistModalBound) {
+        els.playlistModalBackdrop.addEventListener('click', closePlaylistModal);
+        els.playlistModalBackdrop._playlistModalBound = true;
+      }
+      if (els.playlistModalClose && !els.playlistModalClose._playlistModalBound) {
+        els.playlistModalClose.addEventListener('click', closePlaylistModal);
+        els.playlistModalClose._playlistModalBound = true;
+      }
+    }
+
     function onRouteChange() {
+      bindPersistentControls();
       state.els = getEls();
       if (isMusicPagePath()) {
         unbind();
@@ -904,13 +907,11 @@ import { musicConfig } from '@/data/music';
       bootstrap,
       syncState,
       getState,
-      bindPersistentControls,
     };
   }
 
   if (!window[GLOBAL_MUSIC_KEY]) {
     window[GLOBAL_MUSIC_KEY] = makeController();
-    window[GLOBAL_MUSIC_KEY].bindPersistentControls();
     window[GLOBAL_MUSIC_KEY].onRouteChange();
     document.addEventListener('astro:page-load', () => window[GLOBAL_MUSIC_KEY].onRouteChange());
     document.addEventListener('astro:after-swap', () => window[GLOBAL_MUSIC_KEY].onRouteChange());
