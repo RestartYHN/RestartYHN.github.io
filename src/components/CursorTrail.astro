@@ -96,6 +96,87 @@
     }
   }
 
+  class Ripple {
+    x: number;
+    y: number;
+    radius: number;
+    maxRadius: number;
+    opacity: number;
+    color: string;
+
+    constructor(x: number, y: number, color: string) {
+      this.x = x;
+      this.y = y;
+      this.radius = 2;
+      this.maxRadius = 80 + Math.random() * 40;
+      this.opacity = 1;
+      this.color = color;
+    }
+
+    update(): boolean {
+      this.radius += (this.maxRadius - this.radius) * 0.08;
+      this.opacity -= 0.025;
+      return this.opacity > 0.02 && this.radius < this.maxRadius;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.save();
+      ctx.globalAlpha = this.opacity * 0.5;
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.globalAlpha = this.opacity * 0.12;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  class SplashDrop {
+    x: number;
+    y: number;
+    size: number;
+    color: string;
+    speedX: number;
+    speedY: number;
+    opacity: number;
+    gravity: number;
+
+    constructor(x: number, y: number, angle: number, speed: number, color: string, size: number) {
+      this.x = x;
+      this.y = y;
+      this.size = size;
+      this.color = color;
+      this.speedX = Math.cos(angle) * speed;
+      this.speedY = Math.sin(angle) * speed;
+      this.opacity = 1;
+      this.gravity = 0.08;
+    }
+
+    update() {
+      this.speedY += this.gravity;
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.opacity -= 0.018;
+      this.size *= 0.985;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.save();
+      ctx.globalAlpha = this.opacity;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
   let cleanup: (() => void) | null = null;
 
   function initCursorTrail() {
@@ -108,6 +189,8 @@
     if (!ctx) return;
 
     let particles: Particle[] = [];
+    let ripples: Ripple[] = [];
+    let splashDrops: SplashDrop[] = [];
     let width = window.innerWidth;
     let height = window.innerHeight;
     let animFrameId = 0;
@@ -296,6 +379,20 @@
     window.addEventListener("touchmove", spawnTouchParticles, { passive: true });
     window.addEventListener("touchstart", spawnTouchParticles, { passive: true });
 
+    function onClick(e: MouseEvent) {
+      const color = getThemeColorAt(e.clientX, e.clientY);
+      ripples.push(new Ripple(e.clientX, e.clientY, color));
+
+      const dropCount = 12 + Math.floor(Math.random() * 8);
+      for (let i = 0; i < dropCount; i++) {
+        const angle = (Math.PI * 2 * i) / dropCount + (Math.random() - 0.5) * 0.4;
+        const speed = 2 + Math.random() * 4;
+        const size = 1.5 + Math.random() * 3;
+        splashDrops.push(new SplashDrop(e.clientX, e.clientY, angle, speed, color, size));
+      }
+    }
+    window.addEventListener("click", onClick);
+
     function animate() {
       ctx.clearRect(0, 0, width, height);
 
@@ -307,6 +404,22 @@
           i--;
         }
       }
+
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        ripples[i].draw(ctx);
+        if (!ripples[i].update()) {
+          ripples.splice(i, 1);
+        }
+      }
+
+      for (let i = splashDrops.length - 1; i >= 0; i--) {
+        splashDrops[i].update();
+        splashDrops[i].draw(ctx);
+        if (splashDrops[i].opacity <= 0.03 || splashDrops[i].size <= 0.3) {
+          splashDrops.splice(i, 1);
+        }
+      }
+
       animFrameId = requestAnimationFrame(animate);
     }
 
@@ -317,6 +430,7 @@
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("touchmove", spawnTouchParticles);
       window.removeEventListener("touchstart", spawnTouchParticles);
+      window.removeEventListener("click", onClick);
       window.removeEventListener("resize", resize);
       observer.disconnect();
     };
