@@ -47,23 +47,7 @@ import { musicConfig } from '@/data/music';
     </div>
   </div>
 
-  <script>
-    (function () {
-      const modal = document.getElementById('global-music-playlist-modal');
-      const backdrop = document.getElementById('global-music-playlist-modal-backdrop');
-      const closeBtn = document.getElementById('global-music-playlist-modal-close');
 
-      function closeModal() {
-        if (!modal) return;
-        modal.classList.add('hidden');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-      }
-
-      backdrop?.addEventListener('click', closeModal);
-      closeBtn?.addEventListener('click', closeModal);
-    })();
-  </script>
 </div>
 
 <style is:global>
@@ -798,10 +782,39 @@ import { musicConfig } from '@/data/music';
       await playCurrent();
     }
 
+    function bindPersistentControls() {
+      const els = getEls();
+      if (!els) return;
+      state.els = els;
+
+      state.handlers.onModeToggle = () => {
+        const idx = PLAY_MODES.indexOf(state.playMode);
+        state.playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
+        state.shuffleQueue = [];
+        updateModeButtonUI();
+      };
+
+      if (els.btnModeToggle) {
+        els.btnModeToggle.addEventListener('click', state.handlers.onModeToggle);
+        updateModeButtonUI();
+      }
+
+      if (els.btnPlaylist) {
+        els.btnPlaylist.addEventListener('click', openPlaylistModal);
+      }
+
+      if (els.playlistModalBackdrop) {
+        els.playlistModalBackdrop.addEventListener('click', closePlaylistModal);
+      }
+      if (els.playlistModalClose) {
+        els.playlistModalClose.addEventListener('click', closePlaylistModal);
+      }
+    }
+
     function bind() {
       if (state.bound || isMusicPagePath()) return;
       state.els = getEls();
-      const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
+      const { audio, btnMainPlay, btnPrev, btnNext, progressEl } = state.els;
       if (!audio || !btnMainPlay || !btnPrev || !btnNext || !progressEl) return;
 
       state.handlers.onMainPlay = async () => {
@@ -853,30 +866,6 @@ import { musicConfig } from '@/data/music';
       audio.addEventListener('pause', updatePlayButtonState);
       progressEl.addEventListener('input', state.handlers.onProgressInput);
 
-      // Play mode toggle
-      state.handlers.onModeToggle = () => {
-        const idx = PLAY_MODES.indexOf(state.playMode);
-        state.playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
-        state.shuffleQueue = [];
-        updateModeButtonUI();
-      };
-
-      if (btnModeToggle) {
-        btnModeToggle.addEventListener('click', state.handlers.onModeToggle);
-        updateModeButtonUI();
-      }
-
-      // Playlist modal
-      if (btnPlaylist) {
-        btnPlaylist.addEventListener('click', openPlaylistModal);
-      }
-      if (playlistModalBackdrop) {
-        playlistModalBackdrop.addEventListener('click', closePlaylistModal);
-      }
-      if (playlistModalClose) {
-        playlistModalClose.addEventListener('click', closePlaylistModal);
-      }
-
       state.bound = true;
       updatePlayButtonState();
       if (state.tracks[state.currentIndex]) {
@@ -886,7 +875,7 @@ import { musicConfig } from '@/data/music';
 
     function unbind() {
       if (!state.bound || !state.els) return;
-      const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
+      const { audio, btnMainPlay, btnPrev, btnNext, progressEl } = state.els;
       if (btnMainPlay && state.handlers.onMainPlay) btnMainPlay.removeEventListener('click', state.handlers.onMainPlay);
       if (btnPrev && state.handlers.onPrev) btnPrev.removeEventListener('click', state.handlers.onPrev);
       if (btnNext && state.handlers.onNext) btnNext.removeEventListener('click', state.handlers.onNext);
@@ -894,10 +883,6 @@ import { musicConfig } from '@/data/music';
       if (audio && state.handlers.onEnded) audio.removeEventListener('ended', state.handlers.onEnded);
       if (audio && state.handlers.onLoadedMetadata) audio.removeEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       if (progressEl && state.handlers.onProgressInput) progressEl.removeEventListener('input', state.handlers.onProgressInput);
-      if (btnModeToggle && state.handlers.onModeToggle) btnModeToggle.removeEventListener('click', state.handlers.onModeToggle);
-      if (btnPlaylist) btnPlaylist.removeEventListener('click', openPlaylistModal);
-      if (playlistModalBackdrop) playlistModalBackdrop.removeEventListener('click', closePlaylistModal);
-      if (playlistModalClose) playlistModalClose.removeEventListener('click', closePlaylistModal);
       state.handlers = {};
       state.bound = false;
     }
@@ -919,11 +904,13 @@ import { musicConfig } from '@/data/music';
       bootstrap,
       syncState,
       getState,
+      bindPersistentControls,
     };
   }
 
   if (!window[GLOBAL_MUSIC_KEY]) {
     window[GLOBAL_MUSIC_KEY] = makeController();
+    window[GLOBAL_MUSIC_KEY].bindPersistentControls();
     window[GLOBAL_MUSIC_KEY].onRouteChange();
     document.addEventListener('astro:page-load', () => window[GLOBAL_MUSIC_KEY].onRouteChange());
     document.addEventListener('astro:after-swap', () => window[GLOBAL_MUSIC_KEY].onRouteChange());

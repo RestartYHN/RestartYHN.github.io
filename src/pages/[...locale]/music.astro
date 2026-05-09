@@ -1028,7 +1028,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     const globalController = window[GLOBAL_MUSIC_KEY];
     if (globalController && typeof globalController.getState === 'function') {
       const state = globalController.getState();
-      if (state && Array.isArray(state.tracks) && state.tracks.length && state.loaded) {
+      if (state && Array.isArray(state.tracks) && state.tracks.length) {
         tracks = state.tracks;
         currentIndex = Number.isFinite(state.currentIndex) ? state.currentIndex : 0;
         playMode = PLAY_MODES.includes(state.playMode) ? state.playMode : 'sequential';
@@ -2434,7 +2434,19 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     audio.currentTime = ratio * audio.duration;
   });
 
+  let _initMusicPageRunning = false;
+
   async function initMusicPage() {
+    if (_initMusicPageRunning) return;
+    _initMusicPageRunning = true;
+    try {
+      await _doInitMusicPage();
+    } finally {
+      _initMusicPageRunning = false;
+    }
+  }
+
+  async function _doInitMusicPage() {
     queryPageEls();
 
     // Bind media and control event handlers idempotently (re-run on partial navigation)
@@ -2692,6 +2704,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   // Initialize now and on Astro partial navigation
   initMusicPage();
-  document.addEventListener('astro:after-swap', initMusicPage);
-  document.addEventListener('astro:page-load', initMusicPage);
+  if (!document._musicPageRouteListener) {
+    document._musicPageRouteListener = true;
+    document.addEventListener('astro:after-swap', initMusicPage);
+    document.addEventListener('astro:page-load', initMusicPage);
+  }
 </script>
