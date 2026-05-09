@@ -1,0 +1,56 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro';
+import Cover from '@components/Cover.astro';
+import FabMenu from '@components/control/FabMenu.astro';
+import Comments from '@components/comment/Comments.svelte';
+import { siteConfig } from '@/config';
+import i18nit from '@i18n/translation';
+import { i18n } from 'astro:config/client';
+
+export async function getStaticPaths() {
+  return i18n?.locales.map((locale) => ({
+    params: { locale: locale == i18n?.defaultLocale ? undefined : (locale as string) },
+  }));
+}
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale;
+const t = i18nit(currentLang);
+const pageTitle = `${t('header.guestbook')} - ${siteConfig.title}`;
+const pageSubTitle =
+  currentLang === 'en'
+    ? 'Leave a message for future visitors'
+    : '留下一段话，和后来到访的人打个招呼';
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang}>
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover title={t('header.guestbook')} subTitle={pageSubTitle} />
+
+    <section class="mb-6 rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 p-4 text-[var(--text-color-70)]">
+      <p>
+        {currentLang === 'en'
+          ? 'This is a public guestbook. You can share your thoughts, feedback, or simply say hello.'
+          : '这是一个公开留言板，你可以留下想法、反馈，或者简单打个招呼。'}
+      </p>
+    </section>
+
+    {siteConfig.comments.enable ? (
+      <Comments
+        client:visible
+        postSlug="guestbook"
+        postTitle={pageTitle}
+        language={currentLang}
+      />
+    ) : (
+      <section class="rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 p-4 text-[var(--text-color-70)]">
+        <p>
+          {currentLang === 'en'
+            ? 'Comments are disabled in site configuration.'
+            : '站点配置中未启用评论功能。'}
+        </p>
+      </section>
+    )}
+  </div>
+
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>

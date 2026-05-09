@@ -1,0 +1,54 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro';
+import Cover from '@components/Cover.astro';
+import FindMeCard from '@components/misc/FindMeCard.astro';
+import HomePostCards from '@components/misc/HomePostCards.astro';
+import FabMenu from '@components/control/FabMenu.astro';
+
+import zhCN from '@i18n/language/zh-cn';
+import en from '@i18n/language/en';
+
+import { siteConfig } from '@/config';
+import { i18n } from "astro:config/client";
+import type { GetStaticPaths } from 'astro';
+import type { Translation } from '@i18n/key';
+
+import i18nit from '@i18n/translation'
+
+const { locale = i18n!.defaultLocale } = Astro.params;
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale;
+const t = i18nit(currentLang);
+const localeContent: Translation = currentLang === "en" ? en : zhCN;
+
+export const getStaticPaths = (async ({ paginate }) => {
+  // 首页只生成语言维度路径，不再承担文章分页。
+  const paths = [];
+  const localeConfig = i18n!;
+  for (const locale of localeConfig.locales) {
+    const localeCode = typeof locale === 'string' ? locale : locale.path;
+    const localeParam = localeCode === localeConfig.defaultLocale ? undefined : localeCode;
+    const onePage = paginate([localeCode], {
+      pageSize: 1,
+      params: { locale: localeParam },
+    });
+
+    paths.push(...onePage);
+  }
+
+  return paths;
+}) satisfies GetStaticPaths
+
+const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
+
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang}>
+  <Cover
+    title={t("cover.title.home")}
+    rotatingPair={localeContent.cover.rotatingPair.home}
+  />
+  <FindMeCard />
+  <HomePostCards />
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>

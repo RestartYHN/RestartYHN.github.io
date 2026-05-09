@@ -1,0 +1,103 @@
+{
+  "authors": [
+    {
+      "slug": "Matcha",
+      "name": {
+        "zh-cn": "抹茶",
+        "en": "Matcha"
+      },
+      "description": {
+        "zh-cn": "Matcha毕业于中央美术学院，其插画风格融合了油画的厚重感与日系二次元的唯美，形成了独特的个人标签。她以描绘精致、甜美的日系少女形象见长，画面色彩浓烈而和谐，光影运用细腻，常营造出水晶般通透又梦幻的氛围。构图繁复却不显杂乱，充满了华丽的故事感，角色面部刻画精巧，服饰细节丰富，整体兼具艺术感与视觉冲击力。",
+        "en": "Matcha graduated from the Central Academy of Fine Arts. Her illustration style blends the weight of oil painting with the elegance of Japanese anime, forming a distinct personal signature. She excels at depicting delicate and sweet anime girls, with rich yet harmonious colors, refined lighting, and a crystal-clear, dreamlike atmosphere. Her compositions are intricate without feeling cluttered, full of a luxurious sense of storytelling, with carefully rendered facial features and detailed clothing, balancing artistry and visual impact."
+      },
+      "avatar": "/gallery/Matcha/work-001.webp",
+      "order": 1,
+      "enabled": true
+    },
+    {
+      "slug": "Rumoon",
+      "name": {
+        "zh-cn": "混合可可",
+        "en": "Rumoon"
+      },
+      "description": {
+        "zh-cn": "混合可可是国内初音未来同人圈极具代表性的画师。她的初音作品被粉丝誉为“梦幻银河开在眼前”。从日常的清新甜美，到充满氛围感的贺图，她将初音未来这个角色诠释出了多种可能性。",
+        "en": "Rumoon is a highly representative artist in the domestic Hatsune Miku fan-art community. Her Hatsune Miku works are praised by fans as 'a dreamlike galaxy unfolding right before your eyes.' From everyday fresh and sweet pieces to atmosphere-rich celebratory illustrations, she brings out many different possibilities for the character."
+      },
+      "avatar": "/gallery/Rumoon/work-001.webp",
+      "order": 2,
+      "enabled": true
+    }
+  ],
+  "works": [
+    {
+      "id": "work-001",
+      "author": "Matcha",
+      "title": {
+        "zh-cn": "鹿目圆",
+        "en": "Kaname Madoka"
+      },
+      "image": "/gallery/Matcha/work-001.webp",
+      "thumb": "/gallery/Matcha/work-001.webp",
+      "year": 2026,
+      "tags": [
+        "魔法少女小圆",
+        "同人"
+      ],
+      "enabled": true,
+      "order": 1,
+      "link": "https://example.com/work/work-001"
+    },
+    {
+      "id": "work-002",
+      "author": "Matcha",
+      "title": {
+        "zh-cn": "抹茶作品 2",
+        "en": "Matcha Work 2"
+      },
+      "image": "/gallery/Matcha/work-002.webp",
+      "thumb": "/gallery/Matcha/work-002.webp",
+      "year": 2026,
+      "tags": [
+        "同人"
+      ],
+      "enabled": true,
+      "order": 2,
+      "link": "https://example.com/work/work-002"
+    },
+    {
+      "id": "work-003",
+      "author": "Rumoon",
+      "title": {
+        "zh-cn": "混合可可作品 1",
+        "en": "Rumoon Work 1"
+      },
+      "image": "/gallery/Rumoon/work-001.webp",
+      "thumb": "/gallery/Rumoon/work-001.webp",
+      "year": 2026,
+      "tags": [
+        "同人"
+      ],
+      "enabled": true,
+      "order": 3,
+      "link": "https://example.com/work/work-003"
+    },
+    {
+      "id": "work-004",
+      "author": "Rumoon",
+      "title": {
+        "zh-cn": "混合可可作品 2",
+        "en": "Rumoon Work 2"
+      },
+      "image": "/gallery/Rumoon/work-002.webp",
+      "thumb": "/gallery/Rumoon/work-002.webp",
+      "year": 2026,
+      "tags": [
+        "同人"
+      ],
+      "enabled": true,
+      "order": 4,
+      "link": "https://example.com/work/work-004"
+    }
+  ]
+}

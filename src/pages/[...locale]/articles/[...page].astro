@@ -1,0 +1,45 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro';
+import Cover from '@components/Cover.astro';
+import PostPage from '@components/PostPage.astro';
+import Navi from '@components/control/Navi.astro';
+import FabMenu from '@components/control/FabMenu.astro';
+
+import { getBlogEntrySort } from '@utils/content-utils'
+import { siteConfig } from '@/config';
+import { i18n } from "astro:config/client";
+import type { GetStaticPaths } from 'astro';
+
+import i18nit from '@i18n/translation'
+
+const { page } = Astro.props;
+const currentLang = Astro.currentLocale || i18n!.defaultLocale;
+const t = i18nit(currentLang);
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const paths = [];
+  const localeConfig = i18n!;
+  for (const locale of localeConfig.locales) {
+    const localeCode = typeof locale === 'string' ? locale : locale.path;
+    const localeParam = localeCode === localeConfig.defaultLocale ? undefined : localeCode;
+    const blogEntries = await getBlogEntrySort(localeParam ?? localeConfig.defaultLocale);
+    const paginatedPaths = paginate(blogEntries, {
+      pageSize: siteConfig.pageSize,
+      params: { locale: localeParam }
+    });
+
+    paths.push(...paginatedPaths);
+  }
+
+  return paths;
+}) satisfies GetStaticPaths
+
+const pageTitle = `${t("header.article")} - ${siteConfig.title}`;
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang}>
+  <Cover title={t("header.article")} subTitle={t("cover.subTitle.archive").replace('{count}', String(page.lastPage * siteConfig.pageSize))} />
+  <PostPage page={page} />
+  <Navi page={page} />
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>

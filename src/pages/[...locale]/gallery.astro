@@ -1,0 +1,56 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro'
+import Cover from '@components/Cover.astro'
+import FabMenu from '@components/control/FabMenu.astro'
+import { siteConfig } from '@/config'
+import i18nit from '@i18n/translation'
+import { i18n } from "astro:config/client"
+import { getRelativeLocaleUrl } from '@utils/url-utils'
+import { loadGalleryData } from '@utils/gallery-utils'
+
+export async function getStaticPaths() {
+  return i18n?.locales.map(locale => ({
+    params: { locale: locale == i18n?.defaultLocale ? undefined : (locale as string) }
+  }))
+}
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale
+const normalizedLang = currentLang === 'en' ? 'en' : 'zh-cn'
+const t = i18nit(currentLang)
+
+const { authors, works } = loadGalleryData()
+const cacheVersion = Date.now().toString()
+
+const pageTitle = `${t("header.gallery")} - ${siteConfig.title}`
+const coverTitle = normalizedLang === 'en' ? 'Gallery' : '画廊'
+const coverSubTitle = normalizedLang === 'en'
+  ? 'Artists I love and their illustration works'
+  : '我喜欢的画师和ta们的插画作品'
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover title={coverTitle} subTitle={coverSubTitle} />
+
+    <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+      {authors.map((author) => (
+        <a
+          href={`${getRelativeLocaleUrl(currentLang, `/gallery/${author.slug}/`)}?v=${cacheVersion}`}
+          class="group block overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 hover:border-[var(--link-color)] transition-colors"
+        >
+          <img src={author.avatar} alt={author.name[normalizedLang]} class="w-full h-auto object-contain bg-black/5" loading="lazy" decoding="async" />
+          <div class="p-3">
+            <h3 class="text-base font-semibold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors">
+              {author.name[normalizedLang]}
+            </h3>
+            <p class="mt-1 text-sm text-[var(--text-color-70)]">
+              {normalizedLang === 'en' ? `${author.workCount} works` : `${author.workCount} 幅作品`}
+            </p>
+          </div>
+        </a>
+      ))}
+    </section>
+  </div>
+
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>

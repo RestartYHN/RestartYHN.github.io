@@ -1,0 +1,2697 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro';
+import Cover from '@components/Cover.astro';
+import FabMenu from '@components/control/FabMenu.astro';
+import Comments from '@components/comment/Comments.svelte';
+import { siteConfig } from '@/config';
+import { musicConfig } from '@/data/music';
+import i18nit from '@i18n/translation';
+import { i18n } from 'astro:config/client';
+
+export async function getStaticPaths() {
+  return i18n?.locales.map((locale) => ({
+    params: { locale: locale == i18n?.defaultLocale ? undefined : (locale as string) },
+  }));
+}
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale;
+const t = i18nit(currentLang);
+const isEn = currentLang === 'en';
+const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover
+      title={isEn ? 'Music' : '音乐'}
+      subTitle={isEn
+        ? 'NetEase Cloud web player (web recommended): if the default track does not play, the media file may not have been retrieved — try clicking another track and playback should start on subsequent attempts. Choose any playlist and start listening; stay on this page to view synchronized lyrics. A global player is enabled, so opening sibling pages will not interrupt the current playlist. Note: only public playlist data is used; VIP/paid tracks may not play in full.'
+        : '网易云网页播放（推荐使用网页版）：若默认歌曲点击后无法播放，说明未读取到媒体文件，请尝试点击其他歌曲，后续播放流程会恢复。你可以选择任意公开歌单开始收听，并在该页面欣赏同步歌词。页面已内置全局播放器，打开同级页面不会中断当前歌单播放。注意：仅读取公开歌单信息，VIP/付费曲目可能无法播放完整。'
+      }
+    />
+
+    <p id="music-status" class="music-status hidden"></p>
+
+    {/* Playlist Popup Modal */}
+    <div id="music-playlist-modal" class="music-playlist-modal hidden">
+      <div class="music-playlist-modal-backdrop" id="music-playlist-modal-backdrop"></div>
+      <div class="music-playlist-modal-content">
+        <div class="music-playlist-modal-header">
+          <h3 class="music-playlist-modal-title">{isEn ? 'Current Playlist' : '当前播放列表'}</h3>
+          <button id="music-playlist-modal-close" class="music-playlist-modal-close" type="button">×</button>
+        </div>
+        <ul id="music-playlist-modal-list" class="music-playlist-modal-list"></ul>
+      </div>
+    </div>
+
+    <div class="music-main-grid">
+      {/* Top Row: Album & Lyrics */}
+      <section class="music-hero">
+        <div class="music-hero-bg" id="music-hero-bg"></div>
+        <div class="music-hero-content">
+          <div class="music-now-card">
+            <div id="music-cover" class="music-cover"></div>
+            <h3 id="music-title" class="music-title">Loading...</h3>
+            <p id="music-artist" class="music-artist">-</p>
+            <button id="music-play-toggle" class="music-play-btn" type="button">
+              {isEn ? 'Play / Pause' : '播放 / 暂停'}
+            </button>
+            <div class="music-controls-row">
+              <button id="music-page-mode-toggle" class="music-mode-btn" type="button" aria-label="Play Mode">↻</button>
+              <button id="music-playlist-toggle" class="music-playlist-btn" type="button">
+                <span id="music-playlist-count">0</span> {isEn ? 'songs' : '首歌'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="music-panel music-lyrics-panel">
+        <h4 class="music-lyrics-title">{isEn ? 'Lyrics' : '歌词'}</h4>
+        <ul id="music-lyrics" class="music-lyrics">
+          <li>{isEn ? 'Lyrics loading...' : '歌词加载中...'}</li>
+        </ul>
+      </section>
+
+      {/* Bottom Row: Playlists & Tracks */}
+      <section class="music-panel music-playlist-section">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <h2 class="music-panel-title">{isEn ? 'Playlists' : '歌单'}</h2>
+          <span id="music-playlist-subtitle" class="music-panel-subtitle">{isEn ? 'Click to load' : '点击加载'}</span>
+        </div>
+        <ul id="music-playlist-list" class="music-playlist-list"></ul>
+      </section>
+
+      <section class="music-panel music-podcast-section">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <h2 class="music-panel-title">{isEn ? 'Podcasts' : '播客'}</h2>
+          <span id="music-podcast-subtitle" class="music-panel-subtitle">{isEn ? 'Click a podcast to load episodes' : '点击播客以加载剧集'}</span>
+        </div>
+
+        <ul id="music-podcast-list" class="music-playlist-list"></ul>
+      </section>
+
+      <section class="music-panel music-tracks-section">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <h2 class="music-panel-title" id="music-list-title">{isEn ? 'Tracks' : '歌曲列表'}</h2>
+          <span id="music-list-subtitle" class="music-panel-subtitle">{isEn ? 'Click to play' : '点击播放'}</span>
+        </div>
+        <ul id="music-track-list" class="music-track-list"></ul>
+      </section>
+    </div>
+
+    <section id="music-comments" data-music-comments="true" class="mt-10 rounded-xl border border-[var(--button-border-color)] p-4">
+      <h3 class="mb-4 text-lg font-semibold text-[var(--text-color)]">
+        {isEn ? 'Comments' : '评论区'}
+      </h3>
+      <Comments
+        client:load
+        postSlug="music"
+        postTitle={pageTitle}
+        language={currentLang}
+      />
+    </section>
+
+  </div>
+
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>
+
+<style>
+  .music-main-grid {
+    display: grid;
+    /* Fixed column widths: left (playlist/hero) and right (lyrics/tracks) */
+    grid-template-columns: 360px 420px;
+    grid-template-rows: auto auto auto auto auto;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 1024px) {
+    .music-main-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .music-hero {
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid var(--button-border-color);
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  @media (max-width: 1024px) {
+    .music-hero {
+      grid-column: 1;
+      grid-row: 1;
+    }
+  }
+
+  .music-lyrics-panel {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  @media (max-width: 1024px) {
+    .music-lyrics-panel {
+      grid-column: 1;
+      grid-row: 2;
+    }
+  }
+
+  .music-playlist-section {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .music-podcast-section {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  @media (max-width: 1024px) {
+    .music-playlist-section {
+      grid-column: 1;
+      grid-row: 3;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .music-podcast-section {
+      grid-column: 1;
+      grid-row: 4;
+    }
+  }
+
+  .music-tracks-section {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  @media (max-width: 1024px) {
+    .music-tracks-section {
+      grid-column: 1;
+      grid-row: 5;
+    }
+  }
+
+  .music-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(213, 165, 106, 0.2), transparent 48%),
+      linear-gradient(135deg, rgba(0, 0, 0, 0.08), transparent 60%);
+    filter: saturate(1.1);
+  }
+
+  .music-hero-content {
+    position: relative;
+    z-index: 1;
+    padding: 1.1rem;
+    backdrop-filter: blur(5px);
+  }
+
+  .music-status {
+    margin: 0 0 0.8rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 0.6rem;
+    border: 1px solid color-mix(in oklab, #d5a56a 40%, var(--button-border-color));
+    background: color-mix(in oklab, #d5a56a 14%, transparent);
+    color: var(--text-color-70);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .music-status.hidden {
+    display: none;
+  }
+
+  .music-now-card,
+  .music-lyrics-panel,
+  .music-panel {
+    border: 1px solid var(--button-border-color);
+    border-radius: 0.95rem;
+    padding: 1rem;
+    background: color-mix(in oklab, var(--bg-color) 88%, transparent);
+  }
+
+  .music-cover {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 0.8rem;
+    background: var(--button-hover-color);
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 0.8rem;
+  }
+
+  .music-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+  }
+
+  .music-artist,
+  .music-panel-subtitle,
+  .music-lyrics-title {
+    color: var(--text-color-70);
+  }
+
+  .music-play-btn {
+    margin-top: 1rem;
+    border-radius: 999px;
+    border: none;
+    background: #d5a56a;
+    color: #fff;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+  }
+
+  .music-play-btn:hover {
+    background: #c9925f;
+  }
+
+  .music-play-btn,
+  .music-control {
+    transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+
+  .music-play-btn:hover,
+  .music-control:hover {
+    transform: translateY(-1px);
+  }
+
+  .music-play-btn:active,
+  .music-control:active {
+    transform: translateY(0) scale(0.96);
+  }
+
+  .music-panel-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-color);
+  }
+
+  .music-lyrics {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 500px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    scroll-padding-block: 45%;
+    line-height: 1.9;
+  }
+
+  @media (max-width: 768px) {
+    .music-lyrics {
+      scroll-padding-block: 45%;
+    }
+  }
+
+  .music-lyrics li {
+    color: var(--text-color-70);
+    padding: 0.4rem 0;
+    transition: color 160ms ease;
+  }
+
+  .music-lyrics li.active {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+
+  .music-lyrics-main {
+    line-height: 1.5;
+  }
+
+  .music-lyrics-trans {
+    margin-top: 0.15rem;
+    font-size: 0.86rem;
+    line-height: 1.45;
+    color: color-mix(in oklab, var(--text-color-70) 85%, transparent);
+  }
+
+  .music-lyrics li.active .music-lyrics-main {
+    color: var(--text-color);
+  }
+
+  .music-lyrics li.active .music-lyrics-trans {
+    color: color-mix(in oklab, var(--text-color) 65%, transparent);
+  }
+
+  .music-track-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  .music-track-card {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    border: 1px solid var(--button-border-color);
+    border-radius: 0.9rem;
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+    padding: 0.7rem;
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
+    min-height: 3.2rem;
+  }
+
+  .music-track-index {
+    width: 2rem;
+    text-align: center;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text-color-70);
+    flex-shrink: 0;
+  }
+
+  .music-track-card.active {
+    background: var(--button-hover-color);
+    border-color: #d5a56a;
+  }
+
+  .music-track-card.unavailable {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .music-track-card.unavailable:hover {
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+    transform: none;
+  }
+
+  .music-track-card:hover {
+    background: var(--button-hover-color);
+  }
+
+  .music-track-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .music-track-played {
+    margin-top: 0.15rem;
+    color: var(--text-color-70);
+    font-size: 0.75rem;
+  }
+
+  .music-track-title {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .music-track-artist {
+    margin-top: 0.2rem;
+    color: var(--text-color-70);
+    font-size: 0.85rem;
+  }
+
+  .music-bottom-player {
+    position: sticky;
+    bottom: 0.8rem;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--button-border-color);
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--bg-color) 90%, transparent);
+    padding: 0.75rem;
+    backdrop-filter: blur(8px);
+  }
+
+  @media (max-width: 768px) {
+    .music-bottom-player {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr) auto auto auto;
+      grid-template-areas:
+        "cover info prev play next"
+        "progress progress progress progress progress";
+      gap: 0.45rem 0.5rem;
+      align-items: center;
+      padding: 0.65rem;
+    }
+
+    .music-bottom-cover {
+      grid-area: cover;
+    }
+
+    .music-bottom-player .min-w-0 {
+      grid-area: info;
+      min-width: 0;
+    }
+
+    #music-prev {
+      grid-area: prev;
+    }
+
+    #music-main-play {
+      grid-area: play;
+    }
+
+    #music-next {
+      grid-area: next;
+    }
+
+    .music-progress-wrap {
+      grid-area: progress;
+      grid-column: 1 / -1;
+      margin-top: 0.2rem;
+      margin-left: -0.65rem;
+      margin-right: -0.65rem;
+      padding: 0 0.65rem;
+      grid-template-columns: 34px 1fr 34px;
+      gap: 0.35rem;
+    }
+
+    .music-position-info {
+      display: none;
+    }
+
+    .music-control {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  .music-bottom-cover {
+    width: 54px;
+    height: 54px;
+    border-radius: 0.65rem;
+    background: var(--button-hover-color);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+  }
+
+  .music-progress-wrap {
+    margin-top: 0.35rem;
+    display: grid;
+    grid-template-columns: 42px 1fr 42px;
+    align-items: center;
+    gap: 0.45rem;
+    --progress-percent: 0%;
+  }
+
+  .music-progress-wrap.is-dragging {
+    filter: saturate(1.08);
+  }
+
+  .music-progress {
+    width: 100%;
+    accent-color: #d5a56a;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    background: linear-gradient(
+      to right,
+      #d5a56a 0%,
+      #d5a56a var(--progress-percent),
+      color-mix(in oklab, #d5a56a 20%, var(--button-border-color)) var(--progress-percent),
+      color-mix(in oklab, #d5a56a 20%, var(--button-border-color)) 100%
+    );
+    border-radius: 999px;
+    outline: none;
+  }
+
+  .music-progress::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  .music-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5.5px;
+    border-radius: 50%;
+    border: 2px solid color-mix(in oklab, #d5a56a 80%, #fff);
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .music-progress::-moz-range-track {
+    height: 3px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  .music-progress::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid color-mix(in oklab, #d5a56a 80%, #fff);
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .music-time {
+    font-size: 0.72rem;
+    color: var(--text-color-70);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .music-position-info {
+    font-size: 0.8rem;
+    color: var(--text-color-70);
+    white-space: nowrap;
+    margin-right: 0.3rem;
+  }
+
+  .music-playlist-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  .music-playlist-card {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    border: 1px solid var(--button-border-color);
+    border-radius: 0.9rem;
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+    padding: 0.75rem 0.8rem;
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease, opacity 160ms ease;
+    position: relative;
+    min-height: 3.2rem;
+  }
+
+  .music-playlist-index {
+    width: 2rem;
+    text-align: center;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text-color-70);
+    flex-shrink: 0;
+  }
+
+  .music-playlist-card:not(.loading):hover {
+    background: var(--button-hover-color);
+    transform: translateY(-1px);
+  }
+
+  .music-playlist-card.active {
+    background: var(--button-hover-color);
+    border-color: #d5a56a;
+  }
+
+  .music-playlist-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .music-playlist-card.loading::after {
+    content: '';
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--text-color-70);
+    border-top-color: #d5a56a;
+    border-radius: 50%;
+    animation: music-spin 0.6s linear infinite;
+  }
+
+  @keyframes music-spin {
+    to {
+      transform: translateY(-50%) rotate(360deg);
+    }
+  }
+
+  .music-playlist-name {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1.35;
+    display: block;
+    max-height: 2.4rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .music-playlist-meta {
+    margin-top: 0.3rem;
+    color: var(--text-color-70);
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+
+  .music-control {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid var(--button-border-color);
+    background: var(--bg-color);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+
+  .music-control:hover {
+    background: var(--button-hover-color);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .music-control.primary {
+    background: #d5a56a;
+    color: #fff;
+    border-color: #d5a56a;
+  }
+
+  .music-control.primary:hover {
+    background: #c9925f;
+  }
+
+  .music-control-play {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .music-control-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    line-height: 1;
+  }
+
+  .music-control.playing {
+    background: color-mix(in oklab, #d5a56a 86%, #fff);
+    border-color: color-mix(in oklab, #d5a56a 80%, #fff);
+    color: #fff;
+  }
+
+  .music-control.playing:hover {
+    background: #c9925f;
+  }
+
+  .music-empty {
+    color: var(--text-color-70);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  /* Playlist Modal Styles */
+  .music-playlist-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .music-playlist-modal.hidden {
+    display: none;
+  }
+
+  .music-playlist-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .music-playlist-modal-content {
+    position: relative;
+    width: min(480px, calc(100vw - 2rem));
+    max-height: 70vh;
+    background: var(--bg-color);
+    border: 1px solid var(--button-border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .music-playlist-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--button-border-color);
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+  }
+
+  .music-playlist-modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+  }
+
+  .music-playlist-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-color-70);
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 160ms ease;
+  }
+
+  .music-playlist-modal-close:hover {
+    background: var(--button-hover-color);
+  }
+
+  .music-playlist-modal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .music-playlist-modal-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+  }
+
+  .music-playlist-modal-item:hover {
+    background: var(--button-hover-color);
+  }
+
+  .music-playlist-modal-item.active {
+    background: color-mix(in oklab, #d5a56a 15%, transparent);
+  }
+
+  .music-playlist-modal-item-index {
+    width: 2rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-color-70);
+    flex-shrink: 0;
+  }
+
+  .music-playlist-modal-item.active .music-playlist-modal-item-index {
+    color: #d5a56a;
+  }
+
+  .music-playlist-modal-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .music-playlist-modal-item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .music-playlist-modal-item-artist {
+    font-size: 0.8rem;
+    color: var(--text-color-70);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Play Mode Control Styles */
+  .music-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .music-mode-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--button-border-color);
+    background: var(--bg-color);
+    color: var(--text-color-70);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 160ms ease;
+  }
+
+  .music-mode-btn:hover {
+    background: var(--button-hover-color);
+    color: var(--text-color);
+  }
+
+  .music-mode-btn.active {
+    background: #d5a56a;
+    border-color: #d5a56a;
+    color: #fff;
+  }
+
+  .music-mode-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .music-playlist-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid var(--button-border-color);
+    background: var(--bg-color);
+    color: var(--text-color-70);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    transition: all 160ms ease;
+  }
+
+  .music-playlist-btn:hover {
+    background: var(--button-hover-color);
+    color: var(--text-color);
+  }
+
+  .music-playlist-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+</style>
+
+<script define:vars={{ musicConfig, isEn }}>
+  const API_BASE = musicConfig.apiBase;
+  const NETEASE_API_BASE = musicConfig.neteaseApiBase || "";
+  const NETEASE_REAL_IP = musicConfig.neteaseRealIp || "";
+  const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
+
+  // Page elements: use `let` and re-query on init to survive Astro partial navigation
+  let audio;
+  let trackListEl;
+  let cover;
+  let titleEl;
+  let artistEl;
+  let lyricsEl;
+  let heroBg;
+  let statusEl;
+  let bottomCover;
+  let bottomTitle;
+  let bottomArtist;
+  let progressEl;
+  let currentTimeEl;
+  let totalTimeEl;
+  let playlistListEl;
+  let playlistSubtitleEl;
+  let btnMainPlay;
+  let btnCardPlay;
+  let btnPrev;
+  let btnNext;
+  let progressWrap;
+  let playIcon;
+  let pauseIcon;
+  let podcastTrackListEl;
+  let podcastCardsEl;
+
+  function queryPageEls() {
+    audio = document.getElementById("music-audio");
+    trackListEl = document.getElementById("music-track-list");
+    cover = document.getElementById("music-cover");
+    titleEl = document.getElementById("music-title");
+    artistEl = document.getElementById("music-artist");
+    lyricsEl = document.getElementById("music-lyrics");
+    heroBg = document.getElementById("music-hero-bg");
+    statusEl = document.getElementById("music-status");
+    bottomCover = document.getElementById("music-bottom-cover");
+    bottomTitle = document.getElementById("music-bottom-title");
+    bottomArtist = document.getElementById("music-bottom-artist");
+    progressEl = document.getElementById("music-progress");
+    currentTimeEl = document.getElementById("music-current-time");
+    totalTimeEl = document.getElementById("music-total-time");
+    playlistListEl = document.getElementById("music-playlist-list");
+    playlistSubtitleEl = document.getElementById("music-playlist-subtitle");
+    podcastTrackListEl = document.getElementById('music-podcast-track-list');
+    podcastCardsEl = document.getElementById('music-podcast-list');
+    btnMainPlay = document.getElementById("music-main-play");
+    btnCardPlay = document.getElementById("music-play-toggle");
+    btnPrev = document.getElementById("music-prev");
+    btnNext = document.getElementById("music-next");
+    progressWrap = document.querySelector(".music-progress-wrap");
+    playIcon = btnMainPlay?.querySelector(".music-control-icon-play");
+    pauseIcon = btnMainPlay?.querySelector(".music-control-icon-pause");
+    // Ensure crossOrigin is set before any src assignment to allow CORS-enabled hosts
+    try {
+      if (audio && audio.crossOrigin !== 'anonymous') {
+        audio.crossOrigin = 'anonymous';
+      }
+    } catch (e) {
+      console.debug('[music] set crossOrigin failed', e);
+    }
+  }
+
+  let tracks = [];
+  let currentIndex = 0;
+  let lyricLines = [];
+  let activeLyricIndex = -1;
+  let lastLyricScrollAtMs = 0;
+  let loadVersion = 0;
+  let podcastLoadVersion = 0;
+  let currentPlaylistId = "";
+  let userToken = localStorage.getItem("music-user-token") || null;
+  let userData = userToken ? JSON.parse(localStorage.getItem("music-user-data") || "null") : null;
+
+  // Global music player sync key
+  const GLOBAL_MUSIC_KEY = '__globalMusicBootstrapV1';
+
+  // Sync tracks to global player whenever tracks change
+  function syncToGlobalPlayer() {
+    const globalController = window[GLOBAL_MUSIC_KEY];
+    if (globalController && typeof globalController.syncState === 'function') {
+      globalController.syncState({
+        tracks: tracks,
+        currentIndex: currentIndex,
+        playMode: playMode,
+      });
+    }
+  }
+
+  // Bootstrap global player with current tracks
+  function bootstrapGlobalPlayer() {
+    const globalController = window[GLOBAL_MUSIC_KEY];
+    if (globalController && typeof globalController.bootstrap === 'function') {
+      globalController.bootstrap({
+        tracks: tracks,
+        currentIndex: currentIndex,
+        playMode: playMode,
+      });
+    }
+  }
+
+  // Restore state from global player (for page re-entry)
+  function restoreFromGlobalPlayer() {
+    const globalController = window[GLOBAL_MUSIC_KEY];
+    if (globalController && typeof globalController.getState === 'function') {
+      const state = globalController.getState();
+      if (state && Array.isArray(state.tracks) && state.tracks.length && state.loaded) {
+        tracks = state.tracks;
+        currentIndex = Number.isFinite(state.currentIndex) ? state.currentIndex : 0;
+        playMode = PLAY_MODES.includes(state.playMode) ? state.playMode : 'sequential';
+        shuffleQueue = [];
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Play mode cycling: sequential → loop-one → shuffle → sequential
+  const PLAY_MODES = ['sequential', 'loop-one', 'shuffle'];
+  const MODE_LABELS = { 'sequential': '↻', 'loop-one': '↻₁', 'shuffle': '⇄' };
+  const MODE_TITLES = { 'sequential': '顺序播放', 'loop-one': '单曲循环', 'shuffle': '随机播放' };
+
+  let playMode = 'sequential';
+  let shuffleQueue = [];
+
+  // Playlist modal elements
+  const playlistModal = document.getElementById("music-playlist-modal");
+  const playlistModalBackdrop = document.getElementById("music-playlist-modal-backdrop");
+  const playlistModalClose = document.getElementById("music-playlist-modal-close");
+  const playlistModalList = document.getElementById("music-playlist-modal-list");
+  const playlistCountEl = document.getElementById("music-playlist-count");
+  const btnPlaylistToggle = document.getElementById("music-playlist-toggle");
+  const btnPageModeToggle = document.getElementById("music-page-mode-toggle");
+
+  function showStatus(text, level = "info") {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.classList.remove("hidden");
+    if (level === "error") {
+      statusEl.style.borderColor = "color-mix(in oklab, #d14b4b 45%, var(--button-border-color))";
+      statusEl.style.background = "color-mix(in oklab, #d14b4b 14%, transparent)";
+    } else {
+      statusEl.style.borderColor = "color-mix(in oklab, #d5a56a 40%, var(--button-border-color))";
+      statusEl.style.background = "color-mix(in oklab, #d5a56a 14%, transparent)";
+    }
+  }
+
+  function hideStatus() {
+    if (!statusEl) return;
+    statusEl.classList.add("hidden");
+  }
+
+  // Play mode removed; sequential playback only
+
+  function getNextIndex() {
+    if (!tracks.length) return 0;
+    if (playMode === 'loop-one') return currentIndex;
+    if (playMode === 'shuffle') {
+      if (!shuffleQueue.length) {
+        const others = Array.from({ length: tracks.length }, (_, i) => i)
+          .filter(i => i !== currentIndex);
+        for (let i = others.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [others[i], others[j]] = [others[j], others[i]];
+        }
+        shuffleQueue = others;
+      }
+      return shuffleQueue.length ? shuffleQueue.shift() : currentIndex;
+    }
+    return (currentIndex + 1) % tracks.length;
+  }
+
+  function getPrevIndex() {
+    if (!tracks.length) return 0;
+    if (playMode === 'loop-one') return currentIndex;
+    return (currentIndex - 1 + tracks.length) % tracks.length;
+  }
+
+  // Playlist modal functions
+  function openPlaylistModal() {
+    if (!playlistModal) return;
+    playlistModal.classList.remove("hidden");
+    renderPlaylistModalList();
+    document.body.style.overflow = "hidden";
+  }
+
+  function closePlaylistModal() {
+    if (!playlistModal) return;
+    playlistModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  function renderPlaylistModalList() {
+    if (!playlistModalList) return;
+    if (!tracks.length) {
+      playlistModalList.innerHTML = `<li class="music-empty">${isEn ? "No tracks" : "暂无歌曲"}</li>`;
+      return;
+    }
+
+    playlistModalList.innerHTML = tracks
+      .map(
+        (track, idx) => `
+          <li class="music-playlist-modal-item ${idx === currentIndex ? "active" : ""}" data-idx="${idx}">
+            <div class="music-playlist-modal-item-index">${idx === currentIndex ? "▶" : String(idx + 1).padStart(2, "0")}</div>
+            <div class="music-playlist-modal-item-info">
+              <div class="music-playlist-modal-item-title">${track.title || "Unknown"}</div>
+              <div class="music-playlist-modal-item-artist">${track.artist || "Unknown Artist"}</div>
+            </div>
+          </li>
+        `
+      )
+      .join("");
+
+    playlistModalList.querySelectorAll(".music-playlist-modal-item").forEach((el) => {
+      el.addEventListener("click", async () => {
+        const idx = Number(el.getAttribute("data-idx") || "0");
+        currentIndex = idx;
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        renderPlaylistModalList();
+        updatePlayerPosition();
+        syncToGlobalPlayer();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio.play().catch(() => {});
+        }
+      });
+    });
+
+    // Scroll to current track
+    const activeItem = playlistModalList.querySelector(".music-playlist-modal-item.active");
+    if (activeItem) {
+      activeItem.scrollIntoView({ behavior: "auto", block: "nearest" });
+    }
+  }
+
+  function updatePlaylistCount() {
+    if (playlistCountEl) {
+      playlistCountEl.textContent = tracks.length;
+    }
+  }
+
+  function updateModeButton() {
+    if (!btnPageModeToggle) return;
+    btnPageModeToggle.textContent = MODE_LABELS[playMode] || '↻';
+    btnPageModeToggle.setAttribute('aria-label', MODE_TITLES[playMode] || 'Play Mode');
+    btnPageModeToggle.classList.toggle('active', playMode !== 'sequential');
+  }
+
+  // playlist modal bindings will be attached in initMusicPage()
+
+  function updatePlayButtonState() {
+    if (!btnMainPlay || !audio) return;
+    const isPlaying = !audio.paused;
+    btnMainPlay.classList.toggle("playing", isPlaying);
+    btnMainPlay.setAttribute("aria-pressed", String(isPlaying));
+    btnMainPlay.setAttribute("aria-label", isPlaying ? (isEn ? "Pause" : "暂停") : (isEn ? "Play" : "播放"));
+    playIcon?.classList.toggle("hidden", isPlaying);
+    pauseIcon?.classList.toggle("hidden", !isPlaying);
+  }
+
+  function updateProgressVisual() {
+    if (!progressEl) return;
+    const ratio = Number(progressEl.value || 0) / 1000;
+    progressEl.style.setProperty("--progress-percent", `${Math.max(0, Math.min(100, ratio * 100))}%`);
+  }
+
+  async function getJson(url) {
+    const res = await fetch(url, { referrerPolicy: "no-referrer" });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    return res.json();
+  }
+
+  function withTimestamp(params = {}) {
+    return {
+      ...params,
+      timestamp: Date.now(),
+    };
+  }
+
+  function buildUrl(base, path, params = {}) {
+    const cleanBase = String(base || "").replace(/\/+$/, "");
+    const cleanPath = String(path || "").replace(/^\/+/, "");
+    const url = new URL(`${cleanBase}/${cleanPath}`);
+    Object.entries(params).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === "") return;
+      url.searchParams.set(k, String(v));
+    });
+    return url.toString();
+  }
+
+  async function getNeteaseJson(path, params = {}) {
+    if (!NETEASE_API_BASE) {
+      throw new Error("PUBLIC_NETEASE_API is not configured");
+    }
+    return getJson(buildUrl(NETEASE_API_BASE, path, withTimestamp(params)));
+  }
+
+  function normalizeAudioUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== "string") return "";
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return "";
+
+    // GitHub Pages is HTTPS. Convert known NetEase HTTP media links to HTTPS to avoid mixed-content blocking.
+    if (window.location.protocol === "https:" && /^http:\/\/m\d+\.music\.126\.net\//i.test(trimmed)) {
+      return trimmed.replace(/^http:\/\//i, "https://");
+    }
+
+    return trimmed;
+  }
+
+  function withPreferredRealIP(params = {}) {
+    if (!NETEASE_REAL_IP) return params;
+    return {
+      ...params,
+      realIP: NETEASE_REAL_IP,
+    };
+  }
+
+  async function getBestDirectAudioUrl(id) {
+    const levels = ["standard", "higher", "exhigh", "lossless"];
+    const realIpCandidates = Array.from(
+      new Set([
+        "",
+        NETEASE_REAL_IP,
+        "211.161.244.70",
+      ].filter(Boolean)),
+    );
+
+    for (const level of levels) {
+      for (const realIP of realIpCandidates) {
+        try {
+          const params = realIP ? { id, level, realIP } : { id, level };
+          const urlResp = await getNeteaseJson("/song/url/v1", params);
+          const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+          const normalized = normalizeAudioUrl(urlItem?.url || "");
+          if (normalized) {
+            return normalized;
+          }
+        } catch (e) {
+          console.debug(`[music] /song/url/v1 failed for ${id} at ${level} realIP=${realIP || "none"}`, e);
+        }
+      }
+    }
+
+    // Fallback endpoint for compatibility with some tracks.
+    for (const realIP of realIpCandidates) {
+      try {
+        const params = realIP ? { id, br: 320000, realIP } : { id, br: 320000 };
+        const legacyResp = await getNeteaseJson("/song/url", params);
+        const legacyItem = Array.isArray(legacyResp?.data) ? legacyResp.data[0] : null;
+        const normalized = normalizeAudioUrl(legacyItem?.url || "");
+        if (normalized) {
+          return normalized;
+        }
+      } catch (e) {
+        console.debug(`[music] /song/url fallback failed for ${id} realIP=${realIP || "none"}`, e);
+      }
+    }
+
+    return "";
+  }
+
+  function formatClock(sec) {
+    const t = Number.isFinite(sec) ? Math.max(0, Math.floor(sec)) : 0;
+    const m = Math.floor(t / 60);
+    const s = t % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  function formatPlayedTime(ms) {
+    if (!ms) return "";
+    const diff = Date.now() - Number(ms);
+    if (diff <= 0) return isEn ? "just now" : "刚刚";
+    const min = Math.floor(diff / 60000);
+    if (min < 60) return isEn ? `${min}m ago` : `${min} 分钟前`;
+    const hour = Math.floor(min / 60);
+    if (hour < 24) return isEn ? `${hour}h ago` : `${hour} 小时前`;
+    const day = Math.floor(hour / 24);
+    return isEn ? `${day}d ago` : `${day} 天前`;
+  }
+
+  function parseLrc(text) {
+    if (!text) return { lines: [], offsetSec: 0 };
+
+    // Trim BOM and normalize line endings
+    let cleanText = String(text || "").replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+
+    // Offset may appear anywhere in the file, not necessarily alone on a line
+    const offsetMatch = cleanText.match(/\[\s*offset\s*[:：]\s*([+-]?\d+)\s*\]/i);
+    const offsetSec = offsetMatch ? Number(offsetMatch[1]) / 1000 : 0;
+
+    const lines = [];
+
+    // Support timestamps like [mm:ss], [mm:ss.xx], [mm:ss:ms], with optional spaces
+    const timeTagRe = /\[\s*(\d+)\s*:\s*(\d{1,2})(?:\s*([:.])\s*(\d{1,3}))?\s*\]/g;
+
+    cleanText.split("\n").forEach((rawLine) => {
+      const line = String(rawLine || "").trim();
+      if (!line) return;
+
+      // Find all time tags in the line
+      const tags = [...line.matchAll(timeTagRe)];
+      if (!tags.length) return;
+
+      // Remove all time tags to get the plain lyric text
+      const plainText = line.replace(timeTagRe, "").trim();
+
+      tags.forEach((tag) => {
+        const mm = Number(tag[1]);
+        const ss = Number(tag[2]);
+        const sep = tag[3];
+        const frac = tag[4];
+        let seconds = mm * 60 + ss;
+        if (sep && frac !== undefined) {
+          if (sep === '.') {
+            // fractional part like .23 -> 0.23 seconds; length determines divisor
+            seconds += Number(frac) / Math.pow(10, String(frac).length);
+          } else {
+            // separator ':' treated as milliseconds (e.g. mm:ss:ms)
+            seconds += Number(frac) / 1000;
+          }
+        }
+
+        const t = seconds + offsetSec;
+        lines.push({
+          time: Math.max(0, t),
+          text: plainText,
+        });
+      });
+    });
+
+    lines.sort((a, b) => a.time - b.time);
+    return { lines, offsetSec };
+  }
+
+  function buildLyricLines(lyricText, translationText) {
+    const parsedBase = parseLrc(lyricText);
+    const base = parsedBase.lines;
+    if (!base.length) return [];
+
+    const trans = parseLrc(translationText).lines;
+    let transIdx = 0;
+    const TOLERANCE_SEC = 0.45;
+
+    return base.map((line) => {
+      let matched = "";
+
+      while (transIdx + 1 < trans.length && trans[transIdx + 1].time <= line.time) {
+        transIdx += 1;
+      }
+
+      const candidates = [trans[transIdx - 1], trans[transIdx], trans[transIdx + 1]].filter(Boolean);
+      let best = null;
+      let bestDelta = Number.POSITIVE_INFINITY;
+
+      candidates.forEach((item) => {
+        const delta = Math.abs(item.time - line.time);
+        if (delta < bestDelta) {
+          best = item;
+          bestDelta = delta;
+        }
+      });
+
+      if (best && bestDelta <= TOLERANCE_SEC && best.text && best.text !== "//") {
+        matched = best.text;
+      }
+
+      return {
+        time: line.time,
+        text: line.text,
+        translation: matched,
+      };
+    });
+  }
+
+  function renderLyrics(lines) {
+    if (!lyricsEl) return;
+    if (!lines.length) {
+      lyricsEl.innerHTML = `<li>${isEn ? "No lyric available" : "暂无歌词"}</li>`;
+      lyricsEl.scrollTop = 0;
+      return;
+    }
+    lyricsEl.innerHTML = lines
+      .map(
+        (line, i) => `
+          <li data-i="${i}">
+            <div class="music-lyrics-main">${line.text || "..."}</div>
+            ${line.translation ? `<div class="music-lyrics-trans">${line.translation}</div>` : ""}
+          </li>
+        `,
+      )
+      .join("");
+    // Reset scroll position to top after rendering
+    lyricsEl.scrollTop = 0;
+  }
+
+  function getActiveLyricIndex(currentTime) {
+    if (!lyricLines.length) return -1;
+
+    const t = currentTime + 0.03;
+    if (t < lyricLines[0].time) return -1;
+
+    let active = -1;
+    for (let i = 0; i < lyricLines.length; i += 1) {
+      if (t >= lyricLines[i].time) active = i;
+      else break;
+    }
+
+    // If many lines share exactly the same timestamp, keep the first one
+    // to avoid jumping several lines on initial mobile sync.
+    while (active > 0 && lyricLines[active - 1].time === lyricLines[active].time) {
+      active -= 1;
+    }
+
+    return active;
+  }
+
+  function syncLyrics() {
+    if (!audio || !lyricsEl || !lyricLines.length) return;
+    const active = getActiveLyricIndex(audio.currentTime);
+    if (active === activeLyricIndex) return;
+
+    activeLyricIndex = active;
+    lyricsEl.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
+    if (active < 0) return;
+
+    const activeLine = lyricsEl.querySelector(`li[data-i='${active}']`);
+    if (activeLine) {
+      activeLine.classList.add("active");
+
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+      const ACTIVE_LINE_VIEWPORT_RATIO = isMobile ? 0.72 : 0.62;
+      
+      // Use two lines before for scroll position to give a "look-ahead" effect
+      const scrollLineIndex = Math.max(0, active - 2);
+      const scrollLine = lyricsEl.querySelector(`li[data-i='${scrollLineIndex}']`) || activeLine;
+      const targetTop = scrollLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + scrollLine.clientHeight / 2;
+
+      if (isMobile) {
+        const nowMs = performance.now();
+        const MIN_SCROLL_INTERVAL_MS = 220;
+        if (nowMs - lastLyricScrollAtMs < MIN_SCROLL_INTERVAL_MS) {
+          return;
+        }
+        lastLyricScrollAtMs = nowMs;
+
+        const MAX_SCROLL_STEP_PX = 34;
+        const currentTop = lyricsEl.scrollTop;
+        const delta = targetTop - currentTop;
+        const clampedTop = Math.abs(delta) > MAX_SCROLL_STEP_PX
+          ? currentTop + Math.sign(delta) * MAX_SCROLL_STEP_PX
+          : targetTop;
+
+        lyricsEl.scrollTo({ top: Math.max(0, clampedTop), behavior: "auto" });
+      } else {
+        lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+      }
+    }
+  }
+
+  function updateNowPlaying(track, options = {}) {
+    const preserveActivePlayback = Boolean(options?.preserveActivePlayback);
+    if (titleEl) titleEl.textContent = track.title || "-";
+    if (artistEl) artistEl.textContent = track.artist || "-";
+    if (bottomTitle) bottomTitle.textContent = track.title || "-";
+    if (bottomArtist) bottomArtist.textContent = track.artist || "-";
+
+    if (cover) cover.style.backgroundImage = track.cover ? `url(${track.cover})` : "";
+    if (bottomCover) bottomCover.style.backgroundImage = track.cover ? `url(${track.cover})` : "";
+
+    if (heroBg && track.cover) {
+      heroBg.style.backgroundImage = `linear-gradient(135deg, rgba(0,0,0,.22), rgba(0,0,0,.1)), url(${track.cover})`;
+      heroBg.style.backgroundSize = "cover";
+      heroBg.style.backgroundPosition = "center";
+    }
+
+    if (audio) {
+      if (track.audio) {
+        const currentSrc = String(audio.currentSrc || audio.src || "");
+        const nextSrc = String(track.audio || "");
+        const isSameSrc = currentSrc && nextSrc && currentSrc === nextSrc;
+        const shouldPreserve = Boolean(preserveActivePlayback && isSameSrc && !audio.paused);
+        // If preserving active playback and the src is already the same and audio is playing,
+        // avoid calling load() which would reset playback to start.
+        if (!shouldPreserve) {
+          if (!isSameSrc) {
+            console.debug('[music] setting audio.src ->', nextSrc, { isSameSrc, preserveActivePlayback });
+            audio.src = nextSrc;
+          }
+          // Only call load when we actually changed the src or explicitly need to reset
+          if (!isSameSrc) audio.load();
+        }
+      } else {
+        if (!preserveActivePlayback) {
+          audio.pause();
+          audio.removeAttribute("src");
+          audio.load();
+        }
+      }
+    }
+
+    lyricLines = buildLyricLines(track.lyric, track.tlyric);
+    activeLyricIndex = -1;
+    lastLyricScrollAtMs = 0;
+    renderLyrics(lyricLines);
+    if (lyricsEl) {
+      lyricsEl.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }
+
+  function renderTrackList() {
+    if (!trackListEl) return;
+    if (!tracks.length) {
+      trackListEl.innerHTML = `<li class="music-empty">${isEn ? "No tracks" : "暂无歌曲"}</li>`;
+      return;
+    }
+
+    trackListEl.innerHTML = tracks
+      .map(
+        (track, idx) => `
+          <li class="music-track-card ${idx === currentIndex ? "active" : ""} ${track.unavailable ? "unavailable" : ""}" data-idx="${idx}">
+            <div class="music-track-index">${String(idx + 1).padStart(2, "0")}</div>
+            <div class="min-w-0 flex-1">
+              <p class="music-track-title truncate">${track.title || "Unknown"}</p>
+              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}</p>
+            </div>
+          </li>
+        `,
+      )
+      .join("");
+
+    trackListEl.querySelectorAll(".music-track-card").forEach((el) => {
+      el.addEventListener("click", async () => {
+        const idx = Number(el.getAttribute("data-idx") || "0");
+        currentIndex = idx;
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        syncToGlobalPlayer();
+        
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio.play().catch(() => {});
+        } else if (current?.id) {
+          showStatus(
+            isEn
+              ? "No playable URL for this track in direct mode."
+              : "直连模式下该歌曲暂无可用播放链接。",
+            "error"
+          );
+        } else {
+          showStatus(isEn ? "Cannot load this track." : "无法加载此歌曲。", "error");
+        }
+      });
+    });
+
+    const activeTrackCard = trackListEl.querySelector(".music-track-card.active");
+    if (activeTrackCard) {
+      activeTrackCard.scrollIntoView({ behavior: "auto", block: "nearest" });
+    }
+  }
+
+  async function prepareTrackForPlayback(index) {
+    let current = tracks[index];
+    if (!current) return null;
+
+    current = await hydrateTrack(current);
+    tracks[index] = current;
+
+    // Direct mode loads playback URL lazily. Ensure prev/next and list click share the same behavior.
+    if (USE_DIRECT_NETEASE_API && current?.id && !current?.audio && !current?.unavailable) {
+      showStatus(isEn ? "Loading playback URL..." : "正在获取播放链接...");
+      try {
+        const fullTrack = await loadTrack(current.id);
+        const keepTitle = current.title && current.title !== `Song ${current.id}` && current.title !== 'Unknown';
+        const keepArtist = current.artist && current.artist !== 'Unknown Artist' && current.artist !== 'Unknown';
+        const keepCover = Boolean(current.cover);
+        
+        current = {
+          ...current,
+          ...fullTrack,
+          title: keepTitle ? current.title : fullTrack.title,
+          artist: keepArtist ? current.artist : fullTrack.artist,
+          cover: keepCover ? current.cover : fullTrack.cover,
+          unavailable: !fullTrack?.audio,
+        };
+        tracks[index] = current;
+      } catch (e) {
+        console.warn("[music] URL retry failed", e);
+        current = {
+          ...current,
+          unavailable: true,
+        };
+        tracks[index] = current;
+      }
+    }
+
+    // Sync to global player after track is hydrated
+    syncToGlobalPlayer();
+
+    return current;
+  }
+
+  function updatePlayerPosition() {
+    const posEl = document.getElementById("music-player-position");
+    if (posEl && tracks.length > 0) {
+      posEl.textContent = `${currentIndex + 1} / ${tracks.length}`;
+    }
+  }
+
+  // Track cache with 10 minute TTL
+  const trackCacheKey = "music-track-cache-v2";
+  const trackCacheTTL = 10 * 60 * 1000; // 10 minutes
+  
+  function getTrackCache(id) {
+    try {
+      const cached = localStorage.getItem(`${trackCacheKey}:${id}`);
+      if (!cached) return null;
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp > trackCacheTTL) {
+        localStorage.removeItem(`${trackCacheKey}:${id}`);
+        return null;
+      }
+
+      // Drop placeholder cache entries so metadata fixes can propagate immediately.
+      const title = String(data?.title || "");
+      const artist = String(data?.artist || "");
+      const isPlaceholderTitle = title === `Song ${id}` || title === "Unknown";
+      const isPlaceholderArtist = artist === "Unknown Artist" || artist === "Unknown";
+      if (isPlaceholderTitle || isPlaceholderArtist) {
+        localStorage.removeItem(`${trackCacheKey}:${id}`);
+        return null;
+      }
+
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  function setTrackCache(id, data) {
+    try {
+      localStorage.setItem(`${trackCacheKey}:${id}`, JSON.stringify({
+        data,
+        timestamp: Date.now(),
+      }));
+    } catch (e) {
+      console.warn("[music] cache write failed", e);
+    }
+  }
+
+  // Concurrent request queue (max 3 simultaneous)
+  let trackLoadQueue = [];
+  let trackLoadInProgress = 0;
+  const MAX_CONCURRENT = 3;
+
+  function enqueueTrackLoad(id) {
+    return new Promise((resolve, reject) => {
+      trackLoadQueue.push({ id, resolve, reject });
+      processTrackLoadQueue();
+    });
+  }
+
+  async function processTrackLoadQueue() {
+    if (trackLoadInProgress >= MAX_CONCURRENT || trackLoadQueue.length === 0) return;
+    trackLoadInProgress += 1;
+    const { id, resolve, reject } = trackLoadQueue.shift();
+    try {
+      const result = await loadTrackInternal(id);
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    } finally {
+      trackLoadInProgress -= 1;
+      processTrackLoadQueue();
+    }
+  }
+
+  async function loadTrackInternal(id) {
+    // Check cache first
+    const cached = getTrackCache(id);
+    if (cached) {
+      console.debug("[music] track cache hit", id);
+      return cached;
+    }
+
+    if (USE_DIRECT_NETEASE_API) {
+      try {
+        const [detailResp, lrcResp] = await Promise.all([
+          getNeteaseJson("/song/detail", withPreferredRealIP({ ids: id })),
+          getNeteaseJson("/lyric", withPreferredRealIP({ id })),
+        ]);
+
+        const song = Array.isArray(detailResp?.songs) ? detailResp.songs[0] : null;
+        const audioUrl = await getBestDirectAudioUrl(id);
+
+        const result = {
+          id: String(id),
+          title: song?.name || `Song ${id}`,
+          artist: Array.isArray(song?.ar)
+            ? song.ar.map((item) => item?.name || "Unknown").join(", ")
+            : "Unknown Artist",
+          cover: song?.al?.picUrl || "",
+          audio: audioUrl,
+          lyric: typeof lrcResp?.lrc?.lyric === "string" ? lrcResp.lrc.lyric : "",
+          tlyric: typeof lrcResp?.tlyric?.lyric === "string" ? lrcResp.tlyric.lyric : "",
+        };
+        setTrackCache(id, result);
+        return result;
+      } catch (error) {
+        console.warn("[music] load direct track failed", id, error);
+      }
+    }
+
+    try {
+      const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
+      if (result?.code === 200 && result.data) {
+        setTrackCache(id, result.data);
+        return result.data;
+      }
+    } catch (error) {
+      console.warn("[music] load track failed", id, error);
+    }
+
+    const seed = musicConfig.seedTracks.find((x) => String(x.id) === String(id));
+    if (seed) return seed;
+
+    return {
+      id,
+      title: `Song ${id}`,
+      artist: "Unknown Artist",
+      cover: "",
+      audio: "",
+      lyric: "",
+      tlyric: "",
+    };
+  }
+
+  async function loadTrack(id) {
+    return enqueueTrackLoad(id);
+  }
+
+  function mapPlaylistSongToTrack(item) {
+    return {
+      id: item?.id !== undefined ? String(item.id) : "",
+      title: item?.name || "Unknown",
+      artist: Array.isArray(item?.ar)
+        ? item.ar.map((artist) => artist?.name || "Unknown").join(", ")
+        : "Unknown Artist",
+      cover: item?.al?.picUrl || "",
+      audio: "",
+      lyric: "",
+      tlyric: "",
+      unavailable: false,
+    };
+  }
+
+  function isPlaceholderTrack(track) {
+    if (!track?.id) return false;
+    const title = String(track.title || "");
+    const artist = String(track.artist || "");
+    return title === `Song ${track.id}` || title === "Unknown" || artist === "Unknown Artist" || artist === "Unknown";
+  }
+
+  async function hydrateTrack(track) {
+    if (!track?.id || !isPlaceholderTrack(track)) return track;
+    try {
+      const fresh = await loadTrack(track.id);
+      if (fresh && fresh.id) {
+        const keepTitle = track.title && track.title !== `Song ${track.id}` && track.title !== 'Unknown';
+        const keepArtist = track.artist && track.artist !== 'Unknown Artist' && track.artist !== 'Unknown';
+        const keepCover = Boolean(track.cover);
+        return {
+          ...track,
+          ...fresh,
+          title: keepTitle ? track.title : fresh.title,
+          artist: keepArtist ? track.artist : fresh.artist,
+          cover: keepCover ? track.cover : fresh.cover,
+          unavailable: !fresh.audio,
+        };
+      }
+    } catch (error) {
+      console.warn("[music] hydrate track failed", track?.id, error);
+    }
+    return track;
+  }
+
+  function dedupeIds(ids) {
+    return Array.from(new Set((ids || []).map((id) => String(id)).filter(Boolean)));
+  }
+
+  function renderPlaylistList() {
+    if (!playlistListEl) return;
+    const playlists = Array.isArray(userData?.playlists) ? userData.playlists : [];
+    if (!playlists.length) {
+      playlistListEl.innerHTML = `<li class="music-empty">${isEn ? "No playlist data yet" : "暂无歌单数据"}</li>`;
+      return;
+    }
+
+    playlistListEl.innerHTML = playlists
+      .map(
+        (pl, idx) => `
+          <li class="music-playlist-card ${String(pl.id) === String(currentPlaylistId) ? "active" : ""}" data-playlist-id="${pl.id}">
+            <div class="music-playlist-index">${String(idx + 1).padStart(2, "0")}</div>
+            <div class="min-w-0 flex-1">
+              <p class="music-playlist-name truncate">${pl.name || (isEn ? "Playlist" : "歌单")}</p>
+              <p class="music-playlist-meta">${pl.songCount || 0} ${isEn ? "songs" : "首歌"}</p>
+            </div>
+          </li>
+        `,
+      )
+      .join("");
+
+    playlistListEl.querySelectorAll(".music-playlist-card").forEach((el) => {
+      el.addEventListener("click", async () => {
+        const playlistId = String(el.getAttribute("data-playlist-id") || "");
+        if (!playlistId) return;
+        currentPlaylistId = playlistId;
+        renderPlaylistList();
+        await loadPlaylistSongs(playlistId);
+      });
+    });
+  }
+
+  async function loadPlaylistSongs(playlistId, options = {}) {
+    const preserveActivePlayback = Boolean(options?.preserveActivePlayback);
+    try {
+      const loadingText = preserveActivePlayback
+        ? (isEn ? "Loading playlist songs (keeping current playback)..." : "正在加载歌单歌曲（保持当前播放不中断）...")
+        : (isEn ? "Loading playlist songs..." : "正在加载歌单歌曲...");
+      showStatus(loadingText);
+      if (playlistSubtitleEl) {
+        playlistSubtitleEl.textContent = preserveActivePlayback
+          ? (isEn ? "Syncing page view (playback preserved)..." : "正在同步页面展示（保持当前播放）...")
+          : (isEn ? "Loading songs..." : "正在加载歌曲...");
+      }
+
+      if (USE_DIRECT_NETEASE_API) {
+        let songsRaw = [];
+        try {
+          // Prefer playlist/detail: it keeps full playlist metadata (e.g. 12 tracks here),
+          // while playlist/track/all may drop tracks that cannot provide playable URLs.
+          const detail = await getNeteaseJson("/playlist/detail", withPreferredRealIP({ id: playlistId }));
+          songsRaw = Array.isArray(detail?.playlist?.tracks) ? detail.playlist.tracks : [];
+        } catch (error) {
+          console.warn("[music] load /playlist/detail failed", error);
+        }
+
+        if (!songsRaw.length) {
+          const data = await getNeteaseJson(
+            "/playlist/track/all",
+            withPreferredRealIP({
+              id: playlistId,
+              limit: 500,
+              offset: 0,
+            }),
+          );
+          songsRaw = Array.isArray(data?.songs) ? data.songs : [];
+        }
+
+        const limit = Number(musicConfig.playlistSongLimit || 120);
+        const version = ++loadVersion;
+
+        tracks = songsRaw
+          .slice(0, limit)
+          .map((item) => mapPlaylistSongToTrack(item))
+          .filter((item) => item.id);
+
+        if (!tracks.length) {
+          renderTrackList();
+          showStatus(isEn ? "Playlist is empty." : "该歌单为空。", "error");
+          return;
+        }
+
+        currentIndex = 0;
+        updateNowPlaying(tracks[currentIndex], { preserveActivePlayback });
+        updatePlayerPosition();
+        renderTrackList();
+        hideStatus();
+        if (playlistSubtitleEl) {
+          playlistSubtitleEl.textContent = isEn ? `Loaded ${tracks.length} songs` : `已加载 ${tracks.length} 首歌`;
+        }
+        // Bootstrap global player with loaded tracks
+        bootstrapGlobalPlayer();
+
+        // Warm only the first track in background to improve first-play experience.
+        loadTrack(tracks[0].id)
+          .then((firstTrack) => {
+            if (version !== loadVersion || !firstTrack) return;
+            const keepTitle = tracks[0].title && tracks[0].title !== `Song ${tracks[0].id}` && tracks[0].title !== 'Unknown';
+            const keepArtist = tracks[0].artist && tracks[0].artist !== 'Unknown Artist' && tracks[0].artist !== 'Unknown';
+            const keepCover = Boolean(tracks[0].cover);
+            
+            tracks[0] = { 
+              ...tracks[0], 
+              ...firstTrack, 
+              title: keepTitle ? tracks[0].title : firstTrack.title,
+              artist: keepArtist ? tracks[0].artist : firstTrack.artist,
+              cover: keepCover ? tracks[0].cover : firstTrack.cover,
+              unavailable: !firstTrack.audio 
+            };
+            if (currentIndex === 0) {
+              updateNowPlaying(tracks[0], { preserveActivePlayback });
+            }
+            renderTrackList();
+          })
+          .catch((error) => {
+            console.warn("[music] warm first track failed", error);
+          });
+
+        return;
+      }
+
+      let result = null;
+      if (userToken) {
+        result = await getJson(
+          `${API_BASE}/api/music/playlist-songs?token=${encodeURIComponent(userToken)}&playlistId=${encodeURIComponent(playlistId)}`,
+        );
+      } else if (musicConfig.preferCookieProfile) {
+        result = await getJson(
+          `${API_BASE}/api/music/cookie-playlist-songs?playlistId=${encodeURIComponent(playlistId)}`,
+        );
+      } else {
+        result = await getJson(
+          `${API_BASE}/api/music/public-playlist-songs?playlistId=${encodeURIComponent(playlistId)}`,
+        );
+      }
+
+      if (result?.code !== 200 || !Array.isArray(result?.data?.songs)) {
+        showStatus(isEn ? "Failed to load playlist songs." : "歌单歌曲加载失败。", "error");
+        return;
+      }
+
+      const ids = dedupeIds(result.data.songs).slice(0, Number(musicConfig.playlistSongLimit || 120));
+      const version = ++loadVersion;
+      tracks = [];
+      const resetLoadingFeedback = () => {
+        hideStatus();
+        if (playlistSubtitleEl) {
+          playlistSubtitleEl.textContent = isEn ? "Click to load" : "点击加载";
+        }
+      };
+
+      // Batch rendering: first show 20 songs, then continue loading rest
+      const BATCH_SIZE = 20;
+      const batchesCount = Math.ceil(ids.length / BATCH_SIZE);
+
+      for (let batchIdx = 0; batchIdx < batchesCount; batchIdx += 1) {
+        if (version !== loadVersion) {
+          resetLoadingFeedback();
+          return;
+        }
+
+        const batchStart = batchIdx * BATCH_SIZE;
+        const batchEnd = Math.min(batchStart + BATCH_SIZE, ids.length);
+        const batchIds = ids.slice(batchStart, batchEnd);
+
+        // Load all tracks in this batch
+        for (const id of batchIds) {
+          if (version !== loadVersion) {
+            resetLoadingFeedback();
+            return;
+          }
+          const track = await loadTrack(id);
+          tracks.push(track);
+        }
+
+        // Render tracks after each batch (show progressive loading)
+        if (tracks.length && !currentIndex) {
+          currentIndex = 0;
+          updateNowPlaying(tracks[currentIndex], { preserveActivePlayback });
+        }
+        if (tracks.length) {
+          updatePlayerPosition();
+          renderTrackList();
+        }
+
+        // After first batch, hide loading message
+        if (batchIdx === 0 && batchesCount > 1) {
+          hideStatus();
+          if (playlistSubtitleEl) {
+            playlistSubtitleEl.textContent = isEn
+              ? `Loading... ${tracks.length} / ${ids.length}`
+              : `加载中... ${tracks.length} / ${ids.length}`;
+          }
+        }
+      }
+
+      if (version !== loadVersion) {
+        resetLoadingFeedback();
+        return;
+      }
+      if (!tracks.length) {
+        renderTrackList();
+        showStatus(isEn ? "Playlist is empty." : "该歌单为空。", "error");
+        return;
+      }
+
+      hideStatus();
+      if (playlistSubtitleEl) {
+        playlistSubtitleEl.textContent = isEn ? `Loaded ${tracks.length} songs` : `已加载 ${tracks.length} 首歌`;
+      }
+      // Bootstrap global player with loaded tracks
+      bootstrapGlobalPlayer();
+    } catch (error) {
+      console.warn("[music] load playlist songs failed", error);
+      showStatus(isEn ? "Failed to load playlist songs." : "歌单歌曲加载失败。", "error");
+    }
+  }
+
+  async function restoreUserDataByToken() {
+    if (USE_DIRECT_NETEASE_API) return false;
+    if (!userToken) return false;
+    try {
+      const result = await getJson(`${API_BASE}/api/music/user?token=${encodeURIComponent(userToken)}`);
+      if (result?.code === 200 && result.data) {
+        userData = result.data;
+        localStorage.setItem("music-user-data", JSON.stringify(result.data));
+        return true;
+      }
+    } catch {
+      // Token may have expired after backend restart.
+    }
+    userToken = null;
+    localStorage.removeItem("music-user-token");
+    localStorage.removeItem("music-user-data");
+    return false;
+  }
+
+  async function loadPublicProfileIfConfigured() {
+    if (!musicConfig.preferPublicProfile || !musicConfig.neteaseUserId) return false;
+
+    if (USE_DIRECT_NETEASE_API) {
+      try {
+        const [detailResp, playlistResp] = await Promise.all([
+          getNeteaseJson("/user/detail", { uid: musicConfig.neteaseUserId }),
+          getNeteaseJson("/user/playlist", { uid: musicConfig.neteaseUserId, limit: 50 }),
+        ]);
+
+        const profile = detailResp?.profile || {};
+        const playlistsRaw = Array.isArray(playlistResp?.playlist) ? playlistResp.playlist : [];
+        userData = {
+          userId: String(profile.userId || musicConfig.neteaseUserId),
+          username: profile.nickname || "NetEase User",
+          avatarUrl: profile.avatarUrl || "",
+          playlists: playlistsRaw.map((pl) => ({
+            id: pl?.id ? String(pl.id) : "",
+            name: pl?.name || (isEn ? "Playlist" : "歌单"),
+            songCount: Number(pl?.trackCount || 0),
+          })),
+          recentSongs: [],
+          recentHistory: [],
+          favoriteSongs: [],
+          source: "public-profile-direct",
+        };
+        return true;
+      } catch (error) {
+        console.warn("[music] load direct public profile failed", error);
+      }
+      return false;
+    }
+
+    try {
+      const result = await getJson(
+        `${API_BASE}/api/music/public-user?uid=${encodeURIComponent(musicConfig.neteaseUserId)}`,
+      );
+      if (result?.code === 200 && result.data) {
+        userData = result.data;
+        return true;
+      }
+    } catch (error) {
+      console.warn("[music] load public profile failed", error);
+    }
+    return false;
+  }
+
+  async function warmupNeteaseApi() {
+    if (!USE_DIRECT_NETEASE_API || !NETEASE_API_BASE) return;
+    try {
+      await getNeteaseJson("/inner/version", {});
+      console.debug("[music] API warmup succeeded");
+    } catch (e) {
+      console.debug("[music] API warmup (non-critical)", e);
+    }
+  }
+
+  async function loadCookieProfileIfConfigured() {
+    if (USE_DIRECT_NETEASE_API) return false;
+    if (!musicConfig.preferCookieProfile) return false;
+    try {
+      const result = await getJson(`${API_BASE}/api/music/cookie-user`);
+      if (result?.code === 200 && result.data) {
+        userData = result.data;
+        return true;
+      }
+    } catch (error) {
+      console.warn("[music] load cookie profile failed", error);
+    }
+    return false;
+  }
+
+  // Podcast helpers (moved to top-level so init can call them)
+  // Load all programs (episodes) from a podcast (radio) and treat each program's mainTrackId as a track
+  async function loadPodcastPrograms(rid, options = {}) {
+    const preserveActivePlayback = Boolean(options?.preserveActivePlayback);
+    try {
+      showStatus(isEn ? 'Loading podcast episodes...' : '正在加载播客剧集...');
+      if (playlistSubtitleEl) playlistSubtitleEl.textContent = isEn ? 'Loading podcast...' : '加载播客...';
+
+      let programs = [];
+      if (USE_DIRECT_NETEASE_API) {
+        const result = await getNeteaseJson("/dj/program", { rid, limit: 500, offset: 0 });
+        programs = Array.isArray(result?.programs) ? result.programs : [];
+      } else {
+        const url = `${API_BASE}/api/music/podcast/programs?rid=${encodeURIComponent(rid)}&limit=500&offset=0`;
+        const result = await getJson(url);
+        programs = Array.isArray(result?.programs)
+          ? result.programs
+          : Array.isArray(result?.data?.programs)
+            ? result.data.programs
+            : Array.isArray(result?.data)
+              ? result.data
+              : [];
+      }
+
+      if (!programs.length) {
+        showStatus(isEn ? 'No episodes found.' : '未找到剧集。', 'error');
+        return;
+      }
+
+      const ids = programs.map((p) => String(p?.mainTrackId || p?.id || '')).filter(Boolean);
+      const version = ++loadVersion;
+
+      tracks = [];
+      if (USE_DIRECT_NETEASE_API) {
+        tracks = programs.map((p) => {
+          const id = String(p?.mainTrackId || p?.id || '');
+          return {
+            id,
+            title: p?.name || p?.title || `Song ${id}`,
+            artist: p?.dj?.nickname || p?.radio?.name || 'Unknown Artist',
+            cover: p?.coverUrl || p?.radio?.picUrl || '',
+            audio: '', lyric: '', tlyric: '', unavailable: false
+          };
+        }).filter((t) => t.id);
+      } else {
+        for (let i = 0; i < ids.length; i++) {
+          if (version !== loadVersion) return;
+          const id = ids[i];
+          const p = programs.find((x) => String(x.mainTrackId) === id || String(x.id) === id) || {};
+          try {
+            const track = await loadTrack(id);
+            const pTitle = p?.name || p?.title;
+            const pArtist = p?.dj?.nickname || p?.radio?.name;
+            const pCover = p?.coverUrl || p?.radio?.picUrl;
+            tracks.push({
+              ...track,
+              title: pTitle || track.title,
+              artist: pArtist || track.artist,
+              cover: pCover || track.cover || ''
+            });
+          } catch (e) {
+            console.warn('[music] load podcast track failed', id, e);
+          }
+        }
+      }
+
+      if (!tracks.length) {
+        renderTrackList();
+        showStatus(isEn ? 'Podcast has no playable episodes.' : '播客暂无可播放剧集。', 'error');
+        return;
+      }
+
+      currentIndex = 0;
+      updateNowPlaying(tracks[currentIndex], { preserveActivePlayback });
+      updatePlayerPosition();
+      renderTrackList();
+      hideStatus();
+      if (playlistSubtitleEl) playlistSubtitleEl.textContent = isEn ? `Loaded ${tracks.length} episodes` : `已加载 ${tracks.length} 集`;
+
+      // Bootstrap global player with loaded tracks
+      bootstrapGlobalPlayer();
+
+      // Warm first track in background
+      loadTrack(tracks[0].id).then((firstTrack) => {
+        if (version !== loadVersion || !firstTrack) return;
+        const keepTitle = tracks[0].title && tracks[0].title !== `Song ${tracks[0].id}` && tracks[0].title !== 'Unknown';
+        const keepArtist = tracks[0].artist && tracks[0].artist !== 'Unknown Artist' && tracks[0].artist !== 'Unknown';
+        const keepCover = Boolean(tracks[0].cover);
+        
+        tracks[0] = { 
+          ...tracks[0], 
+          ...firstTrack, 
+          title: keepTitle ? tracks[0].title : firstTrack.title,
+          artist: keepArtist ? tracks[0].artist : firstTrack.artist,
+          cover: keepCover ? tracks[0].cover : firstTrack.cover,
+          unavailable: !firstTrack.audio 
+        };
+        if (currentIndex === 0) updateNowPlaying(tracks[0], { preserveActivePlayback });
+        renderTrackList();
+      }).catch(() => {});
+    } catch (error) {
+      console.warn('[music] load podcast failed', error);
+      showStatus(isEn ? 'Failed to load podcast.' : '播客加载失败。', 'error');
+    }
+  }
+
+  // Fetch raw programs array for a radio id without modifying global tracks
+  async function fetchPodcastPrograms(rid) {
+    try {
+      if (USE_DIRECT_NETEASE_API) {
+        const result = await getNeteaseJson("/dj/program", { rid, limit: 500, offset: 0 });
+        return Array.isArray(result?.programs) ? result.programs : [];
+      }
+      const url = `${API_BASE}/api/music/podcast/programs?rid=${encodeURIComponent(rid)}&limit=500&offset=0`;
+      const result = await getJson(url);
+      const programs = Array.isArray(result?.programs)
+        ? result.programs
+        : Array.isArray(result?.data?.programs)
+          ? result.data.programs
+          : Array.isArray(result?.data)
+            ? result.data
+            : [];
+      return programs;
+    } catch (e) {
+      console.warn('[music] fetchPodcastPrograms error', e);
+      return [];
+    }
+  }
+
+  function renderPodcastProgramsList(programs, containerEl = podcastTrackListEl) {
+    if (!containerEl) return;
+    if (!programs || !programs.length) {
+      containerEl.innerHTML = `<li class="music-empty">${isEn ? 'No episodes' : '暂无剧集'}</li>`;
+      return;
+    }
+
+    containerEl.innerHTML = programs
+      .map((p, idx) => `
+        <li class="music-track-card" data-episode-id="${p?.id || ''}" data-track-id="${p?.mainTrackId || ''}">
+          <div class="music-track-index">${String(idx + 1).padStart(2, '0')}</div>
+          <div class="min-w-0 flex-1">
+            <p class="music-track-title truncate">${p?.name || p?.title || 'Episode'}</p>
+            <p class="music-track-artist truncate">${p?.dj?.nickname || p?.radio?.name || ''}</p>
+          </div>
+        </li>
+      `)
+      .join('');
+
+    containerEl.querySelectorAll('.music-track-card').forEach((el) => {
+      el.addEventListener('click', async () => {
+        const trackId = String(el.getAttribute('data-track-id') || '');
+        if (!trackId) return;
+        showStatus(isEn ? 'Loading episode...' : '正在加载剧集...');
+        try {
+          const track = await loadTrack(trackId);
+          if (!track?.id) {
+            showStatus(isEn ? 'Failed to load episode.' : '加载剧集失败。', 'error');
+            return;
+          }
+
+          const p = programs.find((x) => String(x.mainTrackId) === trackId || String(x.id) === trackId);
+          const pTitle = p?.name || p?.title;
+          const pArtist = p?.dj?.nickname || p?.radio?.name;
+          const pCover = p?.coverUrl || p?.radio?.picUrl;
+          const finalTrack = {
+            ...track,
+            title: pTitle || track.title,
+            artist: pArtist || track.artist,
+            cover: pCover || track.cover || ''
+          };
+
+          // Replace current playlist with single episode and play directly
+          tracks = [finalTrack];
+          currentIndex = 0;
+          updateNowPlaying(finalTrack, { preserveActivePlayback: false });
+          renderTrackList();
+          updatePlayerPosition();
+          bootstrapGlobalPlayer();
+          hideStatus();
+          try { audio.play().catch(() => {}); } catch (e) {}
+        } catch (e) {
+          console.warn('[music] fetch track for episode failed', e);
+          showStatus(isEn ? 'Failed to load episode.' : '加载剧集失败。', 'error');
+        }
+      });
+    });
+  }
+
+  function togglePlay() {
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  }
+
+  // Delegate play/pause clicks to avoid binding-order issues and duplicate handlers.
+  function delegateMusicClicks(e) {
+    const btn = e.target.closest('#music-main-play, #music-play-toggle');
+    if (!btn) return;
+
+    // On the music page, let the page handle bottom player clicks (page owns playback UI).
+    if (/\/music\/?$/i.test(window.location.pathname)) {
+      e.preventDefault();
+      togglePlay();
+      return;
+    }
+
+    
+
+    // Off music page: if a global controller exists, prefer it (avoid double-toggle).
+    try {
+      const globalController = window[GLOBAL_MUSIC_KEY];
+      if (btn.matches && btn.matches('#music-main-play') && globalController) {
+        return;
+      }
+    } catch (err) {
+      // ignore and continue
+    }
+
+    e.preventDefault();
+    togglePlay();
+  }
+
+  if (!document._musicDelegationBound) {
+    document.addEventListener('click', delegateMusicClicks);
+    document._musicDelegationBound = true;
+  }
+  
+  // Update play button state on play/pause events for reliable UI sync
+  audio?.addEventListener("play", updatePlayButtonState);
+  audio?.addEventListener("pause", updatePlayButtonState);
+  btnPrev?.addEventListener("click", async () => {
+    if (!tracks.length) return;
+    currentIndex = getPrevIndex();
+    const current = await prepareTrackForPlayback(currentIndex);
+    if (!current) return;
+    updateNowPlaying(current);
+    renderTrackList();
+    updatePlayerPosition();
+    updatePlaylistCount();
+    syncToGlobalPlayer();
+    if (current?.audio && audio?.src) {
+      hideStatus();
+      audio?.play().catch(() => {});
+    } else {
+      showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
+    }
+  });
+  btnNext?.addEventListener("click", async () => {
+    if (!tracks.length) return;
+    currentIndex = getNextIndex();
+    const current = await prepareTrackForPlayback(currentIndex);
+    if (!current) return;
+    updateNowPlaying(current);
+    renderTrackList();
+    updatePlayerPosition();
+    updatePlaylistCount();
+    syncToGlobalPlayer();
+    if (current?.audio && audio?.src) {
+      hideStatus();
+      audio?.play().catch(() => {});
+    } else {
+      showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
+    }
+  });
+
+  audio?.addEventListener("timeupdate", syncLyrics);
+  audio?.addEventListener("loadedmetadata", () => {
+    if (totalTimeEl) totalTimeEl.textContent = formatClock(audio?.duration || 0);
+  });
+  audio?.addEventListener("timeupdate", () => {
+    if (!audio) return;
+    if (currentTimeEl) currentTimeEl.textContent = formatClock(audio.currentTime);
+    if (progressEl && Number.isFinite(audio.duration) && audio.duration > 0) {
+      const ratio = audio.currentTime / audio.duration;
+      progressEl.value = String(Math.min(1000, Math.max(0, Math.round(ratio * 1000))));
+      updateProgressVisual();
+    }
+  });
+  audio?.addEventListener("ended", async () => {
+    if (!tracks.length) return;
+    currentIndex = getNextIndex();
+    const current = await prepareTrackForPlayback(currentIndex);
+    if (!current) return;
+    updateNowPlaying(current);
+    renderTrackList();
+    updatePlayerPosition();
+    updatePlaylistCount();
+    syncToGlobalPlayer();
+    if (current?.audio && audio?.src) {
+      hideStatus();
+      audio.play().catch(() => {});
+    }
+  });
+
+  progressEl?.addEventListener("input", () => {
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    const ratio = Number(progressEl.value || 0) / 1000;
+    audio.currentTime = ratio * audio.duration;
+  });
+
+  async function initMusicPage() {
+    queryPageEls();
+
+    // Bind media and control event handlers idempotently (re-run on partial navigation)
+    if (audio && !audio._musicHandlersBound) {
+      audio.addEventListener("play", updatePlayButtonState);
+      audio.addEventListener("pause", updatePlayButtonState);
+      audio.addEventListener("timeupdate", syncLyrics);
+      audio.addEventListener("loadedmetadata", () => {
+        if (totalTimeEl) totalTimeEl.textContent = formatClock(audio?.duration || 0);
+      });
+      audio.addEventListener("timeupdate", () => {
+        if (!audio) return;
+        if (currentTimeEl) currentTimeEl.textContent = formatClock(audio.currentTime);
+        if (progressEl && Number.isFinite(audio.duration) && audio.duration > 0) {
+          const ratio = audio.currentTime / audio.duration;
+          progressEl.value = String(Math.min(1000, Math.max(0, Math.round(ratio * 1000))));
+          updateProgressVisual();
+        }
+      });
+      audio.addEventListener("ended", async () => {
+        if (!tracks.length) return;
+        currentIndex = getNextIndex();
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        updatePlaylistCount();
+        syncToGlobalPlayer();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio.play().catch(() => {});
+        }
+      });
+      // Log loading/playing errors and expose a helpful status message
+      if (!audio._musicErrorBound) {
+        audio.addEventListener('error', (ev) => {
+          try {
+            console.debug('[music] audio.onerror', { src: audio.currentSrc || audio.src, code: audio.error?.code, message: audio.error?.message, event: ev });
+          } catch (e) {
+            console.debug('[music] audio.onerror (dump failed)', e);
+          }
+          showStatus(isEn ? 'Audio failed to load (check network/CORS).' : '音频加载失败（请检查网络或跨域）', 'error');
+        });
+        audio._musicErrorBound = true;
+      }
+      audio._musicHandlersBound = true;
+    }
+
+    if (btnPrev && !btnPrev._musicBound) {
+      btnPrev.addEventListener("click", async () => {
+        if (!tracks.length) return;
+        currentIndex = getPrevIndex();
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        updatePlaylistCount();
+        syncToGlobalPlayer();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio?.play().catch(() => {});
+        } else {
+          showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
+        }
+      });
+      btnPrev._musicBound = true;
+    }
+
+    if (btnNext && !btnNext._musicBound) {
+      btnNext.addEventListener("click", async () => {
+        if (!tracks.length) return;
+        currentIndex = getNextIndex();
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        updatePlaylistCount();
+        syncToGlobalPlayer();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio?.play().catch(() => {});
+        } else {
+          showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
+        }
+      });
+      btnNext._musicBound = true;
+    }
+
+    
+
+    
+
+    if (progressEl && !progressEl._musicBound) {
+      progressEl.addEventListener("input", () => {
+        if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+        const ratio = Number(progressEl.value || 0) / 1000;
+        audio.currentTime = ratio * audio.duration;
+      });
+      progressEl._musicBound = true;
+    }
+
+    // Play mode toggle
+    if (btnPageModeToggle && !btnPageModeToggle._musicBound) {
+      btnPageModeToggle.addEventListener("click", () => {
+        const idx = PLAY_MODES.indexOf(playMode);
+        playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
+        shuffleQueue = [];
+        updateModeButton();
+      });
+      updateModeButton();
+      btnPageModeToggle._musicBound = true;
+    }
+
+    // Playlist modal bindings
+    if (btnPlaylistToggle && !btnPlaylistToggle._musicBound) {
+      btnPlaylistToggle.addEventListener("click", openPlaylistModal);
+      btnPlaylistToggle._musicBound = true;
+    }
+    if (playlistModalBackdrop && !playlistModalBackdrop._musicBound) {
+      playlistModalBackdrop.addEventListener("click", closePlaylistModal);
+      playlistModalBackdrop._musicBound = true;
+    }
+    if (playlistModalClose && !playlistModalClose._musicBound) {
+      playlistModalClose.addEventListener("click", closePlaylistModal);
+      playlistModalClose._musicBound = true;
+    }
+    // Warmup API in parallel (don't await)
+    warmupNeteaseApi();
+
+    // Auto-load multiple fixed podcasts and render as a simple podcast title list
+    (async () => {
+      const version = ++podcastLoadVersion;
+      try {
+        const rids = ['1490741063'];
+        if (!podcastCardsEl) return;
+
+        const results = await Promise.all(
+          rids.map((rid) => fetchPodcastPrograms(rid)),
+        );
+
+        if (version !== podcastLoadVersion) return;
+
+        podcastCardsEl.innerHTML = '';
+        const seenNames = new Set();
+        results.forEach((programs, i) => {
+          if (!Array.isArray(programs) || !programs.length) return;
+          const radioName = (programs[0]?.radio?.name || '').trim();
+          if (!radioName || seenNames.has(radioName)) return;
+          seenNames.add(radioName);
+          const count = programs.length;
+          const rid = rids[i];
+          const li = document.createElement('li');
+          li.className = 'music-playlist-card';
+          li.setAttribute('data-rid', rid);
+          li.innerHTML = `
+            <div class="music-playlist-index">${String(podcastCardsEl.children.length + 1).padStart(2, '0')}</div>
+            <div class="min-w-0 flex-1">
+              <p class="music-playlist-name truncate">${radioName}</p>
+              <p class="music-playlist-meta">${count} ${isEn ? 'episodes' : '集'}</p>
+            </div>
+          `;
+          li.addEventListener('click', async () => {
+            const ridVal = String(li.getAttribute('data-rid') || '');
+            if (!ridVal) return;
+            await loadPodcastPrograms(ridVal, { preserveActivePlayback: false });
+          });
+          podcastCardsEl.appendChild(li);
+        });
+        if (playlistSubtitleEl && podcastCardsEl.children.length) {
+          playlistSubtitleEl.textContent = isEn ? 'Podcasts loaded' : '已加载播客';
+        }
+      } catch (e) {
+        console.debug('[music] auto-load podcasts failed', e);
+      }
+    })();
+
+    const shouldPreservePlaybackOnInit = Boolean(audio && !audio.paused && (audio.currentSrc || audio.src));
+
+    // Try to restore from global player first (for page re-entry)
+    const hasGlobalState = restoreFromGlobalPlayer();
+    if (hasGlobalState) {
+      renderPlaylistList();
+      renderTrackList();
+      if (tracks[currentIndex]) {
+        const hydrated = await prepareTrackForPlayback(currentIndex);
+        if (hydrated) {
+          updateNowPlaying(hydrated, { preserveActivePlayback: shouldPreservePlaybackOnInit });
+        }
+      }
+      updatePlayerPosition();
+      updatePlaylistCount();
+      updateModeButton();
+      showStatus(isEn ? "Restored playlist from global player." : "已从全局播放器恢复歌单。");
+      return;
+    }
+
+    const hasTokenData = await restoreUserDataByToken();
+    if (!hasTokenData) {
+      const hasCookieData = await loadCookieProfileIfConfigured();
+      if (hasCookieData) {
+        showStatus(
+          isEn
+            ? "Loaded private profile songs from backend cookie mode (no QR)."
+            : "已从后端 Cookie 模式加载私有歌曲（免扫码）。",
+        );
+      } else {
+        const hasPublicData = await loadPublicProfileIfConfigured();
+        if (hasPublicData) {
+          showStatus(
+            isEn
+              ? USE_DIRECT_NETEASE_API
+                ? "Loaded public profile songs from direct NetEase API mode."
+                : "Loaded public profile songs without QR login."
+              : USE_DIRECT_NETEASE_API
+                ? "已通过直连网易云 API 模式加载公开资料歌曲。"
+                : "已加载公开资料歌曲（免扫码模式）。",
+          );
+        } else {
+          showStatus(
+            isEn
+              ? USE_DIRECT_NETEASE_API
+                ? "No public profile data. Check PUBLIC_NETEASE_API and neteaseUserId."
+                : "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
+              : USE_DIRECT_NETEASE_API
+                ? "未读取到公开资料数据，请检查 PUBLIC_NETEASE_API 与 neteaseUserId。"
+                : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。",
+          );
+        }
+      }
+    } else {
+      showStatus(isEn ? "Restored login session from local storage." : "已从本地恢复登录会话。", "info");
+    }
+
+    renderPlaylistList();
+
+    if (musicConfig.defaultPlaylistId) {
+      currentPlaylistId = musicConfig.defaultPlaylistId;
+      await loadPlaylistSongs(musicConfig.defaultPlaylistId, { preserveActivePlayback: shouldPreservePlaybackOnInit });
+      return;
+    }
+
+    if (Array.isArray(userData?.playlists) && userData.playlists.length) {
+      currentPlaylistId = String(userData.playlists[0].id || "");
+      if (currentPlaylistId) {
+        await loadPlaylistSongs(currentPlaylistId, { preserveActivePlayback: shouldPreservePlaybackOnInit });
+        return;
+      }
+    }
+
+    renderTrackList();
+  }
+
+  // Initialize now and on Astro partial navigation
+  initMusicPage();
+  document.addEventListener('astro:after-swap', initMusicPage);
+  document.addEventListener('astro:page-load', initMusicPage);
+</script>

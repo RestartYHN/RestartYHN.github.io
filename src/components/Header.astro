@@ -1,0 +1,571 @@
+---
+import "@styles/global.css"
+import { Icon } from "astro-icon/components"
+import { Image } from "astro:assets"
+import { profileConfig, siteConfig } from "@/config"
+import headerAvatar from "@assets/Motues.jpg"
+import ThemeIcon from "./control/ThemeIcon.astro"
+import { baseUrl } from "@utils/url-utils"
+import BackgroundSwitcher from '@components/misc/BackgroundSwitcher.astro';
+
+import { i18n } from "astro:config/client";
+import i18nit from '@i18n/translation'
+import { getRelativeLocaleUrl } from '@utils/url-utils';
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale;
+const t = i18nit(currentLang);
+
+
+// 获取当前页面在不同语言下的路径
+const getLocalePath = (path: string, targetLocale: string) => {
+  const currentPath = Astro.url.pathname;
+  const defaultLocale = i18n?.defaultLocale || "zh-cn";
+  
+  // 移除当前语言前缀
+  let basePath = currentPath;
+  if (currentLang && currentLang !== defaultLocale) {
+    basePath = currentPath.replace(`/${currentLang}`, "") || "/";
+  }
+  
+  // 添加目标语言前缀（默认语言不需要前缀）
+  if (targetLocale && targetLocale !== defaultLocale) {
+    return `/${targetLocale}${basePath}`;
+  }
+  
+  return basePath;
+};
+
+const indexPage = getRelativeLocaleUrl(currentLang, "/");
+const articlesPage = getRelativeLocaleUrl(currentLang, "/articles/");
+const musicPage = getRelativeLocaleUrl(currentLang, "/music/");
+const guestbookPage = getRelativeLocaleUrl(currentLang, "/guestbook/");
+const archivesPage = getRelativeLocaleUrl(currentLang, "/archives/");
+const friendsPage = getRelativeLocaleUrl(currentLang, "/friends/");
+const aboutPage = getRelativeLocaleUrl(currentLang, "/about/");
+const linksPage = getRelativeLocaleUrl(currentLang, "/links/");
+const galleryPage = getRelativeLocaleUrl(currentLang, "/gallery/");
+const isExternalAvatar = profileConfig.avatar?.startsWith("/") || profileConfig.avatar?.startsWith("http");
+const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
+
+let introPage : string;
+
+if (profileConfig.indexPage) {
+    introPage = profileConfig.indexPage;
+} else {
+    introPage = import.meta.env.BASE_URL;
+}
+---
+
+<!-- header -->
+<div id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out md:relative md:translate-y-0">
+<div class="flex items-center pt-1 md:py-4 text-[var(--text-color)] max-w-[var(--header-width)] mx-auto">
+    <!-- logo -->
+    <div class="min-w-0 flex-shrink pr-1 md:pr-2 py-1 md:py-2 z-30 header-logo">
+        <a href={ indexPage } >
+        <span class="flex items-center gap-1.5 md:gap-2 hover:opacity-60 transition-opacity">
+          {isExternalAvatar ? (
+            <img src={externalAvatarSrc ?? ""} alt={profileConfig.name} width="36" height="36" loading="eager" decoding="async" fetchpriority="high" class="w-8 h-8 md:w-9 md:h-9 flex-shrink-0 rounded-full object-cover border border-[var(--button-border-color)]" />
+          ) : (
+            <Image src={headerAvatar} alt={profileConfig.name} width={36} height={36} quality={70} format="webp" loading="eager" class="w-8 h-8 md:w-9 md:h-9 flex-shrink-0 rounded-full object-cover border border-[var(--button-border-color)]" />
+          )}
+          <span class="text-[1.125rem] md:text-[1.40625rem] font-bold truncate">{ siteConfig.title }</span>
+        </span>
+        </a>
+    </div>
+    
+    <!-- tools -->
+    <div class="ml-auto flex flex-shrink-0 gap-0.5 md:gap-1 pl-2 md:pl-2 py-1 md:py-2 justify-end z-30 mr-1">
+        <!-- Search -->
+      <button id="search-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Search">
+        <Icon name="fa6-solid:magnifying-glass" class="w-3.5 h-3.5 md:w-4 md:h-4" />
+        </button>
+        <!-- Background switcher (single global instance rendered in header) -->
+        <BackgroundSwitcher client:load />
+        <!-- Dark Mode -->
+        <ThemeIcon class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] rounded-lg hover:text-current active:scale-90 border border-[var(--button-border-color)] transition-all duration-300"/>
+        <button id="cursor-toggle-btn" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" type="button" title="Toggle custom cursor">
+          <Icon name="fa6-solid:arrow-pointer" class="w-3.5 h-3.5 md:w-4 md:h-4" />
+        </button>
+        <!-- RSS -->
+        <!-- <a href="/rss.xml" target="_blank" class="flex items-center justify-center w-10 h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300">
+            <Icon name="simple-icons:rss" class="w-4 h-4" />
+        </a> -->
+        <!-- Language Switcher -->
+        <div class="relative">
+            <button id="language-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Language Switcher">
+              <Icon name="fa6-solid:globe" class="w-3.5 h-3.5 md:w-4 md:h-4" />
+            </button>
+            
+          <!-- Language Dropdown Menu -->
+          <div id="language-menu" class="hidden absolute right-0 mt-2 w-30 bg-[var(--bg-color)] border border-[var(--button-border-color)] rounded-lg shadow-lg z-50">
+              <div class="py-1 text-right">
+                  <!-- 中文链接 -->
+                  <a href={getLocalePath("/", "zh-cn")} class=`block mx-2 my-1 p-2 text-sm rounded ${
+                    currentLang === "zh-cn" ? "bg-[var(--button-hover-color)]" : "hover:bg-[var(--button-hover-color)]"}`>
+                    {currentLang === "zh-cn" ? <Icon name="fa6-solid:circle" class="w-2 h-2 inline mr-2" /> : ""}
+                    简体中文
+                  </a>
+                  <!-- 英文链接 -->
+                  <a href={getLocalePath("/", "en")} class=`block mx-2 my-1 p-2 text-sm rounded ${
+                    currentLang === "en" ? "bg-[var(--button-hover-color)]" : "hover:bg-[var(--button-hover-color)]"}`>
+                    {currentLang === "en" ? <Icon name="fa6-solid:circle" class="w-2 h-2 inline mr-2" /> : ""}
+                    English
+                  </a>
+              </div>
+          </div>
+        </div>
+        <div class="relative md:hidden">
+          <!-- Mobile Menu -->
+            <button id="mobile-menu-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Mobile Menu">
+              <Icon name="fa6-solid:align-justify" class="w-4 h-4 md:w-5 md:h-5" />
+          </button>
+              
+        </div>
+    </div>
+</div>
+</div>
+
+    <!-- nav_bar -->
+    <div id="nav-bar" class="hidden md:flex absolute left-[46%] top-0 transform -translate-x-1/2 justify-center items-center text-lg font-bold my-5 z-100">
+        <div id="nav-bar-list" class="transition relative z-10 flex max-w-max flex-1 items-center justify-center rounded-outer p-1.5 backdrop-blur rounded-lg bg-[color:var(--bg-color)]/20">
+          <!-- 首页链接 -->
+          <a href={ indexPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname === indexPage 
+                  ? 'bg-[var(--button-hover-color)]' 
+                  : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.home")}
+          </a>
+            <!-- 文章链接 -->
+            <a href={ articlesPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname.startsWith(articlesPage)
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.article")}
+            </a>
+            <!-- 音乐链接 -->
+            <a href={ musicPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname.startsWith(musicPage)
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.music")}
+            </a>
+            <!-- 画廊链接 -->
+            <a href={ galleryPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname.startsWith(galleryPage)
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.gallery")}
+            </a>
+            <!-- 链接页 -->
+            <a href={ linksPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname === linksPage
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.links")}
+            </a>
+            <!-- 友链链接 -->
+            <a href={ friendsPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname === friendsPage
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.friends")}
+            </a>
+            <!-- 归档链接 -->
+            <a href={ archivesPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname === archivesPage
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.archive")}
+            </a>
+            <!-- 关于链接 -->
+            <a href={ aboutPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname === aboutPage
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.about")}
+            </a>
+            <a href={ guestbookPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname.startsWith(guestbookPage)
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.guestbook")}
+            </a>
+        </div>
+    </div>
+<!-- Mobile Menu -->
+<div id="mobile-menu-container" class="fixed inset-0 z-[100] hidden">
+    <div id="mobile-menu-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300 ease-in-out"></div>
+    
+    <div id="mobile-menu-drawer" class="absolute top-0 left-0 bottom-0 w-[70%] max-w-[300px] bg-[var(--bg-color)] shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        
+        <div class="flex items-center justify-between p-5 border-b border-[var(--button-border-color)]">
+            <span class="text-xl font-bold header-logo">{ siteConfig.title }</span>
+            <button id="mobile-menu-close" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-[var(--button-hover-color)] transition-colors">
+                <Icon name="fa6-solid:xmark" class="w-5 h-5" />
+            </button>
+        </div>
+
+        <nav class="flex flex-col py-4 px-2">
+            <a href={ indexPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+                <Icon name="fa6-solid:house" class="w-4 h-4 opacity-70" />
+                <span>{t("header.home")}</span>
+            </a>
+            <a href={ articlesPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+              <Icon name="fa6-solid:newspaper" class="w-4 h-4 opacity-70" />
+              <span>{t("header.article")}</span>
+            </a>
+            <a href={ musicPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+              <Icon name="fa6-solid:music" class="w-4 h-4 opacity-70" />
+              <span>{t("header.music")}</span>
+            </a>
+            <a href={ galleryPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+              <Icon name="fa6-solid:images" class="w-4 h-4 opacity-70" />
+              <span>{t("header.gallery")}</span>
+            </a>
+            <a href={ linksPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+              <Icon name="fa6-solid:compass" class="w-4 h-4 opacity-70" />
+              <span>{t("header.links")}</span>
+            </a>
+            <a href={ friendsPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+                <Icon name="fa6-solid:link" class="w-4 h-4 opacity-70" />
+                <span>{t("header.friends")}</span>
+            </a>
+            <a href={ archivesPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+                <Icon name="fa6-solid:book-bookmark" class="w-4 h-4 opacity-70" />
+                <span>{t("header.archive")}</span>
+            </a>
+            <a href={ aboutPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+                <Icon name="fa6-solid:user" class="w-4 h-4 opacity-70" />
+                <span>{t("header.about")}</span>
+            </a>
+            <a href={ guestbookPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+              <Icon name="fa6-solid:comments" class="w-4 h-4 opacity-70" />
+              <span>{t("header.guestbook")}</span>
+            </a>
+        </nav>
+
+        <div class="mt-auto p-5 border-t border-[var(--button-border-color)] flex gap-1 text-sm opacity-70">
+             <!-- <a href={getLocalePath("/", "zh-cn")} class="text-sm opacity-70 active:text-[var(--link-color)]">简体中文</a>
+             <a href={getLocalePath("/", "en")} class="text-sm opacity-70 active:text-[var(--link-color)]">English</a> -->
+             © {profileConfig.startYear} - {new Date().getFullYear()} <a class="link-line" target="_self" href={introPage}>{profileConfig.name}</a>.
+        </div>
+    </div>
+</div>
+
+<style is:global>
+.header-logo {
+  font-family: "STSong", "SimSun", "Songti SC", serif;
+  letter-spacing: 1px;
+}
+  /* 移动端 (小于 776px) 的毛玻璃和阴影 */
+  @media (max-width: 775px) {
+    #main-header {
+      background-color: rgba(var(--bg-color-rgb), 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(var(--button-border-color-rgb), 0.1);
+    }
+  }
+
+  /* 当手指上滑时，JS 会给这个 ID 添加该类来隐藏 Header */
+  .header-hidden {
+    transform: translateY(-100%);
+  }
+</style>
+
+<script>
+function initMobileNav() {
+  const menuButton = document.getElementById('mobile-menu-button');
+  const closeButton = document.getElementById('mobile-menu-close');
+  const container = document.getElementById('mobile-menu-container');
+  const overlay = document.getElementById('mobile-menu-overlay');
+  const drawer = document.getElementById('mobile-menu-drawer');
+  const navBar = document.getElementById('nav-bar');
+  const navBarList = document.getElementById('nav-bar-list');
+
+  if (!menuButton || !container) return;
+  const mobileMenuContainer = container;
+
+  function openMenu() {
+    mobileMenuContainer.classList.remove('hidden');
+    // 强制重绘以触发动画
+    requestAnimationFrame(() => {
+      overlay?.classList.add('opacity-100');
+      drawer?.classList.remove('-translate-x-full');
+    });
+    document.body.style.overflow = 'hidden'; // 禁止页面滚动
+  }
+
+  function closeMenu() {
+    overlay?.classList.remove('opacity-100');
+    drawer?.classList.add('-translate-x-full');
+    
+    // 等待动画结束后隐藏容器
+    setTimeout(() => {
+      mobileMenuContainer.classList.add('hidden');
+      document.body.style.overflow = '';
+    }, 300);
+  }
+
+  menuButton.addEventListener('click', openMenu);
+  closeButton?.addEventListener('click', closeMenu);
+  overlay?.addEventListener('click', closeMenu);
+
+  // 监听导航点击（点击后自动关闭）
+  drawer?.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', closeMenu);
+  });
+
+  let isFixed = false;
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 0 && !isFixed && navBar && navBarList) {
+      navBar.classList.add('fixed');
+      navBarList.classList.add(
+        'border',
+        'border-[var(--button-border-color)]',
+        'shadow-[0_4px_12px_var(--shadow-color)]'
+      );
+      isFixed = true;
+    } else if (window.scrollY === 0 && isFixed && navBar && navBarList) {
+      navBar.classList.remove('fixed');
+      navBarList.classList.remove(
+        'border',
+        'border-[var(--button-border-color)]',
+        'shadow-[0_4px_12px_var(--shadow-color)]'
+      );
+      isFixed = false;
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initMobileNav);
+document.addEventListener('astro:page-load', initMobileNav);
+</script>
+<script>
+function initLanguageMenu() {
+  const languageButton = document.getElementById('language-button');
+  const languageMenu = document.getElementById('language-menu');
+  const mobileMenu = document.getElementById('mobile-menu'); // 添加移动端菜单引用
+
+  if (!languageButton || languageButton.dataset.bound === 'true') return;
+  languageButton.dataset.bound = 'true';
+
+  languageButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    mobileMenu?.classList.add('hidden');
+    languageMenu?.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+
+    if (
+      languageButton &&
+      languageMenu &&
+      !languageButton.contains(target) &&
+      !languageMenu.contains(target)
+    ) {
+      languageMenu.classList.add('hidden');
+    }
+  });
+}
+document.addEventListener('astro:page-load', initLanguageMenu);
+document.addEventListener('astro:after-swap', initLanguageMenu);
+</script>
+
+<script>
+  function initHeaderScroll() {
+    const header = document.getElementById('main-header');
+    if (!header) return;
+    const headerEl = header;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    function updateHeader() {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY;
+
+      if (window.innerWidth < 776) {
+        if (currentScrollY <= 50) {
+          headerEl.classList.remove('header-hidden');
+        } 
+        else if (scrollDelta > 0 && currentScrollY > 100) {
+          headerEl.classList.add('header-hidden');
+        } 
+        else if (scrollDelta < 0) {
+          headerEl.classList.remove('header-hidden');
+        }
+      } else {
+        headerEl.classList.remove('header-hidden');
+      }
+      lastScrollY = currentScrollY;
+      ticking = false;
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateHeader);
+        ticking = true;
+      }
+    }
+
+    window.removeEventListener('scroll', onScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  document.addEventListener('astro:page-load', initHeaderScroll);
+</script>
+
+<script>
+  function initCursorToggle() {
+    const btn = document.getElementById('cursor-toggle-btn');
+    if (!btn || btn.dataset.bound === 'true') return;
+    btn.dataset.bound = 'true';
+
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+    if (isTouchDevice) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    function updateBtnState() {
+      const enabled = localStorage.getItem('momo-cursor-enabled') !== 'false';
+      btn.classList.toggle('cursor-disabled', !enabled);
+    }
+
+    updateBtnState();
+
+    btn.addEventListener('click', () => {
+      const nowEnabled = localStorage.getItem('momo-cursor-enabled') === 'false';
+      localStorage.setItem('momo-cursor-enabled', String(nowEnabled));
+      updateBtnState();
+      window.dispatchEvent(new CustomEvent('momo-cursor-toggle'));
+    });
+
+    window.addEventListener('momo-cursor-toggle', updateBtnState);
+  }
+
+  document.addEventListener('astro:page-load', initCursorToggle);
+</script>
+
+
+{import.meta.env.PROD && 
+<script is:inline define:vars={{ scriptUrl: baseUrl('/pagefind/pagefind.js') }}>
+async function loadAndSearch() {
+  // 1. 如果已经加载过了，直接返回
+  if (window.pagefind && typeof window.pagefind.search === 'function') {
+    return;
+  }
+  
+  if (window.pagefindLoading) return;
+  window.pagefindLoading = true;
+
+  try {
+    // 动态导入脚本
+    const pagefind = await import(scriptUrl);
+    await pagefind.options({ excerptLength: 20 });
+    window.pagefind = pagefind;
+    
+    // 触发自定义事件，通知搜索组件：Pagefind 准备好了
+    document.dispatchEvent(new CustomEvent('pagefind-ready'));
+  } catch (error) {
+    console.error('Pagefind 加载失败:', error);
+  } finally {
+    window.pagefindLoading = false;
+  }
+}
+
+// 2. 绑定到搜索按钮
+function attachSearchListener() {
+  const btn = document.getElementById('search-button');
+  if (btn) {
+    btn.addEventListener('click', loadAndSearch, { once: true });
+  }
+}
+
+// 兼容 Astro 的 View Transitions
+document.addEventListener('astro:page-load', attachSearchListener);
+</script>
+}
+
+<style is:global>
+@media (max-width: 775px) {
+  #main-header .ml-auto {
+    z-index: 80 !important;
+  }
+
+  #main-header .ml-auto button,
+  #main-header .ml-auto .bg-switcher-btn {
+    position: relative !important;
+    z-index: 90 !important;
+  }
+}
+
+/* 背景切换按钮在头部工具栏内联显示 */
+#main-header .bg-switcher {
+  width: auto !important;
+  height: auto !important;
+}
+#main-header .bg-switcher-controls {
+  position: static !important;
+  display: flex !important;
+  gap: 0 !important;
+}
+#main-header .bg-switcher-btn {
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  transition: all 0.3s !important;
+}
+#main-header .bg-switcher-btn:hover {
+  background: var(--button-hover-color) !important;
+  transform: none !important;
+}
+#main-header .bg-switcher-btn:active {
+  transform: scale(0.9) !important;
+}
+
+@media (max-width: 350px) {
+  #main-header .ml-auto button,
+  #main-header .ml-auto .bg-switcher-btn {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+}
+
+#cursor-toggle-btn {
+  position: relative;
+  overflow: visible;
+}
+@media (pointer: coarse) {
+  #cursor-toggle-btn {
+    display: none !important;
+  }
+}
+#cursor-toggle-btn.cursor-disabled::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.5px;
+  height: 120%;
+  background: var(--text-color);
+  opacity: 0.6;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-radius: 1px;
+  pointer-events: none;
+}
+</style>

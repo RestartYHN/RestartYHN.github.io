@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@import "./variables.css";
+@import "./special.css";
+@import "./scrollbar.css";
+@import "@chinese-fonts/lxgwwenkaibright/dist/LXGWBright-Medium/result.css";
+
+@layer base {
+
+  :root {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
+
+  body {
+    @apply bg-[--bg-color] text-[--text-color];
+    position: relative;
+    z-index: 0;
+    font-family: "Noto Serif SC", "Times New Roman", "STZhongsong", serif;
+    overflow-y: scroll;
+    background-color: var(--bg-color);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    /* overlay uses --bg-overlay (falls back to white semi-transparent for light mode) */
+    /* Allow per-image or per-theme overlay via --bg-overlay; default for light theme is transparent */
+    background-image:
+      linear-gradient(var(--bg-overlay, rgba(255,255,255,0)), var(--bg-overlay, rgba(255,255,255,0))),
+      var(--bg-image, url('/cg/xmm.jpg'));
+    background-size: var(--bg-size, cover);
+    background-position: var(--bg-position, center);
+    background-repeat: no-repeat;
+    transition: background-image 0.3s;
+  }
+
+  [data-theme="dark"] body::before {
+    /* overlay uses --bg-overlay (falls back to dark semi-transparent for dark mode) */
+      /* Dark mode: allow per-image or per-theme overlay via --bg-overlay; default is a dark semi-transparent mask */
+      background-image:
+        linear-gradient(var(--bg-overlay, rgba(10,10,10,0.3)), var(--bg-overlay, rgba(10,10,10,0.3))),
+        var(--bg-image, url('/cg/dark-cg.jpg'));
+    background-position: var(--bg-position, center 20%);
+    background-size: var(--bg-size, cover);
+  }
+  
+
+  ::selection {
+    background-color: var(--selection-bg-color);
+    color: var(--selection-text-color);
+  }
+  
+  ::-moz-selection {
+    background-color: var(--selection-bg-color);
+    color: var(--selection-text-color);
+  }
+
+}
