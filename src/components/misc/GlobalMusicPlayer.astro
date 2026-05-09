@@ -18,7 +18,7 @@ import { musicConfig } from '@/data/music';
       </div>
     </div>
     <span id="music-player-position" class="music-position-info">-</span>
-    <button id="music-mode-toggle" class="music-control music-mode-toggle" type="button" aria-label="Play Mode">↻</button>
+    {/* Play Mode Controls removed - fixed to sequential playback */}
     <button id="music-prev" class="music-control" type="button" aria-label="Prev">◀</button>
     <button
       id="music-main-play"
@@ -47,7 +47,23 @@ import { musicConfig } from '@/data/music';
     </div>
   </div>
 
+  <script>
+    (function () {
+      const modal = document.getElementById('global-music-playlist-modal');
+      const backdrop = document.getElementById('global-music-playlist-modal-backdrop');
+      const closeBtn = document.getElementById('global-music-playlist-modal-close');
 
+      function closeModal() {
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      backdrop?.addEventListener('click', closeModal);
+      closeBtn?.addEventListener('click', closeModal);
+    })();
+  </script>
 </div>
 
 <style is:global>
@@ -154,13 +170,13 @@ import { musicConfig } from '@/data/music';
   @media (max-width: 768px) {
     .music-bottom-player {
       display: grid;
-      grid-template-columns: 44px minmax(0, 1fr) auto auto auto auto auto;
+      grid-template-columns: 54px minmax(0, 1fr) auto auto auto;
       grid-template-areas:
-        "cover info prev play next playlist mode"
-        "progress progress progress progress progress progress progress";
-      gap: 0.4rem 0.5rem;
+        "cover info prev play next"
+        "progress progress progress progress progress";
+      gap: 0.45rem 0.5rem;
       align-items: center;
-      padding: 0.5rem 0.55rem;
+      padding: 0.65rem;
       width: calc(100vw - 0.8rem);
       bottom: 0.4rem;
     }
@@ -186,23 +202,15 @@ import { musicConfig } from '@/data/music';
       grid-area: next;
     }
 
-    #music-playlist-btn {
-      grid-area: playlist;
-    }
-
-    #music-mode-toggle {
-      grid-area: mode;
-    }
-
     .music-progress-wrap {
       grid-area: progress;
       grid-column: 1 / -1;
       margin-top: 0.2rem;
-      margin-left: -0.5rem;
-      margin-right: -0.5rem;
-      padding: 0 0.5rem;
-      grid-template-columns: 30px 1fr 30px;
-      gap: 0.3rem;
+      margin-left: -0.65rem;
+      margin-right: -0.65rem;
+      padding: 0 0.65rem;
+      grid-template-columns: 34px 1fr 34px;
+      gap: 0.35rem;
     }
 
     .music-position-info {
@@ -210,14 +218,18 @@ import { musicConfig } from '@/data/music';
     }
 
     .music-control {
-      width: 30px;
-      height: 30px;
-      font-size: 0.75rem;
+      width: 34px;
+      height: 34px;
     }
 
     .music-control.primary {
-      width: 33px;
-      height: 33px;
+      width: 36px;
+      height: 36px;
+    }
+
+    .music-mode-toggle,
+    .music-playlist-btn {
+      display: none;
     }
   }
 
@@ -397,79 +409,8 @@ import { musicConfig } from '@/data/music';
 
   function makeController() {
     const API_BASE = musicConfig.apiBase;
-    const NETEASE_API_BASE = musicConfig.neteaseApiBase || "";
-    const NETEASE_REAL_IP = musicConfig.neteaseRealIp || "";
-    const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
 
-    // Direct NetEase API helpers
-    function withTimestamp(params = {}) {
-      return { ...params, timestamp: Date.now() };
-    }
-
-    function buildUrl(base, path, params = {}) {
-      const cleanBase = String(base || "").replace(/\/+$/, "");
-      const cleanPath = String(path || "").replace(/^\/+/, "");
-      const url = new URL(`${cleanBase}/${cleanPath}`);
-      Object.entries(params).forEach(([k, v]) => {
-        if (v === undefined || v === null || v === "") return;
-        url.searchParams.set(k, String(v));
-      });
-      return url.toString();
-    }
-
-    async function getNeteaseJson(path, params = {}) {
-      if (!NETEASE_API_BASE) throw new Error("Netease API not configured");
-      const url = buildUrl(NETEASE_API_BASE, path, withTimestamp(params));
-      const res = await fetch(url, { referrerPolicy: 'no-referrer' });
-      if (!res.ok) throw new Error(`Netease HTTP ${res.status}`);
-      return res.json();
-    }
-
-    function withPreferredRealIP(params = {}) {
-      if (!NETEASE_REAL_IP) return params;
-      return { ...params, realIP: NETEASE_REAL_IP };
-    }
-
-    async function getBestDirectAudioUrl(id) {
-      const levels = ["standard", "higher", "exhigh", "lossless"];
-      const realIpCandidates = Array.from(
-        new Set([
-          "",
-          NETEASE_REAL_IP,
-          "211.161.244.70",
-        ].filter(Boolean)),
-      );
-
-      for (const level of levels) {
-        for (const realIP of realIpCandidates) {
-          try {
-            const params = realIP ? { id, level, realIP } : { id, level };
-            const urlResp = await getNeteaseJson("/song/url/v1", params);
-            const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
-            const normalized = normalizeAudioUrl(urlItem?.url || "");
-            if (normalized) return normalized;
-          } catch (e) {}
-        }
-      }
-
-      for (const realIP of realIpCandidates) {
-        try {
-          const params = realIP ? { id, br: 320000, realIP } : { id, br: 320000 };
-          const legacyResp = await getNeteaseJson("/song/url", params);
-          const legacyItem = Array.isArray(legacyResp?.data) ? legacyResp.data[0] : null;
-          const normalized = normalizeAudioUrl(legacyItem?.url || "");
-          if (normalized) return normalized;
-        } catch (e) {}
-      }
-
-      return "";
-    }
-    // End direct NetEase API helpers
-
-    // Play mode cycling: sequential → loop-one → shuffle → sequential
-    const PLAY_MODES = ['sequential', 'loop-one', 'shuffle'];
-    const MODE_LABELS = { 'sequential': '↻', 'loop-one': '↻₁', 'shuffle': '⇄' };
-    const MODE_TITLES = { 'sequential': '顺序播放', 'loop-one': '单曲循环', 'shuffle': '随机播放' };
+    // Play mode removed; always use sequential
 
     const state = {
       tracks: [],
@@ -480,14 +421,7 @@ import { musicConfig } from '@/data/music';
       handlers: {},
       els: null,
       playMode: 'sequential',
-      shuffleQueue: [],
     };
-
-    function notifyState() {
-      try {
-        document.dispatchEvent(new CustomEvent('global-music-synced'));
-      } catch (e) { /* ignore */ }
-    }
 
     // Bootstrap the global player with tracks from music page
     function bootstrap(options) {
@@ -496,10 +430,6 @@ import { musicConfig } from '@/data/music';
         state.tracks = options.tracks;
         state.currentIndex = Number.isFinite(options.currentIndex) ? options.currentIndex : 0;
         state.loaded = true;
-        if (options.playMode && PLAY_MODES.includes(options.playMode)) {
-          state.playMode = options.playMode;
-          state.shuffleQueue = [];
-        }
         // Update UI if bound
         if (state.bound && state.els) {
           const track = state.tracks[state.currentIndex];
@@ -508,9 +438,7 @@ import { musicConfig } from '@/data/music';
           }
           updatePlayerPosition();
           updatePlayButtonState();
-          updateModeButtonUI();
         }
-        notifyState();
       }
     }
 
@@ -523,10 +451,6 @@ import { musicConfig } from '@/data/music';
       if (Number.isFinite(options.currentIndex)) {
         state.currentIndex = options.currentIndex;
       }
-      if (options.playMode && PLAY_MODES.includes(options.playMode)) {
-        state.playMode = options.playMode;
-        state.shuffleQueue = [];
-      }
       if (state.bound && state.els) {
         const track = state.tracks[state.currentIndex];
         if (track) {
@@ -534,9 +458,7 @@ import { musicConfig } from '@/data/music';
         }
         updatePlayerPosition();
         updatePlayButtonState();
-        updateModeButtonUI();
       }
-      notifyState();
     }
 
     // Get current state for external access
@@ -562,7 +484,7 @@ import { musicConfig } from '@/data/music';
         btnPrev: document.getElementById('music-prev'),
         btnNext: document.getElementById('music-next'),
         posEl: document.getElementById('music-player-position'),
-        btnModeToggle: document.getElementById('music-mode-toggle'),
+        btnModeToggle: null,
         btnPlaylist: document.getElementById('music-playlist-btn'),
         playlistModal: document.getElementById('global-music-playlist-modal'),
         playlistModalBackdrop: document.getElementById('global-music-playlist-modal-backdrop'),
@@ -571,27 +493,15 @@ import { musicConfig } from '@/data/music';
       };
     }
 
+    // Play mode helper removed; sequential playback only
+
     function getNextIndex() {
       if (!state.tracks.length) return 0;
-      if (state.playMode === 'loop-one') return state.currentIndex;
-      if (state.playMode === 'shuffle') {
-        if (!state.shuffleQueue.length) {
-          const others = Array.from({ length: state.tracks.length }, (_, i) => i)
-            .filter(i => i !== state.currentIndex);
-          for (let i = others.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [others[i], others[j]] = [others[j], others[i]];
-          }
-          state.shuffleQueue = others;
-        }
-        return state.shuffleQueue.length ? state.shuffleQueue.shift()! : state.currentIndex;
-      }
       return (state.currentIndex + 1) % state.tracks.length;
     }
 
     function getPrevIndex() {
       if (!state.tracks.length) return 0;
-      if (state.playMode === 'loop-one') return state.currentIndex;
       return (state.currentIndex - 1 + state.tracks.length) % state.tracks.length;
     }
 
@@ -665,14 +575,6 @@ import { musicConfig } from '@/data/music';
       progressEl.style.setProperty('--progress-percent', `${Math.max(0, Math.min(100, ratio * 100))}%`);
     }
 
-    function updateModeButtonUI() {
-      const btn = state.els?.btnModeToggle;
-      if (!btn) return;
-      btn.textContent = MODE_LABELS[state.playMode] || '↻';
-      btn.setAttribute('aria-label', MODE_TITLES[state.playMode] || 'Play Mode');
-      btn.classList.toggle('active', state.playMode !== 'sequential');
-    }
-
     function updatePlayerPosition() {
       const { posEl } = state.els || {};
       if (!posEl) return;
@@ -684,42 +586,13 @@ import { musicConfig } from '@/data/music';
     }
 
     async function loadTrack(id) {
-      if (USE_DIRECT_NETEASE_API) {
-        try {
-          const [detailResp, lrcResp] = await Promise.all([
-            getNeteaseJson("/song/detail", withPreferredRealIP({ ids: id })),
-            getNeteaseJson("/lyric", withPreferredRealIP({ id })),
-          ]);
-          const song = Array.isArray(detailResp?.songs) ? detailResp.songs[0] : null;
-          const audioUrl = await getBestDirectAudioUrl(id);
-          return {
-            id: String(id),
-            title: song?.name || `Song ${id}`,
-            artist: Array.isArray(song?.ar)
-              ? song.ar.map((item) => item?.name || "Unknown").join(", ")
-              : "Unknown Artist",
-            cover: song?.al?.picUrl || "",
-            audio: audioUrl,
-            lyric: typeof lrcResp?.lrc?.lyric === "string" ? lrcResp.lrc.lyric : "",
-            tlyric: typeof lrcResp?.tlyric?.lyric === "string" ? lrcResp.tlyric.lyric : "",
-          };
-        } catch (error) {
-          console.warn("[global-music] direct track load failed for", id, error);
-        }
+      const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
+      if (result?.code === 200 && result?.data) {
+        return {
+          ...result.data,
+          audio: normalizeAudioUrl(result.data?.audio || ''),
+        };
       }
-
-      try {
-        const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
-        if (result?.code === 200 && result?.data) {
-          return {
-            ...result.data,
-            audio: normalizeAudioUrl(result.data?.audio || ''),
-          };
-        }
-      } catch (error) {
-        console.warn("[global-music] proxy track load failed for", id, error);
-      }
-
       return null;
     }
 
@@ -729,16 +602,7 @@ import { musicConfig } from '@/data/music';
       if (current.audio) return current;
       const full = await loadTrack(current.id);
       if (!full) return current;
-      const keepTitle = current.title && current.title !== `Song ${current.id}` && current.title !== 'Unknown';
-      const keepArtist = current.artist && current.artist !== 'Unknown Artist' && current.artist !== 'Unknown';
-      const keepCover = Boolean(current.cover);
-      const merged = {
-        ...current,
-        ...full,
-        title: keepTitle ? current.title : full.title,
-        artist: keepArtist ? current.artist : full.artist,
-        cover: keepCover ? current.cover : full.cover,
-      };
+      const merged = { ...current, ...full };
       state.tracks[idx] = merged;
       return merged;
     }
@@ -796,6 +660,8 @@ import { musicConfig } from '@/data/music';
       const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
       if (!audio || !btnMainPlay || !btnPrev || !btnNext || !progressEl) return;
 
+      // play mode UI removed
+
       state.handlers.onMainPlay = async () => {
         if (!state.tracks.length && !audio.src) return;
         if (!audio.src) {
@@ -845,6 +711,20 @@ import { musicConfig } from '@/data/music';
       audio.addEventListener('pause', updatePlayButtonState);
       progressEl.addEventListener('input', state.handlers.onProgressInput);
 
+      // Play mode toggle
+      // play mode toggle removed
+
+      // Playlist modal
+      if (btnPlaylist) {
+        btnPlaylist.addEventListener('click', openPlaylistModal);
+      }
+      if (playlistModalBackdrop) {
+        playlistModalBackdrop.addEventListener('click', closePlaylistModal);
+      }
+      if (playlistModalClose) {
+        playlistModalClose.addEventListener('click', closePlaylistModal);
+      }
+
       state.bound = true;
       updatePlayButtonState();
       if (state.tracks[state.currentIndex]) {
@@ -854,7 +734,7 @@ import { musicConfig } from '@/data/music';
 
     function unbind() {
       if (!state.bound || !state.els) return;
-      const { audio, btnMainPlay, btnPrev, btnNext, progressEl } = state.els;
+      const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
       if (btnMainPlay && state.handlers.onMainPlay) btnMainPlay.removeEventListener('click', state.handlers.onMainPlay);
       if (btnPrev && state.handlers.onPrev) btnPrev.removeEventListener('click', state.handlers.onPrev);
       if (btnNext && state.handlers.onNext) btnNext.removeEventListener('click', state.handlers.onNext);
@@ -862,60 +742,24 @@ import { musicConfig } from '@/data/music';
       if (audio && state.handlers.onEnded) audio.removeEventListener('ended', state.handlers.onEnded);
       if (audio && state.handlers.onLoadedMetadata) audio.removeEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       if (progressEl && state.handlers.onProgressInput) progressEl.removeEventListener('input', state.handlers.onProgressInput);
+      // play mode toggle removed
+      if (btnPlaylist) btnPlaylist.removeEventListener('click', openPlaylistModal);
+      if (playlistModalBackdrop) playlistModalBackdrop.removeEventListener('click', closePlaylistModal);
+      if (playlistModalClose) playlistModalClose.removeEventListener('click', closePlaylistModal);
       state.handlers = {};
       state.bound = false;
     }
 
-    function bindPersistentControls() {
-      if (!state.persistentHandlers) {
-        state.persistentHandlers = {
-          onModeToggle: () => {
-            const idx = PLAY_MODES.indexOf(state.playMode);
-            state.playMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
-            state.shuffleQueue = [];
-            updateModeButtonUI();
-          },
-          onPlaylistOpen: () => openPlaylistModal(),
-          onModalClose: () => closePlaylistModal(),
-        };
-      }
-
-      const ph = state.persistentHandlers;
-      const els = getEls();
-      if (!els) return;
-
-      if (els.btnModeToggle) {
-        els.btnModeToggle.removeEventListener('click', ph.onModeToggle);
-        els.btnModeToggle.addEventListener('click', ph.onModeToggle);
-      }
-      updateModeButtonUI();
-
-      if (els.btnPlaylist) {
-        els.btnPlaylist.removeEventListener('click', ph.onPlaylistOpen);
-        els.btnPlaylist.addEventListener('click', ph.onPlaylistOpen);
-      }
-      if (els.playlistModalBackdrop) {
-        els.playlistModalBackdrop.removeEventListener('click', ph.onModalClose);
-        els.playlistModalBackdrop.addEventListener('click', ph.onModalClose);
-      }
-      if (els.playlistModalClose) {
-        els.playlistModalClose.removeEventListener('click', ph.onModalClose);
-        els.playlistModalClose.addEventListener('click', ph.onModalClose);
-      }
-    }
-
     function onRouteChange() {
-      bindPersistentControls();
       state.els = getEls();
       if (isMusicPagePath()) {
         unbind();
-      } else {
-        bind();
-        if (state.tracks[state.currentIndex]) {
-          updateNowPlaying(state.tracks[state.currentIndex]);
-        }
+        return;
       }
-      if (state.tracks.length) notifyState();
+      bind();
+      if (state.tracks[state.currentIndex]) {
+        updateNowPlaying(state.tracks[state.currentIndex]);
+      }
     }
 
     return {

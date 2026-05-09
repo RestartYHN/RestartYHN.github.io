@@ -32,6 +32,18 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     <p id="music-status" class="music-status hidden"></p>
 
+    {/* Playlist Popup Modal */}
+    <div id="music-playlist-modal" class="music-playlist-modal hidden">
+      <div class="music-playlist-modal-backdrop" id="music-playlist-modal-backdrop"></div>
+      <div class="music-playlist-modal-content">
+        <div class="music-playlist-modal-header">
+          <h3 class="music-playlist-modal-title">{isEn ? 'Current Playlist' : '当前播放列表'}</h3>
+          <button id="music-playlist-modal-close" class="music-playlist-modal-close" type="button">×</button>
+        </div>
+        <ul id="music-playlist-modal-list" class="music-playlist-modal-list"></ul>
+      </div>
+    </div>
+
     <div class="music-main-grid">
       {/* Top Row: Album & Lyrics */}
       <section class="music-hero">
@@ -44,7 +56,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             <button id="music-play-toggle" class="music-play-btn" type="button">
               {isEn ? 'Play / Pause' : '播放 / 暂停'}
             </button>
-
           </div>
         </div>
       </section>
@@ -705,6 +716,198 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     padding: 1rem;
     text-align: center;
   }
+
+  /* Playlist Modal Styles */
+  .music-playlist-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .music-playlist-modal.hidden {
+    display: none;
+  }
+
+  .music-playlist-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .music-playlist-modal-content {
+    position: relative;
+    width: min(480px, calc(100vw - 2rem));
+    max-height: 70vh;
+    background: var(--bg-color);
+    border: 1px solid var(--button-border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .music-playlist-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--button-border-color);
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+  }
+
+  .music-playlist-modal-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+  }
+
+  .music-playlist-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-color-70);
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 160ms ease;
+  }
+
+  .music-playlist-modal-close:hover {
+    background: var(--button-hover-color);
+  }
+
+  .music-playlist-modal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .music-playlist-modal-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+  }
+
+  .music-playlist-modal-item:hover {
+    background: var(--button-hover-color);
+  }
+
+  .music-playlist-modal-item.active {
+    background: color-mix(in oklab, #d5a56a 15%, transparent);
+  }
+
+  .music-playlist-modal-item-index {
+    width: 2rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-color-70);
+    flex-shrink: 0;
+  }
+
+  .music-playlist-modal-item.active .music-playlist-modal-item-index {
+    color: #d5a56a;
+  }
+
+  .music-playlist-modal-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .music-playlist-modal-item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .music-playlist-modal-item-artist {
+    font-size: 0.8rem;
+    color: var(--text-color-70);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Play Mode Control Styles */
+  .music-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .music-mode-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--button-border-color);
+    background: var(--bg-color);
+    color: var(--text-color-70);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 160ms ease;
+  }
+
+  .music-mode-btn:hover {
+    background: var(--button-hover-color);
+    color: var(--text-color);
+  }
+
+  .music-mode-btn.active {
+    background: #d5a56a;
+    border-color: #d5a56a;
+    color: #fff;
+  }
+
+  .music-mode-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .music-playlist-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid var(--button-border-color);
+    background: var(--bg-color);
+    color: var(--text-color-70);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    transition: all 160ms ease;
+  }
+
+  .music-playlist-btn:hover {
+    background: var(--button-hover-color);
+    color: var(--text-color);
+  }
+
+  .music-playlist-btn svg {
+    width: 16px;
+    height: 16px;
+  }
 </style>
 
 <script define:vars={{ musicConfig, isEn }}>
@@ -797,7 +1000,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       globalController.syncState({
         tracks: tracks,
         currentIndex: currentIndex,
-        playMode: playMode,
       });
     }
   }
@@ -809,7 +1011,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       globalController.bootstrap({
         tracks: tracks,
         currentIndex: currentIndex,
-        playMode: playMode,
       });
     }
   }
@@ -819,26 +1020,28 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     const globalController = window[GLOBAL_MUSIC_KEY];
     if (globalController && typeof globalController.getState === 'function') {
       const state = globalController.getState();
-      if (state && Array.isArray(state.tracks) && state.tracks.length) {
+      if (state && Array.isArray(state.tracks) && state.tracks.length && state.loaded) {
         tracks = state.tracks;
         currentIndex = Number.isFinite(state.currentIndex) ? state.currentIndex : 0;
-        playMode = PLAY_MODES.includes(state.playMode) ? state.playMode : 'sequential';
-        shuffleQueue = [];
         return true;
       }
     }
     return false;
   }
 
-  // Play mode cycling: sequential → loop-one → shuffle → sequential
-  const PLAY_MODES = ['sequential', 'loop-one', 'shuffle'];
-  const MODE_LABELS = { 'sequential': '↻', 'loop-one': '↻₁', 'shuffle': '⇄' };
-  const MODE_TITLES = { 'sequential': '顺序播放', 'loop-one': '单曲循环', 'shuffle': '随机播放' };
+  // Play mode removed; always sequential
+  const playMode = 'sequential';
 
-  let playMode = 'sequential';
-  let shuffleQueue = [];
+  // Playlist modal elements
+  const playlistModal = document.getElementById("music-playlist-modal");
+  const playlistModalBackdrop = document.getElementById("music-playlist-modal-backdrop");
+  const playlistModalClose = document.getElementById("music-playlist-modal-close");
+  const playlistModalList = document.getElementById("music-playlist-modal-list");
+  const playlistCountEl = document.getElementById("music-playlist-count");
+  // play mode buttons removed
+  const btnPlaylistToggle = document.getElementById("music-playlist-toggle");
 
-
+  // shuffle removed
 
   function showStatus(text, level = "info") {
     if (!statusEl) return;
@@ -862,27 +1065,80 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   function getNextIndex() {
     if (!tracks.length) return 0;
-    if (playMode === 'loop-one') return currentIndex;
-    if (playMode === 'shuffle') {
-      if (!shuffleQueue.length) {
-        const others = Array.from({ length: tracks.length }, (_, i) => i)
-          .filter(i => i !== currentIndex);
-        for (let i = others.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [others[i], others[j]] = [others[j], others[i]];
-        }
-        shuffleQueue = others;
-      }
-      return shuffleQueue.length ? shuffleQueue.shift() : currentIndex;
-    }
     return (currentIndex + 1) % tracks.length;
   }
 
   function getPrevIndex() {
     if (!tracks.length) return 0;
-    if (playMode === 'loop-one') return currentIndex;
     return (currentIndex - 1 + tracks.length) % tracks.length;
   }
+
+  // Playlist modal functions
+  function openPlaylistModal() {
+    if (!playlistModal) return;
+    playlistModal.classList.remove("hidden");
+    renderPlaylistModalList();
+    document.body.style.overflow = "hidden";
+  }
+
+  function closePlaylistModal() {
+    if (!playlistModal) return;
+    playlistModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  function renderPlaylistModalList() {
+    if (!playlistModalList) return;
+    if (!tracks.length) {
+      playlistModalList.innerHTML = `<li class="music-empty">${isEn ? "No tracks" : "暂无歌曲"}</li>`;
+      return;
+    }
+
+    playlistModalList.innerHTML = tracks
+      .map(
+        (track, idx) => `
+          <li class="music-playlist-modal-item ${idx === currentIndex ? "active" : ""}" data-idx="${idx}">
+            <div class="music-playlist-modal-item-index">${idx === currentIndex ? "▶" : String(idx + 1).padStart(2, "0")}</div>
+            <div class="music-playlist-modal-item-info">
+              <div class="music-playlist-modal-item-title">${track.title || "Unknown"}</div>
+              <div class="music-playlist-modal-item-artist">${track.artist || "Unknown Artist"}</div>
+            </div>
+          </li>
+        `
+      )
+      .join("");
+
+    playlistModalList.querySelectorAll(".music-playlist-modal-item").forEach((el) => {
+      el.addEventListener("click", async () => {
+        const idx = Number(el.getAttribute("data-idx") || "0");
+        currentIndex = idx;
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        renderPlaylistModalList();
+        updatePlayerPosition();
+        if (current?.audio && audio?.src) {
+          hideStatus();
+          audio.play().catch(() => {});
+        }
+      });
+    });
+
+    // Scroll to current track
+    const activeItem = playlistModalList.querySelector(".music-playlist-modal-item.active");
+    if (activeItem) {
+      activeItem.scrollIntoView({ behavior: "auto", block: "nearest" });
+    }
+  }
+
+  function updatePlaylistCount() {
+    if (playlistCountEl) {
+      playlistCountEl.textContent = tracks.length;
+    }
+  }
+
+  // playlist modal bindings will be attached in initMusicPage()
 
   function updatePlayButtonState() {
     if (!btnMainPlay || !audio) return;
@@ -1277,7 +1533,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         updateNowPlaying(current);
         renderTrackList();
         updatePlayerPosition();
-        syncToGlobalPlayer();
         
         if (current?.audio && audio?.src) {
           hideStatus();
@@ -1294,11 +1549,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         }
       });
     });
-
-    const activeTrackCard = trackListEl.querySelector(".music-track-card.active");
-    if (activeTrackCard) {
-      activeTrackCard.scrollIntoView({ behavior: "auto", block: "nearest" });
-    }
   }
 
   async function prepareTrackForPlayback(index) {
@@ -2081,7 +2331,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     updateNowPlaying(current);
     renderTrackList();
     updatePlayerPosition();
-
+    updatePlaylistCount();
     syncToGlobalPlayer();
     if (current?.audio && audio?.src) {
       hideStatus();
@@ -2098,7 +2348,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     updateNowPlaying(current);
     renderTrackList();
     updatePlayerPosition();
-
+    updatePlaylistCount();
     syncToGlobalPlayer();
     if (current?.audio && audio?.src) {
       hideStatus();
@@ -2129,7 +2379,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     updateNowPlaying(current);
     renderTrackList();
     updatePlayerPosition();
-
+    updatePlaylistCount();
     syncToGlobalPlayer();
     if (current?.audio && audio?.src) {
       hideStatus();
@@ -2171,7 +2421,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         updateNowPlaying(current);
         renderTrackList();
         updatePlayerPosition();
-    
+        updatePlaylistCount();
         syncToGlobalPlayer();
         if (current?.audio && audio?.src) {
           hideStatus();
@@ -2202,7 +2452,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         updateNowPlaying(current);
         renderTrackList();
         updatePlayerPosition();
-    
+        updatePlaylistCount();
         syncToGlobalPlayer();
         if (current?.audio && audio?.src) {
           hideStatus();
@@ -2223,7 +2473,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         updateNowPlaying(current);
         renderTrackList();
         updatePlayerPosition();
-    
+        updatePlaylistCount();
         syncToGlobalPlayer();
         if (current?.audio && audio?.src) {
           hideStatus();
@@ -2248,7 +2498,19 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       progressEl._musicBound = true;
     }
 
-
+    // Playlist modal bindings
+    if (btnPlaylistToggle && !btnPlaylistToggle._musicBound) {
+      btnPlaylistToggle.addEventListener("click", openPlaylistModal);
+      btnPlaylistToggle._musicBound = true;
+    }
+    if (playlistModalBackdrop && !playlistModalBackdrop._musicBound) {
+      playlistModalBackdrop.addEventListener("click", closePlaylistModal);
+      playlistModalBackdrop._musicBound = true;
+    }
+    if (playlistModalClose && !playlistModalClose._musicBound) {
+      playlistModalClose.addEventListener("click", closePlaylistModal);
+      playlistModalClose._musicBound = true;
+    }
     // Warmup API in parallel (don't await)
     warmupNeteaseApi();
 
@@ -2301,11 +2563,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     const shouldPreservePlaybackOnInit = Boolean(audio && !audio.paused && (audio.currentSrc || audio.src));
 
-    // Only restore playlist when actually on the music page
-    if (!/\/music\/?$/i.test(window.location.pathname)) return;
-
-    // Try to restore from global player (re-entry via navigation)
-    if (restoreFromGlobalPlayer()) {
+    // Try to restore from global player first (for page re-entry)
+    const hasGlobalState = restoreFromGlobalPlayer();
+    if (hasGlobalState) {
       renderPlaylistList();
       renderTrackList();
       if (tracks[currentIndex]) {
@@ -2315,26 +2575,42 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         }
       }
       updatePlayerPosition();
+      updatePlaylistCount();
       showStatus(isEn ? "Restored playlist from global player." : "已从全局播放器恢复歌单。");
       return;
     }
 
-    // First visit — load data from API
     const hasTokenData = await restoreUserDataByToken();
     if (!hasTokenData) {
       const hasCookieData = await loadCookieProfileIfConfigured();
       if (hasCookieData) {
-        showStatus(isEn ? "Loaded private profile songs from backend cookie mode (no QR)." : "已从后端 Cookie 模式加载私有歌曲（免扫码）。");
+        showStatus(
+          isEn
+            ? "Loaded private profile songs from backend cookie mode (no QR)."
+            : "已从后端 Cookie 模式加载私有歌曲（免扫码）。",
+        );
       } else {
         const hasPublicData = await loadPublicProfileIfConfigured();
         if (hasPublicData) {
-          showStatus(isEn
-            ? USE_DIRECT_NETEASE_API ? "Loaded public profile songs from direct NetEase API mode." : "Loaded public profile songs without QR login."
-            : USE_DIRECT_NETEASE_API ? "已通过直连网易云 API 模式加载公开资料歌曲。" : "已加载公开资料歌曲（免扫码模式）。");
+          showStatus(
+            isEn
+              ? USE_DIRECT_NETEASE_API
+                ? "Loaded public profile songs from direct NetEase API mode."
+                : "Loaded public profile songs without QR login."
+              : USE_DIRECT_NETEASE_API
+                ? "已通过直连网易云 API 模式加载公开资料歌曲。"
+                : "已加载公开资料歌曲（免扫码模式）。",
+          );
         } else {
-          showStatus(isEn
-            ? USE_DIRECT_NETEASE_API ? "No public profile data. Check PUBLIC_NETEASE_API and neteaseUserId." : "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
-            : USE_DIRECT_NETEASE_API ? "未读取到公开资料数据，请检查 PUBLIC_NETEASE_API 与 neteaseUserId。" : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。");
+          showStatus(
+            isEn
+              ? USE_DIRECT_NETEASE_API
+                ? "No public profile data. Check PUBLIC_NETEASE_API and neteaseUserId."
+                : "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
+              : USE_DIRECT_NETEASE_API
+                ? "未读取到公开资料数据，请检查 PUBLIC_NETEASE_API 与 neteaseUserId。"
+                : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。",
+          );
         }
       }
     } else {
