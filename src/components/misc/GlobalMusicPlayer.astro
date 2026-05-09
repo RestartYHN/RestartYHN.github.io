@@ -746,6 +746,10 @@ import { musicConfig } from '@/data/music';
         audio.play().catch(() => {});
       }
       updatePlayButtonState();
+      // Sync playlist modal active indicator if open
+      if (state.els?.playlistModal && !state.els.playlistModal.classList.contains('hidden')) {
+        renderPlaylistModal();
+      }
     }
 
     async function stepPrev() {

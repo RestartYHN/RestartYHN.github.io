@@ -1138,6 +1138,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
+  function syncPlaylistModalIfOpen() {
+    if (playlistModal && !playlistModal.classList.contains('hidden')) {
+      renderPlaylistModalList();
+    }
+  }
+
   // playlist modal bindings will be attached in initMusicPage()
 
   function updatePlayButtonState() {
@@ -2332,6 +2338,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     renderTrackList();
     updatePlayerPosition();
     updatePlaylistCount();
+    syncPlaylistModalIfOpen();
     syncToGlobalPlayer();
     if (current?.audio && audio?.src) {
       hideStatus();
@@ -2349,6 +2356,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     renderTrackList();
     updatePlayerPosition();
     updatePlaylistCount();
+    syncPlaylistModalIfOpen();
     syncToGlobalPlayer();
     if (current?.audio && audio?.src) {
       hideStatus();
@@ -2380,6 +2388,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     renderTrackList();
     updatePlayerPosition();
     updatePlaylistCount();
+    syncPlaylistModalIfOpen();
     syncToGlobalPlayer();
     if (current?.audio && audio?.src) {
       hideStatus();
@@ -2422,6 +2431,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         renderTrackList();
         updatePlayerPosition();
         updatePlaylistCount();
+        syncPlaylistModalIfOpen();
         syncToGlobalPlayer();
         if (current?.audio && audio?.src) {
           hideStatus();
@@ -2453,6 +2463,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         renderTrackList();
         updatePlayerPosition();
         updatePlaylistCount();
+        syncPlaylistModalIfOpen();
         syncToGlobalPlayer();
         if (current?.audio && audio?.src) {
           hideStatus();
@@ -2474,6 +2485,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         renderTrackList();
         updatePlayerPosition();
         updatePlaylistCount();
+        syncPlaylistModalIfOpen();
         syncToGlobalPlayer();
         if (current?.audio && audio?.src) {
           hideStatus();
