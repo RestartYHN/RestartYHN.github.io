@@ -2330,6 +2330,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let _musicHandlers = {};
 
   function musicBind() {
+    musicUnbind();
     if (!audio || !btnPrev || !btnNext || !progressEl) return;
 
     _musicHandlers.onPlay = () => updatePlayButtonState();
