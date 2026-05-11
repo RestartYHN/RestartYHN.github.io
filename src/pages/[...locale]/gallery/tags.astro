@@ -44,9 +44,9 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
         : `${works.length} 幅作品 · ${allTags.length} 个标签`}
     />
 
-    <div class="flex flex-col lg:flex-row lg:gap-12 mb-8">
+    <div class="mb-8">
       <!-- 主内容区：作品网格 -->
-      <section id="gallery-grid" class="flex-1 min-w-0 columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+      <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 lg:mr-0">
         {works.map((item) => {
           const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
           return (
@@ -80,27 +80,25 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
       </section>
 
       <!-- 右侧标签目录 -->
-      <aside id="tag-sidebar" class="hidden lg:block lg:w-44 lg:flex-shrink-0">
-        <div class="lg:sticky lg:top-24 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
-          <h3 class="text-sm font-semibold text-[var(--text-color)] mb-3">
-            {normalizedLang === 'en' ? 'Tags' : '标签'}
-            <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
-          </h3>
-          <ul class="space-y-0.5">
+      <aside id="tag-sidebar" class="hidden lg:block fixed top-24 w-44 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto" style="right:max(1rem,calc((100vw - var(--page-width)) / 2 - 3rem))">
+        <h3 class="text-sm font-semibold text-[var(--text-color)] mb-3">
+          {normalizedLang === 'en' ? 'Tags' : '标签'}
+          <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+        </h3>
+        <ul class="space-y-0.5">
+          <li>
+            <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--link-color)] font-semibold transition-colors">
+              {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
+            </button>
+          </li>
+          {allTags.map(tag => (
             <li>
-              <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--link-color)] font-semibold transition-colors">
-                {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
+              <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:text-[var(--link-color)] transition-colors">
+                {tag} <span class="opacity-40">({tagCounts[tag]})</span>
               </button>
             </li>
-            {allTags.map(tag => (
-              <li>
-                <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:text-[var(--link-color)] transition-colors">
-                  {tag} <span class="opacity-40">({tagCounts[tag]})</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+          ))}
+        </ul>
       </aside>
 
       <!-- 移动端折叠标签 -->
