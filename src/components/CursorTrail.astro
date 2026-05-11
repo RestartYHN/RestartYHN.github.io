@@ -347,8 +347,8 @@
         } catch(e) {}
       }
       
-      // 3. Instead of trying to blend with random foreground colors, fallback to the site's nice theme color
-      return getComputedStyle(document.documentElement).getPropertyValue("--link-color").trim() || "#A6FEF7";
+      // 3. Instead of trying to blend with random foreground colors, fallback to the requested default color
+      return "#A5F6F7";
     }
 
     let isMoving = false;

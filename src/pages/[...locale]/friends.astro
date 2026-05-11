@@ -1,6 +1,6 @@
 ---
 import MainPageLayout from '@layouts/MainPageLayout.astro'
-import { siteConfig, friendLinkConfig } from '@/config'
+import { siteConfig, friendLinkConfig, externalLinkConfig } from '@/config'
 import Cover from '@components/Cover.astro';
 import Markdown from '@components/misc/Markdown.astro';
 
@@ -16,6 +16,7 @@ export async function getStaticPaths() {
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
 const t = i18nit(currentLang);
+const normalizedLang = currentLang === "en" ? "en" : "zh-cn"
 
 const friendsPost = await getSpec(currentLang, 'friends');
 if (!friendsPost) {
@@ -24,12 +25,17 @@ if (!friendsPost) {
 const { Content } = await render(friendsPost);
 
 const pageTitle = t("header.friends") + " - " + siteConfig.title;
+
+const links = externalLinkConfig
+  .filter((item) => item.enabled !== false)
+  .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
     <div class="mx-auto w-full max-w-[var(--page-width)]">
-        <Cover title={t("cover.title.friends")} subTitle={t("cover.subTitle.friends")} />
+        <Cover title={t("cover.title.friends") + " / " + (currentLang === "en" ? "Links" : "链接")} subTitle={t("cover.subTitle.friends")} />
         
+        <h2 class="text-2xl font-bold text-[var(--text-color)] mb-4">{currentLang === "en" ? "Friends" : "友情链接"}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[var(--text-color)] mb-12">
             {
                 friendLinkConfig.map((friend) => (
@@ -53,6 +59,34 @@ const pageTitle = t("header.friends") + " - " + siteConfig.title;
                 ))
             }
         </div>
+
+        <h2 class="text-2xl font-bold text-[var(--text-color)] mb-4">{currentLang === "en" ? "Links" : "外部链接"}</h2>
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-12">
+            {links.map((item) => (
+                <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--link-color)]"
+                >
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-lg font-bold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors">
+                    {item.title[normalizedLang]}
+                    </h3>
+                    <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">
+                    {item.tag}
+                    </span>
+                </div>
+                <p class="text-sm text-[var(--text-color-70)] leading-relaxed">
+                    {item.description[normalizedLang]}
+                </p>
+                <p class="mt-3 text-xs text-[var(--link-color)] break-all opacity-80">
+                    {item.url}
+                </p>
+                </a>
+            ))}
+        </section>
+
         <Markdown class="mb-6 markdown-content onload-animation">
             <Content />
         </Markdown>
