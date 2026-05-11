@@ -32,7 +32,7 @@ const links = externalLinkConfig
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
-    <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <div class="mx-auto w-full max-w-[var(--page-width)]" data-pagefind-body>
         <Cover title={t("cover.title.friends") + " / " + (currentLang === "en" ? "Links" : "链接")} subTitle={t("cover.subTitle.friends")} />
         
         <h2 class="text-2xl font-bold text-[var(--text-color)] mb-4">{currentLang === "en" ? "Friends" : "友情链接"}</h2>

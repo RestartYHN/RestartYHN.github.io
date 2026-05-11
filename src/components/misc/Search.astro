@@ -202,9 +202,6 @@ async function performSearch(query) {
   if (isDev) {
     displayResults(fakeResult);
   } else if (window.pagefind) {
-    await window.pagefind.destroy();
-    await window.pagefind.init();
-    // console.log('Pagefind is initialized');
     try {
       const searchResultsData = await window.pagefind.search(query);
       const results = [];
