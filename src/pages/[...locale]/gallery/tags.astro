@@ -88,8 +88,6 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
 
     <div class="relative mb-8">
       <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-      <!-- 主内容区：作品网格 -->
-      <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
         {works.map((item) => {
           const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
           return (
