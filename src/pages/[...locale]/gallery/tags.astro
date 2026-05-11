@@ -233,7 +233,8 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
           b.classList.toggle('text-[var(--link-color)]', selected.size === 0);
           b.classList.toggle('font-semibold', selected.size === 0);
         } else {
-          b.classList.toggle('text-[var(--link-color)]', selected.has(tag));
+          b.classList.toggle('bg-[var(--link-color)]', selected.has(tag));
+          b.classList.toggle('text-white', selected.has(tag));
           b.classList.toggle('font-semibold', selected.has(tag));
         }
       });
