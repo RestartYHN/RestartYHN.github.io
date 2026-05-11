@@ -29,6 +29,9 @@ const pageTitle = t("header.friends") + " - " + siteConfig.title;
 const links = externalLinkConfig
   .filter((item) => item.enabled !== false)
   .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+
+const perPage = 6
+const totalPages = Math.ceil(links.length / perPage) || 1
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
@@ -64,14 +67,15 @@ const links = externalLinkConfig
         </div>
 
         <h2 class="text-2xl font-bold text-[var(--text-color)] mb-4">{currentLang === "en" ? "Links" : "外部链接"}</h2>
-        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-12">
-            {links.map((item) => (
+        <section id="links-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
+            {links.map((item, i) => (
                 <a
                 id={`link-${item.title[normalizedLang]}`}
                 data-pagefind-body
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-link-page={Math.floor(i / perPage)}
                 class="group rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--link-color)]"
                 >
                 <div data-pagefind-meta={'category:'+t('header.friends')} style="display:none;"></div>
@@ -93,8 +97,68 @@ const links = externalLinkConfig
             ))}
         </section>
 
+        {totalPages > 1 && (
+          <div id="links-pagination" class="flex justify-center items-center gap-1 mb-12">
+            <button id="links-prev" class="px-3 py-1 text-xs rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] disabled:opacity-30 transition-colors">
+              {currentLang === "en" ? "Prev" : "上一页"}
+            </button>
+            {Array(totalPages).fill(0).map((_, i) => (
+              <button data-page={i} class="links-page-btn w-7 h-7 text-xs rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] transition-colors">{i + 1}</button>
+            ))}
+            <button id="links-next" class="px-3 py-1 text-xs rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] disabled:opacity-30 transition-colors">
+              {currentLang === "en" ? "Next" : "下一页"}
+            </button>
+          </div>
+        )}
+
         <Markdown class="mb-6 markdown-content onload-animation">
             <Content />
         </Markdown>
     </div>
 </MainPageLayout>
+
+<script>
+  function initPagination() {
+    const grid = document.getElementById('links-grid');
+    const pagination = document.getElementById('links-pagination');
+    if (!grid || !pagination || pagination.dataset.bound === 'true') return;
+    pagination.dataset.bound = 'true';
+
+    const cards = grid.querySelectorAll('[data-link-page]');
+    const totalPages = {totalPages};
+    let currentPage = 0;
+
+    const prevBtn = document.getElementById('links-prev');
+    const nextBtn = document.getElementById('links-next');
+    const pageBtns = pagination.querySelectorAll('.links-page-btn');
+
+    function showPage(page) {
+      currentPage = page;
+      cards.forEach(c => {
+        c.style.display = parseInt(c.dataset.linkPage) === page ? '' : 'none';
+      });
+      prevBtn.disabled = page === 0;
+      nextBtn.disabled = page === totalPages - 1;
+      pageBtns.forEach(b => {
+        const p = parseInt(b.dataset.page);
+        b.classList.toggle('bg-[var(--link-color)]', p === page);
+        b.classList.toggle('text-white', p === page);
+        b.classList.toggle('border-[var(--link-color)]', p === page);
+        if (p !== page) {
+          b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+        }
+      });
+    }
+
+    prevBtn.addEventListener('click', () => { if (currentPage > 0) showPage(currentPage - 1); });
+    nextBtn.addEventListener('click', () => { if (currentPage < totalPages - 1) showPage(currentPage + 1); });
+    pageBtns.forEach(b => {
+      b.addEventListener('click', () => showPage(parseInt(b.dataset.page)));
+    });
+
+    showPage(0);
+  }
+
+  document.addEventListener('DOMContentLoaded', initPagination);
+  document.addEventListener('astro:page-load', initPagination);
+</script>
