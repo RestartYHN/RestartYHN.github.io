@@ -42,7 +42,7 @@ export async function GET() {
 		const lang = fileName.replace('.md', '')
 		const slugId = post.data.slugId
 		const title = post.data.title
-		const content = post.data.description || ''
+		const content = [post.data.description, post.body].filter(Boolean).join(' ')
 		const tags = [post.data.category || ''].filter(Boolean)
 
 		docs.push({
