@@ -167,9 +167,18 @@ document.addEventListener('astro:after-swap', initSearchModal);
 let fuseByLang = {};
 let fuseLoading = false;
 let fuseError = false;
+const RE_CJK = /[\u4e00-\u9fff\u3400-\u4dbf]/g;
 
 function escHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function cjkBigrams(text) {
+  const cjk = text.match(RE_CJK);
+  if (!cjk || cjk.length < 2) return '';
+  const set = new Set();
+  for (let i = 0; i < cjk.length - 1; i++) set.add(cjk[i] + cjk[i + 1]);
+  return Array.from(set).join(' ');
 }
 
 async function getFuse(lang) {
@@ -189,16 +198,16 @@ async function getFuse(lang) {
 
     const fuse = new Fuse(docs, {
       keys: [
-        { name: 'title', weight: 0.5 },
-        { name: 'content', weight: 0.3 },
-        { name: 'tags', weight: 0.2 },
+        { name: 'bigrams', weight: 0.4 },
+        { name: 'title', weight: 0.3 },
+        { name: 'content', weight: 0.2 },
+        { name: 'tags', weight: 0.1 },
       ],
       threshold: 0.35,
       includeMatches: true,
       includeScore: true,
       minMatchCharLength: 2,
       ignoreLocation: true,
-      useExtendedSearch: true,
     });
     fuseByLang[lang] = fuse;
     return fuse;
@@ -243,7 +252,9 @@ async function performSearch(query) {
 
   if (fuse) {
     try {
-      const results = fuse.search(query).slice(0, 10);
+      const bigramQuery = cjkBigrams(query);
+      const searchQuery = bigramQuery || query;
+      const results = fuse.search(searchQuery).slice(0, 10);
       if (results.length > 0) {
         displayFuseResults(results, query);
         return;

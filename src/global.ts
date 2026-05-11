@@ -10,6 +10,7 @@ export interface SearchDoc {
 	id: string
 	title: string
 	content: string
+	bigrams: string
 	tags: string[]
 	url: string
 	type: string
