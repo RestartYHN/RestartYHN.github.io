@@ -44,9 +44,9 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
         : `${works.length} 幅作品 · ${allTags.length} 个标签`}
     />
 
-    <div class="flex flex-col lg:flex-row gap-6 mb-8">
+    <div class="flex flex-col lg:flex-row lg:gap-12 mb-8">
       <!-- 主内容区：作品网格 -->
-      <section id="gallery-grid" class="flex-1 columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 min-w-0">
+      <section id="gallery-grid" class="flex-1 min-w-0 columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
         {works.map((item) => {
           const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
           return (
@@ -80,8 +80,8 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
       </section>
 
       <!-- 右侧标签目录 -->
-      <aside id="tag-sidebar" class="lg:w-48 lg:flex-shrink-0">
-        <div class="lg:sticky lg:top-24 border-l-2 border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <aside id="tag-sidebar" class="hidden lg:block lg:w-44 lg:flex-shrink-0">
+        <div class="lg:sticky lg:top-24 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
           <h3 class="text-sm font-semibold text-[var(--text-color)] mb-3">
             {normalizedLang === 'en' ? 'Tags' : '标签'}
             <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
@@ -102,6 +102,28 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
           </ul>
         </div>
       </aside>
+
+      <!-- 移动端折叠标签 -->
+      <details class="lg:hidden mb-4 border border-[var(--button-border-color)] rounded-xl p-3">
+        <summary class="text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
+          {normalizedLang === 'en' ? 'Tags' : '标签'}
+          <span id="selected-count-mobile" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+        </summary>
+        <ul id="tag-sidebar-mobile" class="mt-2 space-y-0.5 max-h-60 overflow-y-auto">
+          <li>
+            <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--link-color)] font-semibold transition-colors">
+              {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
+            </button>
+          </li>
+          {allTags.map(tag => (
+            <li>
+              <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:text-[var(--link-color)] transition-colors">
+                {tag} <span class="opacity-40">({tagCounts[tag]})</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </details>
     </div>
   </div>
 
@@ -165,14 +187,15 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
   document.addEventListener('astro:page-load', initGalleryPreview);
 
   function initTagFilter() {
-    const sidebar = document.getElementById('tag-sidebar');
-    if (!sidebar || sidebar.dataset.bound === 'true') return;
-    sidebar.dataset.bound = 'true';
+    const sidebars = [document.getElementById('tag-sidebar'), document.getElementById('tag-sidebar-mobile')].filter(Boolean);
+    if (sidebars.length === 0) return;
+    if (sidebars[0].dataset.bound === 'true') return;
+    sidebars.forEach(s => { s.dataset.bound = 'true'; });
 
-    const btns = sidebar.querySelectorAll('.tag-filter-btn');
+    const allBtns = sidebars.flatMap(s => [...s.querySelectorAll('.tag-filter-btn')]);
     const articles = document.querySelectorAll('#gallery-grid article');
     const selected = new Set();
-    const countEl = document.getElementById('selected-count');
+    const countEls = [document.getElementById('selected-count'), document.getElementById('selected-count-mobile')].filter(Boolean);
 
     function applyFilter() {
       articles.forEach(article => {
@@ -184,12 +207,12 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
         }
       });
 
-      if (countEl) {
-        countEl.classList.toggle('hidden', selected.size === 0);
-        if (selected.size > 0) countEl.textContent = `· ${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
-      }
+      countEls.forEach(el => {
+        el.classList.toggle('hidden', selected.size === 0);
+        if (selected.size > 0) el.textContent = `· ${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
+      });
 
-      btns.forEach(b => {
+      allBtns.forEach(b => {
         const tag = b.dataset.tag;
         if (tag === '') {
           b.classList.toggle('text-[var(--link-color)]', selected.size === 0);
@@ -201,7 +224,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
       });
     }
 
-    btns.forEach(btn => {
+    allBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const tag = btn.dataset.tag;
         if (!tag) { selected.clear(); }
