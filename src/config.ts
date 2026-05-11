@@ -151,15 +151,15 @@ export const externalLinkConfig: ExternalLinkItem[] = [
         },
         {
         title: {
-            "zh-cn": "NeteaseCloudMusicApi",
-            en: "NeteaseCloudMusicApi"
+            "zh-cn": "Vercel",
+            en: "Vercel"
         },
-        url: "https://netease-cloud-music-api-ebon.vercel.app/",
+        url: "https://vercel.com",
         description: {
-            "zh-cn": "Vercel 部署网易云音乐 API",
-            en: "Netease Cloud Music API on Vercel"
+            "zh-cn": "部署网易云音乐API",
+            en: "Deploy Netease Cloud Music API"
         },
-        tag: "API",
+        tag: "部署",
         enabled: true,
         order: 4
     },
