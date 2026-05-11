@@ -46,7 +46,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
 
     <div class="mb-8">
       <!-- 主内容区：作品网格 -->
-      <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 lg:mr-0">
+      <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 lg:mr-52">
         {works.map((item) => {
           const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
           return (
@@ -80,7 +80,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
       </section>
 
       <!-- 右侧标签目录 -->
-      <aside id="tag-sidebar" class="hidden lg:block fixed top-24 w-44 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto" style="right:max(1rem,calc((100vw - var(--page-width)) / 2 - 3rem))">
+      <aside id="tag-sidebar" class="hidden lg:block fixed top-24 w-44 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto" style="right:max(1rem,calc((100vw - var(--page-width)) / 2))">
         <h3 class="text-sm font-semibold text-[var(--text-color)] mb-3">
           {normalizedLang === 'en' ? 'Tags' : '标签'}
           <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
