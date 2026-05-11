@@ -117,16 +117,18 @@ const totalPages = Math.ceil(links.length / perPage) || 1
     </div>
 </MainPageLayout>
 
-<script>
+<script define:vars={{ perPage }}>
   function initPagination() {
     const grid = document.getElementById('links-grid');
-    const pagination = document.getElementById('links-pagination');
-    if (!grid || !pagination || pagination.dataset.bound === 'true') return;
-    pagination.dataset.bound = 'true';
+    if (!grid || grid.dataset.bound === 'true') return;
+    grid.dataset.bound = 'true';
 
     const cards = grid.querySelectorAll('[data-link-page]');
-    const totalPages = {totalPages};
+    const totalPages = Math.ceil(cards.length / perPage);
     let currentPage = 0;
+
+    const pagination = document.getElementById('links-pagination');
+    if (!pagination) return;
 
     const prevBtn = document.getElementById('links-prev');
     const nextBtn = document.getElementById('links-next');
@@ -137,21 +139,20 @@ const totalPages = Math.ceil(links.length / perPage) || 1
       cards.forEach(c => {
         c.style.display = parseInt(c.dataset.linkPage) === page ? '' : 'none';
       });
-      prevBtn.disabled = page === 0;
-      nextBtn.disabled = page === totalPages - 1;
+      if (prevBtn) prevBtn.disabled = page === 0;
+      if (nextBtn) nextBtn.disabled = page >= totalPages - 1;
       pageBtns.forEach(b => {
         const p = parseInt(b.dataset.page);
-        b.classList.toggle('bg-[var(--link-color)]', p === page);
-        b.classList.toggle('text-white', p === page);
-        b.classList.toggle('border-[var(--link-color)]', p === page);
-        if (p !== page) {
+        if (p === page) {
+          b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+        } else {
           b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
         }
       });
     }
 
-    prevBtn.addEventListener('click', () => { if (currentPage > 0) showPage(currentPage - 1); });
-    nextBtn.addEventListener('click', () => { if (currentPage < totalPages - 1) showPage(currentPage + 1); });
+    if (prevBtn) prevBtn.addEventListener('click', () => { if (currentPage > 0) showPage(currentPage - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { if (currentPage < totalPages - 1) showPage(currentPage + 1); });
     pageBtns.forEach(b => {
       b.addEventListener('click', () => showPage(parseInt(b.dataset.page)));
     });
