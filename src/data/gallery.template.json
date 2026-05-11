@@ -46,7 +46,7 @@
       ],
       "enabled": true,
       "order": 1,
-      "link": "https://example.com/work/work-001"
+      "link": ""
     },
     {
       "id": "work-002",
@@ -63,7 +63,7 @@
       ],
       "enabled": true,
       "order": 2,
-      "link": "https://example.com/work/work-002"
+      "link": ""
     },
     {
       "id": "work-003",
@@ -80,7 +80,7 @@
       ],
       "enabled": true,
       "order": 3,
-      "link": "https://example.com/work/work-003"
+      "link": ""
     },
     {
       "id": "work-004",
@@ -97,7 +97,7 @@
       ],
       "enabled": true,
       "order": 4,
-      "link": "https://example.com/work/work-004"
+      "link": ""
     }
   ]
 }
