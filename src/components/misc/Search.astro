@@ -206,7 +206,7 @@ async function getFuse(lang) {
       threshold: 0.35,
       includeMatches: true,
       includeScore: true,
-      minMatchCharLength: 2,
+      minMatchCharLength: 1,
       ignoreLocation: true,
     });
     fuseByLang[lang] = fuse;
