@@ -28,6 +28,7 @@
     "overlayscrollbars": "^2.12.0",
     "pagefind": "^1.4.0",
     "photoswipe": "^5.4.4",
+    "pinyin-pro": "^3.28.1",
     "reading-time": "^1.5.0",
     "rehype-components": "^0.3.0",
     "rehype-katex": "^7.0.1",

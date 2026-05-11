@@ -7,6 +7,7 @@ import i18nit from '@i18n/translation'
 import { i18n } from "astro:config/client"
 import { getRelativeLocaleUrl } from '@utils/url-utils'
 import { loadGalleryData } from '@utils/gallery-utils'
+import { pinyin } from 'pinyin-pro'
 
 export async function getStaticPaths() {
   return i18n?.locales.map(locale => ({
@@ -18,12 +19,32 @@ const currentLang = Astro.currentLocale || i18n!.defaultLocale
 const normalizedLang = currentLang === 'en' ? 'en' : 'zh-cn'
 const t = i18nit(currentLang)
 
+function getInitial(tag: string): string {
+  const ch = tag.charAt(0)
+  if (/[a-zA-Z]/.test(ch)) return ch.toUpperCase()
+  if (/[0-9]/.test(ch)) return '#'
+  if (/[\u4e00-\u9fff]/.test(ch)) {
+    const py = pinyin(ch, { pattern: 'first', toneType: 'none' })
+    return py ? py.toUpperCase() : '#'
+  }
+  return '#'
+}
+
 const { authors, works } = loadGalleryData()
 const tagCounts: Record<string, number> = {}
 works.forEach(w => {
   (w.tags || []).forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1 })
 })
-const allTags = [...new Set(works.flatMap(w => w.tags || []))].sort((a, b) => a.localeCompare(b, 'zh-CN'))
+const allTags = [...new Set(works.flatMap(w => w.tags || []))].sort((a, b) => a.localeCompare(b, 'zh-u-co-pinyin'))
+
+const tagGroups: { key: string, tags: string[] }[] = []
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+for (const letter of letters) {
+  const group = allTags.filter(t => getInitial(t) === letter)
+  if (group.length > 0) tagGroups.push({ key: letter, tags: group })
+}
+const hashGroup = allTags.filter(t => getInitial(t) === '#')
+if (hashGroup.length > 0) tagGroups.push({ key: '#', tags: hashGroup })
 
 const cacheVersion = Date.now().toString()
 const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.gallery')} - ${siteConfig.title}`
@@ -43,6 +64,24 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
         ? `${works.length} works · ${allTags.length} tags`
         : `${works.length} 幅作品 · ${allTags.length} 个标签`}
     />
+
+    <!-- 横向滚动标签栏 -->
+    <div id="tag-filter" class="sticky top-16 md:top-0 z-40 -mx-2 px-2 py-3 mb-6 border-b border-[var(--button-border-color)] bg-[var(--bg-color)]/90 backdrop-blur">
+      <div class="flex items-center gap-1 overflow-x-auto scrollbar-none">
+        <button data-tag="" class="tag-filter-btn flex-shrink-0 px-3 py-1.5 text-xs rounded-full border border-[var(--link-color)] bg-[var(--link-color)] text-white font-semibold transition-colors whitespace-nowrap">
+          {normalizedLang === 'en' ? 'All' : '全部'}
+        </button>
+        {tagGroups.map(group => (<>
+          <span class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-[10px] font-bold text-[var(--link-color)] bg-[var(--button-hover-color)] rounded-full mx-0.5">{group.key}</span>
+          {group.tags.map(tag => (
+            <button data-tag={tag} class="tag-filter-btn flex-shrink-0 px-3 py-1.5 text-xs rounded-full border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] transition-colors whitespace-nowrap">
+              {tag}
+            </button>
+          ))}
+        </>))}
+        <span id="selected-count" class="flex-shrink-0 text-xs text-[var(--text-color-70)] ml-2 hidden whitespace-nowrap"></span>
+      </div>
+    </div>
 
     <div class="mb-8">
       <!-- 主内容区：作品网格 -->
@@ -79,49 +118,6 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
         })}
       </section>
 
-      <!-- 右侧标签目录 -->
-      <aside id="tag-sidebar" class="hidden lg:block fixed top-24 w-44 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto" style="right:1rem">
-        <h3 class="text-sm font-semibold text-[var(--text-color)] mb-3">
-          {normalizedLang === 'en' ? 'Tags' : '标签'}
-          <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
-        </h3>
-        <ul class="space-y-0.5">
-          <li>
-            <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--link-color)] font-semibold transition-colors">
-              {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
-            </button>
-          </li>
-          {allTags.map(tag => (
-            <li>
-              <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:text-[var(--link-color)] transition-colors">
-                {tag} <span class="opacity-40">({tagCounts[tag]})</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      <!-- 移动端折叠标签 -->
-      <details class="lg:hidden mb-4 border border-[var(--button-border-color)] rounded-xl p-3">
-        <summary class="text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
-          {normalizedLang === 'en' ? 'Tags' : '标签'}
-          <span id="selected-count-mobile" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
-        </summary>
-        <ul id="tag-sidebar-mobile" class="mt-2 space-y-0.5 max-h-60 overflow-y-auto">
-          <li>
-            <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--link-color)] font-semibold transition-colors">
-              {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
-            </button>
-          </li>
-          {allTags.map(tag => (
-            <li>
-              <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:text-[var(--link-color)] transition-colors">
-                {tag} <span class="opacity-40">({tagCounts[tag]})</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </details>
     </div>
   </div>
 
@@ -185,15 +181,14 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
   document.addEventListener('astro:page-load', initGalleryPreview);
 
   function initTagFilter() {
-    const sidebars = [document.getElementById('tag-sidebar'), document.getElementById('tag-sidebar-mobile')].filter(Boolean);
-    if (sidebars.length === 0) return;
-    if (sidebars[0].dataset.bound === 'true') return;
-    sidebars.forEach(s => { s.dataset.bound = 'true'; });
+    const filterBar = document.getElementById('tag-filter');
+    if (!filterBar || filterBar.dataset.bound === 'true') return;
+    filterBar.dataset.bound = 'true';
 
-    const allBtns = sidebars.flatMap(s => [...s.querySelectorAll('.tag-filter-btn')]);
+    const allBtns = filterBar.querySelectorAll('.tag-filter-btn');
     const articles = document.querySelectorAll('#gallery-grid article');
     const selected = new Set();
-    const countEls = [document.getElementById('selected-count'), document.getElementById('selected-count-mobile')].filter(Boolean);
+    const countEl = document.getElementById('selected-count');
 
     function applyFilter() {
       articles.forEach(article => {
@@ -205,19 +200,21 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
         }
       });
 
-      countEls.forEach(el => {
-        el.classList.toggle('hidden', selected.size === 0);
-        if (selected.size > 0) el.textContent = `· ${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
-      });
+      if (countEl) {
+        countEl.classList.toggle('hidden', selected.size === 0);
+        if (selected.size > 0) countEl.textContent = `· ${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
+      }
 
       allBtns.forEach(b => {
         const tag = b.dataset.tag;
         if (tag === '') {
-          b.classList.toggle('text-[var(--link-color)]', selected.size === 0);
-          b.classList.toggle('font-semibold', selected.size === 0);
+          b.classList.toggle('bg-[var(--link-color)]', selected.size === 0);
+          b.classList.toggle('text-white', selected.size === 0);
+          b.classList.toggle('border-[var(--link-color)]', selected.size === 0);
         } else {
-          b.classList.toggle('text-[var(--link-color)]', selected.has(tag));
-          b.classList.toggle('font-semibold', selected.has(tag));
+          b.classList.toggle('bg-[var(--link-color)]', selected.has(tag));
+          b.classList.toggle('text-white', selected.has(tag));
+          b.classList.toggle('border-[var(--link-color)]', selected.has(tag));
         }
       });
     }
@@ -236,3 +233,8 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
   document.addEventListener('DOMContentLoaded', initTagFilter);
   document.addEventListener('astro:page-load', initTagFilter);
 </script>
+
+<style is:global>
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
