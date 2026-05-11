@@ -25,17 +25,6 @@ works.forEach(w => {
 })
 const allTags = [...new Set(works.flatMap(w => w.tags || []))].sort((a, b) => a.localeCompare(b, 'zh-CN'))
 
-const tagGroups: { key: string, tags: string[] }[] = []
-for (const tag of allTags) {
-  const key = tag.charAt(0)
-  const last = tagGroups[tagGroups.length - 1]
-  if (last && last.key === key) {
-    last.tags.push(tag)
-  } else {
-    tagGroups.push({ key, tags: [tag] })
-  }
-}
-
 const cacheVersion = Date.now().toString()
 const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.gallery')} - ${siteConfig.title}`
 ---
@@ -91,30 +80,26 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
       </section>
 
       <!-- 右侧标签目录 -->
-      <aside id="tag-sidebar" class="lg:w-56 lg:flex-shrink-0">
-        <div class="lg:sticky lg:top-24 border border-[var(--button-border-color)] rounded-xl p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold text-[var(--text-color)]">
-              {normalizedLang === 'en' ? 'Tags' : '标签目录'}
-            </h3>
-            <span id="selected-count" class="text-xs text-[var(--text-color-70)] hidden"></span>
-          </div>
-          <button id="tag-filter" data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-xs rounded mb-2 bg-[var(--link-color)] text-white transition-colors">
-            {normalizedLang === 'en' ? 'All Works' : '全部作品'}
-          </button>
-          {tagGroups.map(group => (
-            <div class="mb-2">
-              <span class="block text-xs font-bold text-[var(--text-color)] px-2 py-0.5 mb-0.5 sticky top-0 bg-[var(--bg-color)]">
-                {group.key}
-              </span>
-              {group.tags.map(tag => (
-                <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
-                  <span>{tag}</span>
-                  <span class="float-right text-[var(--text-color-70)] opacity-50">{tagCounts[tag]}</span>
+      <aside id="tag-sidebar" class="lg:w-48 lg:flex-shrink-0">
+        <div class="lg:sticky lg:top-24 border-l-2 border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
+          <h3 class="text-sm font-semibold text-[var(--text-color)] mb-3">
+            {normalizedLang === 'en' ? 'Tags' : '标签'}
+            <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+          </h3>
+          <ul class="space-y-0.5">
+            <li>
+              <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--link-color)] font-semibold transition-colors">
+                {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
+              </button>
+            </li>
+            {allTags.map(tag => (
+              <li>
+                <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:text-[var(--link-color)] transition-colors">
+                  {tag} <span class="opacity-40">({tagCounts[tag]})</span>
                 </button>
-              ))}
-            </div>
-          ))}
+              </li>
+            ))}
+          </ul>
         </div>
       </aside>
     </div>
@@ -201,17 +186,14 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
 
       if (countEl) {
         countEl.classList.toggle('hidden', selected.size === 0);
-        if (selected.size > 0) {
-          countEl.textContent = `${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
-        }
+        if (selected.size > 0) countEl.textContent = `· ${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
       }
 
       btns.forEach(b => {
         const tag = b.dataset.tag;
-        const isAll = tag === '';
-        if (isAll) {
-          b.classList.toggle('bg-[var(--link-color)]', selected.size === 0);
-          b.classList.toggle('text-white', selected.size === 0);
+        if (tag === '') {
+          b.classList.toggle('text-[var(--link-color)]', selected.size === 0);
+          b.classList.toggle('font-semibold', selected.size === 0);
         } else {
           b.classList.toggle('text-[var(--link-color)]', selected.has(tag));
           b.classList.toggle('font-semibold', selected.has(tag));
