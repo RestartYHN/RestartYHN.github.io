@@ -85,7 +85,7 @@ export async function GET() {
 				content,
 				bigrams: buildBigrams(title, content, tags.join(' ')),
 				tags,
-				url: `${pathPrefix(lang)}/gallery/${work.author}/`,
+				url: work.link || `${pathPrefix(lang)}/gallery/${work.author}/`,
 				type: 'gallery-work',
 				lang,
 			})
@@ -102,7 +102,7 @@ export async function GET() {
 				content,
 				bigrams: buildBigrams(title, content),
 				tags: [],
-				url: `${pathPrefix(lang)}/friends/`,
+				url: friend.url,
 				type: 'friend',
 				lang,
 			})
@@ -121,7 +121,7 @@ export async function GET() {
 				content,
 				bigrams: buildBigrams(title, content, tags.join(' ')),
 				tags,
-				url: `${pathPrefix(lang)}/friends/`,
+				url: link.url,
 				type: 'external-link',
 				lang,
 			})

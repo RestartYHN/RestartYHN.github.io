@@ -32,7 +32,7 @@ const links = externalLinkConfig
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
-    <div class="mx-auto w-full max-w-[var(--page-width)]" data-pagefind-body>
+    <div class="mx-auto w-full max-w-[var(--page-width)]">
         <Cover title={t("cover.title.friends") + " / " + (currentLang === "en" ? "Links" : "链接")} subTitle={t("cover.subTitle.friends")} />
         
         <h2 class="text-2xl font-bold text-[var(--text-color)] mb-4">{currentLang === "en" ? "Friends" : "友情链接"}</h2>
@@ -40,11 +40,14 @@ const links = externalLinkConfig
             {
                 friendLinkConfig.map((friend) => (
                     <a 
+                        id={`friend-${friend.name}`}
+                        data-pagefind-body
                         href={friend.url} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         class="flex items-center p-4 border border-[var(--button-border-color)] rounded-lg shadow-sm active:bg-[var(--button-hover-color)] hover:bg-[var(--button-hover-color)] transition-all duration-300 hover:scale-105"
                     >
+                        <div data-pagefind-meta={'category:'+t('header.friends')} style="display:none;"></div>
                         <img 
                             src={friend.avatar} 
                             alt={friend.name} 
@@ -52,7 +55,7 @@ const links = externalLinkConfig
                             onerror="this.src='https://www.gravatar.com/avatar/?d=mp'"
                         />
                         <div class="flex-1 min-w-0">
-                            <h2 class="font-bold text-lg truncate">{friend.name}</h2>
+                            <h2 data-pagefind-weight="10.0" class="font-bold text-lg truncate">{friend.name}</h2>
                             <p class="text-[var(--text-color-70)] text-sm">{friend.description}</p>
                         </div>
                     </a>
@@ -64,17 +67,20 @@ const links = externalLinkConfig
         <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-12">
             {links.map((item) => (
                 <a
+                id={`link-${item.title[normalizedLang]}`}
+                data-pagefind-body
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 class="group rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--link-color)]"
                 >
+                <div data-pagefind-meta={'category:'+t('header.friends')} style="display:none;"></div>
                 <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg font-bold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors">
+                    <h3 data-pagefind-weight="10.0" class="text-lg font-bold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors">
                     {item.title[normalizedLang]}
                     </h3>
                     <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">
-                    {item.tag}
+                        {item.tag}
                     </span>
                 </div>
                 <p class="text-sm text-[var(--text-color-70)] leading-relaxed">

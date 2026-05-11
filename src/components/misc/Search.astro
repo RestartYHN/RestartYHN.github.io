@@ -335,16 +335,19 @@ function displayFuseResults(fuseResults, query) {
     const excerpt = item.content || item.title;
     const hExcerpt = clipExcerpt(highlight(excerpt, query), 200);
     const badge = typeLabel[item.type] || '';
+    const isExternal = item.type === 'friend' || item.type === 'external-link';
+    const linkAttrs = isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
 
     return `
       <div class="p-4 border-b border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">
-        <a href="${item.url}" class="block no-underline">
+        <a href="${item.url}" ${linkAttrs} class="block no-underline">
           <div class="flex items-center gap-2 mb-1">
             <h3 class="text-lg font-semibold text-[var(--text-color)]">${escHtml(item.title)}</h3>
             ${badge ? `<span class="text-xs px-1.5 py-0.5 rounded bg-[var(--button-hover-color)] text-[var(--text-color-70)] flex-shrink-0">${badge}</span>` : ''}
           </div>
           ${item.tags.length ? `<div class="flex gap-1 mb-1">${item.tags.map(t => `<span class="text-xs text-[var(--link-color)]">#${escHtml(t)}</span>`).join(' ')}</div>` : ''}
           <p class="text-[var(--text-color-70)] text-sm">${hExcerpt}</p>
+          ${isExternal ? `<p class="mt-1 text-xs text-[var(--text-color-70)] opacity-60 truncate">${escHtml(item.url)}</p>` : ''}
         </a>
       </div>
     `;
