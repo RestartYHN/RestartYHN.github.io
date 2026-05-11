@@ -19,9 +19,24 @@ const normalizedLang = currentLang === 'en' ? 'en' : 'zh-cn'
 const t = i18nit(currentLang)
 
 const { authors, works } = loadGalleryData()
-const allTags = [...new Set(works.flatMap(w => w.tags || []))].sort()
-const cacheVersion = Date.now().toString()
+const tagCounts: Record<string, number> = {}
+works.forEach(w => {
+  (w.tags || []).forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1 })
+})
+const allTags = [...new Set(works.flatMap(w => w.tags || []))].sort((a, b) => a.localeCompare(b, 'zh-CN'))
 
+const tagGroups: { key: string, tags: string[] }[] = []
+for (const tag of allTags) {
+  const key = tag.charAt(0)
+  const last = tagGroups[tagGroups.length - 1]
+  if (last && last.key === key) {
+    last.tags.push(tag)
+  } else {
+    tagGroups.push({ key, tags: [tag] })
+  }
+}
+
+const cacheVersion = Date.now().toString()
 const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.gallery')} - ${siteConfig.title}`
 ---
 
@@ -36,53 +51,73 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
     <Cover
       title={normalizedLang === 'en' ? 'Gallery Tags' : '画廊标签'}
       subTitle={normalizedLang === 'en'
-        ? `${works.length} works across ${allTags.length} tags`
+        ? `${works.length} works · ${allTags.length} tags`
         : `${works.length} 幅作品 · ${allTags.length} 个标签`}
     />
 
-    <div id="tag-filter" class="flex flex-wrap gap-2 mb-8">
-      <button data-tag="" class="tag-filter-btn px-3 py-1 text-xs rounded-md border border-[var(--link-color)] bg-[var(--link-color)] text-white transition-colors">
-        {normalizedLang === 'en' ? 'All' : '全部'}
-      </button>
-      {allTags.map((tag) => (
-        <button data-tag={tag} class="tag-filter-btn px-3 py-1 text-xs rounded-md border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] transition-colors">
-          {tag}
-        </button>
-      ))}
-    </div>
+    <div class="flex flex-col lg:flex-row gap-6 mb-8">
+      <!-- 主内容区：作品网格 -->
+      <section id="gallery-grid" class="flex-1 columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 min-w-0">
+        {works.map((item) => {
+          const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
+          return (
+            <article data-tags={JSON.stringify(item.tags || [])} class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70">
+              <img
+                src={item.image}
+                alt={item.title[normalizedLang]}
+                data-gallery-src={item.image}
+                class="w-full h-auto object-contain cursor-zoom-in"
+                loading="lazy" decoding="async"
+              />
+              <div class="p-3">
+                <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title[normalizedLang]}</h3>
+                {authorInfo && (
+                  <a href={`${getRelativeLocaleUrl(currentLang, `/gallery/${authorInfo.slug}/`)}?v=${cacheVersion}`} class="inline-block mt-1 text-sm text-[var(--link-color)] hover:underline">
+                    {authorInfo.name[normalizedLang]}
+                  </a>
+                )}
+                <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
+                {item.tags?.length > 0 && (
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    {item.tags.map((tag) => (
+                      <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </article>
+          )
+        })}
+      </section>
 
-    <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mb-8">
-      {works.map((item) => {
-        const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
-        return (
-          <article data-tags={JSON.stringify(item.tags || [])} class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70">
-            <img
-              src={item.image}
-              alt={item.title[normalizedLang]}
-              data-gallery-src={item.image}
-              class="w-full h-auto object-contain cursor-zoom-in"
-              loading="lazy" decoding="async"
-            />
-            <div class="p-3">
-              <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title[normalizedLang]}</h3>
-              {authorInfo && (
-                <a href={`${getRelativeLocaleUrl(currentLang, `/gallery/${authorInfo.slug}/`)}?v=${cacheVersion}`} class="inline-block mt-1 text-sm text-[var(--link-color)] hover:underline">
-                  {authorInfo.name[normalizedLang]}
-                </a>
-              )}
-              <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
-              {item.tags?.length > 0 && (
-                <div class="mt-2 flex flex-wrap gap-1">
-                  {item.tags.map((tag) => (
-                    <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">{tag}</span>
-                  ))}
-                </div>
-              )}
+      <!-- 右侧标签目录 -->
+      <aside id="tag-sidebar" class="lg:w-56 lg:flex-shrink-0">
+        <div class="lg:sticky lg:top-24 border border-[var(--button-border-color)] rounded-xl p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-[var(--text-color)]">
+              {normalizedLang === 'en' ? 'Tags' : '标签目录'}
+            </h3>
+            <span id="selected-count" class="text-xs text-[var(--text-color-70)] hidden"></span>
+          </div>
+          <button id="tag-filter" data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-xs rounded mb-2 bg-[var(--link-color)] text-white transition-colors">
+            {normalizedLang === 'en' ? 'All Works' : '全部作品'}
+          </button>
+          {tagGroups.map(group => (
+            <div class="mb-2">
+              <span class="block text-xs font-bold text-[var(--text-color)] px-2 py-0.5 mb-0.5 sticky top-0 bg-[var(--bg-color)]">
+                {group.key}
+              </span>
+              {group.tags.map(tag => (
+                <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
+                  <span>{tag}</span>
+                  <span class="float-right text-[var(--text-color-70)] opacity-50">{tagCounts[tag]}</span>
+                </button>
+              ))}
             </div>
-          </article>
-        )
-      })}
-    </section>
+          ))}
+        </div>
+      </aside>
+    </div>
   </div>
 
   <FabMenu showBackBottom={true} />
@@ -101,13 +136,11 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
 
   function openGalleryPreview(imageSrc) {
     closeOverlay();
-
     overlayEl = document.createElement('div');
     overlayEl.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden';
     overlayEl.onclick = (e) => { if (e.target === overlayEl) closeOverlay(); };
 
     let scale = 1, posX = 0, posY = 0, dragging = false, lastX = 0, lastY = 0;
-
     const img = document.createElement('img');
     img.src = imageSrc;
     img.className = 'max-w-full max-h-full object-contain rounded shadow-2xl select-none';
@@ -115,64 +148,31 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
     img.style.cursor = 'grab';
     img.draggable = false;
 
-    const updateTransform = () => {
-      img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-    };
+    const updateTransform = () => { img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`; };
 
     overlayEl.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const delta = e.deltaY > 0 ? -0.1 : 0.1;
-      scale = Math.max(0.5, Math.min(5, scale + delta));
+      e.preventDefault(); e.stopPropagation();
+      scale = Math.max(0.5, Math.min(5, scale + (e.deltaY > 0 ? -0.1 : 0.1)));
       updateTransform();
     }, { passive: false });
 
-    img.addEventListener('mousedown', (e) => {
-      dragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      img.style.cursor = 'grabbing';
-      img.style.transition = 'none';
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!dragging) return;
-      posX += e.clientX - lastX;
-      posY += e.clientY - lastY;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      updateTransform();
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (dragging) {
-        dragging = false;
-        img.style.cursor = 'grab';
-        img.style.transition = 'transform 0.1s ease-out';
-      }
-    });
-
-    img.addEventListener('dblclick', () => {
-      scale = 1; posX = 0; posY = 0;
-      updateTransform();
-    });
+    img.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; img.style.cursor = 'grabbing'; img.style.transition = 'none'; });
+    window.addEventListener('mousemove', (e) => { if (!dragging) return; posX += e.clientX - lastX; posY += e.clientY - lastY; lastX = e.clientX; lastY = e.clientY; updateTransform(); });
+    window.addEventListener('mouseup', () => { if (dragging) { dragging = false; img.style.cursor = 'grab'; img.style.transition = 'transform 0.1s ease-out'; } });
+    img.addEventListener('dblclick', () => { scale = 1; posX = 0; posY = 0; updateTransform(); });
 
     overlayEl.appendChild(img);
     document.body.appendChild(overlayEl);
-
     const onKey = (e) => { if (e.key === 'Escape') closeOverlay(); };
     document.addEventListener('keydown', onKey);
     overlayEl.__keyHandler = onKey;
   }
 
   function initGalleryPreview() {
-    const imgs = document.querySelectorAll('img[data-gallery-src]');
-    imgs.forEach(img => {
+    document.querySelectorAll('img[data-gallery-src]').forEach(img => {
       if (img.dataset.bound === 'true') return;
       img.dataset.bound = 'true';
-      img.addEventListener('click', () => {
-        openGalleryPreview(img.dataset.gallerySrc);
-      });
+      img.addEventListener('click', () => openGalleryPreview(img.dataset.gallerySrc));
     });
   }
 
@@ -180,39 +180,16 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
   document.addEventListener('astro:page-load', initGalleryPreview);
 
   function initTagFilter() {
-    const filterBar = document.getElementById('tag-filter');
-    if (!filterBar || filterBar.dataset.bound === 'true') return;
-    filterBar.dataset.bound = 'true';
+    const sidebar = document.getElementById('tag-sidebar');
+    if (!sidebar || sidebar.dataset.bound === 'true') return;
+    sidebar.dataset.bound = 'true';
 
-    const btns = filterBar.querySelectorAll('.tag-filter-btn');
+    const btns = sidebar.querySelectorAll('.tag-filter-btn');
     const articles = document.querySelectorAll('#gallery-grid article');
     const selected = new Set();
+    const countEl = document.getElementById('selected-count');
 
     function applyFilter() {
-      const allBtn = filterBar.querySelector('[data-tag=""]');
-      const tagBtns = filterBar.querySelectorAll('[data-tag]:not([data-tag=""])');
-
-      if (selected.size === 0) {
-        allBtn.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-        allBtn.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        tagBtns.forEach(b => {
-          b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-          b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        });
-      } else {
-        allBtn.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-        allBtn.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        tagBtns.forEach(b => {
-          if (selected.has(b.dataset.tag)) {
-            b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-            b.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-          } else {
-            b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-            b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-          }
-        });
-      }
-
       articles.forEach(article => {
         if (selected.size === 0) {
           article.style.display = '';
@@ -221,20 +198,33 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
           article.style.display = [...selected].every(t => tags.includes(t)) ? '' : 'none';
         }
       });
+
+      if (countEl) {
+        countEl.classList.toggle('hidden', selected.size === 0);
+        if (selected.size > 0) {
+          countEl.textContent = `${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
+        }
+      }
+
+      btns.forEach(b => {
+        const tag = b.dataset.tag;
+        const isAll = tag === '';
+        if (isAll) {
+          b.classList.toggle('bg-[var(--link-color)]', selected.size === 0);
+          b.classList.toggle('text-white', selected.size === 0);
+        } else {
+          b.classList.toggle('text-[var(--link-color)]', selected.has(tag));
+          b.classList.toggle('font-semibold', selected.has(tag));
+        }
+      });
     }
 
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         const tag = btn.dataset.tag;
-        if (!tag) {
-          selected.clear();
-        } else {
-          if (selected.has(tag)) {
-            selected.delete(tag);
-          } else {
-            selected.add(tag);
-          }
-        }
+        if (!tag) { selected.clear(); }
+        else if (selected.has(tag)) { selected.delete(tag); }
+        else { selected.add(tag); }
         applyFilter();
       });
     });
