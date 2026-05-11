@@ -335,7 +335,7 @@ function displayFuseResults(fuseResults, query) {
     const excerpt = item.content || item.title;
     const hExcerpt = clipExcerpt(highlight(excerpt, query), 200);
     const badge = typeLabel[item.type] || '';
-    const isExternal = item.type === 'friend' || item.type === 'external-link';
+    const isExternal = item.type === 'friend' || item.type === 'external-link' || item.type === 'gallery-work';
     const linkAttrs = isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
 
     return `
