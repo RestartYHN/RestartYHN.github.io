@@ -164,13 +164,58 @@ document.addEventListener('astro:after-swap', initSearchModal);
 </style>
 
 <script define:vars={{ fakeResult, translations }}>
+let fuseByLang = {};
+let fuseLoading = false;
+let fuseError = false;
+
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function getFuse(lang) {
+  if (fuseByLang[lang]) return fuseByLang[lang];
+  if (fuseLoading) return null;
+  if (fuseError) return null;
+  fuseLoading = true;
+
+  try {
+    const [{ default: Fuse }, resp] = await Promise.all([
+      import('fuse.js'),
+      fetch('/search-index.json'),
+    ]);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const allDocs = /** @type {import('@/global').SearchDoc[]} */ (await resp.json());
+    const docs = allDocs.filter(d => d.lang === lang);
+
+    const fuse = new Fuse(docs, {
+      keys: [
+        { name: 'title', weight: 0.5 },
+        { name: 'content', weight: 0.3 },
+        { name: 'tags', weight: 0.2 },
+      ],
+      threshold: 0.35,
+      includeMatches: true,
+      includeScore: true,
+      minMatchCharLength: 2,
+      ignoreLocation: true,
+      useExtendedSearch: true,
+    });
+    fuseByLang[lang] = fuse;
+    return fuse;
+  } catch (e) {
+    console.error('Fuse init failed:', e);
+    fuseError = true;
+    return null;
+  } finally {
+    fuseLoading = false;
+  }
+}
+
 function initPagefindSearch() {
   const searchInput = document.getElementById('search-input');
   const searchResults = document.getElementById('search-results');
-  
-  if (!searchInput || !searchResults) return;
 
-  // 避免重复绑定
+  if (!searchInput || !searchResults) return;
   if (searchInput.dataset.bound === 'true') return;
   searchInput.dataset.bound = 'true';
 
@@ -179,17 +224,12 @@ function initPagefindSearch() {
   searchInput.addEventListener('input', (e) => {
     const query = e.target.value.trim();
     clearTimeout(searchTimeout);
-    
-    searchTimeout = setTimeout(() => {
+
+    searchTimeout = setTimeout(async () => {
       if (query.length > 0) {
-        performSearch(query);
+        await performSearch(query);
       } else {
-        // 清空或显示默认状态
-        searchResults.innerHTML = `
-          <div class="p-8 text-center text-[var(--text-color-70)]">
-            <p>${translations.placeholder}</p>
-          </div>
-        `;
+        searchResults.innerHTML = `<div class="p-8 text-center text-[var(--text-color-70)]"><p>${translations.placeholder}</p></div>`;
       }
     }, 300);
   });
@@ -197,73 +237,108 @@ function initPagefindSearch() {
 
 async function performSearch(query) {
   const searchResults = document.getElementById('search-results');
-  const isDev = !window.pagefind;
 
-  if (isDev) {
-    displayResults(fakeResult);
-  } else if (window.pagefind) {
+  const lang = document.documentElement.lang || 'zh-cn';
+  const fuse = await getFuse(lang);
+
+  if (fuse) {
     try {
-      const searchResultsData = await window.pagefind.search(query);
-      const results = [];
-
-      for (const result of searchResultsData.results) {
-        const data = await result.data();
-        results.push({
-          url: data.url,
-          meta: { title: data.meta.title },
-          excerpt: data.excerpt
-        });
+      const results = fuse.search(query).slice(0, 10);
+      if (results.length > 0) {
+        displayFuseResults(results, query);
+        return;
       }
+      searchResults.innerHTML = `<div class="p-8 text-center text-[var(--text-color-70)]"><p>${translations.noresult}</p></div>`;
+      return;
+    } catch (e) {
+      console.error('Fuse search error:', e);
+    }
+  }
 
-      displayResults(results);
+  if (window.pagefind) {
+    try {
+      const pfResults = await window.pagefind.search(query);
+      const results = [];
+      for (const r of pfResults.results) {
+        const data = await r.data();
+        results.push({ url: data.url, meta: { title: data.meta.title }, excerpt: data.excerpt });
+      }
+      displayPagefindResults(results);
     } catch (error) {
       console.error('Search failed:', error);
-      searchResults.innerHTML = `
-        <div class="p-8 text-center text-red-500">
-          <p>${translations.error}</p>
-        </div>
-      `;
+      searchResults.innerHTML = `<div class="p-8 text-center text-red-500"><p>${translations.error}</p></div>`;
     }
-  } else {
-    console.log('Pagefind is not available');
-    searchResults.innerHTML = `
-      <div class="p-8 text-center text-[var(--text-color-70)]">
-        <p>搜索功能暂时不可用</p>
-      </div>
-    `;
-  }
-}
-
-function displayResults(results) {
-  const searchResults = document.getElementById('search-results');
-  if (!searchResults) return;
-
-  if (results.length === 0) {
-    searchResults.innerHTML = `
-      <div class="p-8 text-center text-[var(--text-color-70)]">
-        <p>${translations.noresult}</p>
-      </div>
-    `;
     return;
   }
 
-  searchResults.innerHTML = results.map(result => `
+  displayPagefindResults(fakeResult);
+}
+
+function displayPagefindResults(results) {
+  const searchResults = document.getElementById('search-results');
+  if (!searchResults) return;
+  if (results.length === 0) {
+    searchResults.innerHTML = `<div class="p-8 text-center text-[var(--text-color-70)]"><p>${translations.noresult}</p></div>`;
+    return;
+  }
+  searchResults.innerHTML = results.map(r => `
     <div class="p-4 border-b border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">
-      <a href="${result.url}" class="block no-underline">
-        <h3 class="text-lg font-semibold text-[var(--text-color)] mb-2">${result.meta.title}</h3>
-        <p class="text-[var(--text-color-70)] text-sm">${result.excerpt}</p>
+      <a href="${r.url}" class="block no-underline">
+        <h3 class="text-lg font-semibold text-[var(--text-color)] mb-2">${escHtml(r.meta.title)}</h3>
+        <p class="text-[var(--text-color-70)] text-sm">${r.excerpt}</p>
       </a>
     </div>
   `).join('');
 }
 
-// ========== 初始化逻辑 ==========
-document.addEventListener('pagefindready', () => {
-  // console.log('Pagefind is ready');
-});
-document.addEventListener('pagefindloaderror', () => {
-  console.log('Pagefind failed to load, search functionality will not work');
-});
+function displayFuseResults(fuseResults, query) {
+  const searchResults = document.getElementById('search-results');
+  if (!searchResults) return;
+
+  const typeLabel = {
+    post: '',
+    'gallery-author': '画师',
+    'gallery-work': '作品',
+    friend: '友链',
+    'external-link': '链接',
+  };
+
+  function highlight(text, q) {
+    if (!q || !text) return escHtml(text);
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return escHtml(text).replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>');
+  }
+
+  function clipExcerpt(html, maxLen) {
+    if (html.length <= maxLen) return html;
+    const idx = html.indexOf('<mark>');
+    if (idx === -1) return html.substring(0, maxLen) + '...';
+    const start = Math.max(0, idx - 40);
+    let out = (start > 0 ? '...' : '') + html.substring(start, start + maxLen);
+    if (html.length > start + maxLen) out += '...';
+    return out;
+  }
+
+  searchResults.innerHTML = fuseResults.map(r => {
+    const { item } = r;
+    const excerpt = item.content || item.title;
+    const hExcerpt = clipExcerpt(highlight(excerpt, query), 200);
+    const badge = typeLabel[item.type] || '';
+
+    return `
+      <div class="p-4 border-b border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">
+        <a href="${item.url}" class="block no-underline">
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="text-lg font-semibold text-[var(--text-color)]">${escHtml(item.title)}</h3>
+            ${badge ? `<span class="text-xs px-1.5 py-0.5 rounded bg-[var(--button-hover-color)] text-[var(--text-color-70)] flex-shrink-0">${badge}</span>` : ''}
+          </div>
+          ${item.tags.length ? `<div class="flex gap-1 mb-1">${item.tags.map(t => `<span class="text-xs text-[var(--link-color)]">#${escHtml(t)}</span>`).join(' ')}</div>` : ''}
+          <p class="text-[var(--text-color-70)] text-sm">${hExcerpt}</p>
+        </a>
+      </div>
+    `;
+  }).join('');
+}
 
 document.addEventListener('DOMContentLoaded', initPagefindSearch);
 document.addEventListener('astro:after-swap', initPagefindSearch);
