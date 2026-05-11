@@ -146,8 +146,50 @@ export const externalLinkConfig: ExternalLinkItem[] = [
             en: "Ice!"
         },
         tag: "电吉他/electric guitar",
+            enabled: true,
+            order: 3
+        },
+        {
+        title: {
+            "zh-cn": "NeteaseCloudMusicApi",
+            en: "NeteaseCloudMusicApi"
+        },
+        url: "https://netease-cloud-music-api-ebon.vercel.app/",
+        description: {
+            "zh-cn": "Vercel 部署网易云音乐 API",
+            en: "Netease Cloud Music API on Vercel"
+        },
+        tag: "API",
         enabled: true,
-        order: 3
+        order: 4
+    },
+    {
+        title: {
+            "zh-cn": "萌娘百科",
+            en: "Moegirl Wiki"
+        },
+        url: "https://zh.moegirl.org.cn/",
+        description: {
+            "zh-cn": "万物皆可萌的百科全书",
+            en: "The encyclopedia of everything moe"
+        },
+        tag: "Wiki",
+        enabled: true,
+        order: 5
+    },
+    {
+        title: {
+            "zh-cn": "NUAA Guide",
+            en: "NUAA Guide"
+        },
+        url: "https://www.nuaaguide.online/",
+        description: {
+            "zh-cn": "南京航空航天大学校园指南",
+            en: "Campus guide for NUAA"
+        },
+        tag: "指南",
+        enabled: true,
+        order: 6
     },
 ]
 
