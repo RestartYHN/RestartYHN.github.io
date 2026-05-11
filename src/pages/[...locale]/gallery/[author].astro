@@ -278,26 +278,57 @@ const cacheVersion = Date.now().toString()
 
     const btns = filterBar.querySelectorAll('.tag-filter-btn');
     const articles = document.querySelectorAll('#gallery-grid article');
+    const selected = new Set();
+
+    function applyFilter() {
+      const activeTag = btns[0].dataset.tag === '' ? null : [...selected];
+      const allBtn = filterBar.querySelector('[data-tag=""]');
+      const tagBtns = filterBar.querySelectorAll('[data-tag]:not([data-tag=""])');
+
+      if (selected.size === 0) {
+        allBtn.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+        allBtn.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+        tagBtns.forEach(b => {
+          b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+          b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+        });
+      } else {
+        allBtn.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+        allBtn.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+        tagBtns.forEach(b => {
+          if (selected.has(b.dataset.tag)) {
+            b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+            b.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+          } else {
+            b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+            b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+          }
+        });
+      }
+
+      articles.forEach(article => {
+        if (selected.size === 0) {
+          article.style.display = '';
+        } else {
+          const tags = JSON.parse(article.dataset.tags || '[]');
+          article.style.display = [...selected].every(t => tags.includes(t)) ? '' : 'none';
+        }
+      });
+    }
 
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         const tag = btn.dataset.tag;
-
-        btns.forEach(b => {
-          b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-          b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        });
-        btn.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        btn.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-
-        articles.forEach(article => {
-          if (!tag) {
-            article.style.display = '';
+        if (!tag) {
+          selected.clear();
+        } else {
+          if (selected.has(tag)) {
+            selected.delete(tag);
           } else {
-            const tags = JSON.parse(article.dataset.tags || '[]');
-            article.style.display = tags.includes(tag) ? '' : 'none';
+            selected.add(tag);
           }
-        });
+        }
+        applyFilter();
       });
     });
   }
