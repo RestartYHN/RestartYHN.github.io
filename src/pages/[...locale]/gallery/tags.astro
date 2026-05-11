@@ -72,13 +72,13 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
         <span id="selected-count-mobile" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
       </summary>
       <div class="mt-2 max-h-60 overflow-y-auto">
-        <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-xs rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
+        <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
           {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
         </button>
         {tagGroups.map(group => (<>
-          <span class="block text-[11px] font-bold text-[var(--link-color)] px-2 py-0.5 mt-1">{group.key}</span>
+          <span class="block text-xs font-bold text-[var(--link-color)] px-2 py-0.5 mt-1">{group.key}</span>
           {group.tags.map(tag => (
-            <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:text-[var(--link-color)] transition-colors">
+            <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
               {tag} <span class="opacity-40">({tagCounts[tag]})</span>
             </button>
           ))}
@@ -126,13 +126,13 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
           {normalizedLang === 'en' ? 'Tags' : '标签'}
           <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
         </h3>
-        <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-xs rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
+        <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
           {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
         </button>
         {tagGroups.map(group => (<>
-          <span class="block text-[11px] font-bold text-[var(--link-color)] px-2 py-0.5 mt-2">{group.key}</span>
+          <span class="block text-xs font-bold text-[var(--link-color)] px-2 py-0.5 mt-2">{group.key}</span>
           {group.tags.map(tag => (
-            <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:text-[var(--link-color)] transition-colors">
+            <button data-tag={tag} class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
               {tag} <span class="opacity-40">({tagCounts[tag]})</span>
             </button>
           ))}

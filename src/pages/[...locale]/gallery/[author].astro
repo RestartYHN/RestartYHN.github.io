@@ -80,11 +80,11 @@ const cacheVersion = Date.now().toString()
 
     {allTags.length > 0 && (
       <div id="tag-filter" class="flex flex-wrap gap-2 mb-6">
-        <button data-tag="" class="tag-filter-btn px-3 py-1 text-xs rounded-md border border-[var(--link-color)] bg-[var(--link-color)] text-white transition-colors">
+        <button data-tag="" class="tag-filter-btn px-3 py-1.5 text-sm rounded-md border border-[var(--link-color)] bg-[var(--link-color)] text-white transition-colors">
           {normalizedLang === 'en' ? 'All' : '全部'}
         </button>
         {allTags.map((tag) => (
-          <button data-tag={tag} class="tag-filter-btn px-3 py-1 text-xs rounded-md border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] transition-colors">
+          <button data-tag={tag} class="tag-filter-btn px-3 py-1.5 text-sm rounded-md border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">
             {tag}
           </button>
         ))}
