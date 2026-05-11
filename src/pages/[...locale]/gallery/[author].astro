@@ -80,9 +80,13 @@ const cacheVersion = Date.now().toString()
     <section class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mb-8">
       {authorWorks.map((item) => (
         <article class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70">
-          <a href={item.link || item.image} target="_blank" rel="noopener noreferrer">
-            <img src={item.image} alt={item.title[normalizedLang]} class="w-full h-auto object-contain" loading="lazy" decoding="async" />
-          </a>
+          <img
+            src={item.image}
+            alt={item.title[normalizedLang]}
+            data-gallery-src={item.image}
+            class="w-full h-auto object-contain cursor-zoom-in"
+            loading="lazy" decoding="async"
+          />
           <div class="p-3">
             <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title[normalizedLang]}</h3>
             <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
@@ -91,6 +95,14 @@ const cacheVersion = Date.now().toString()
                 {item.tags.map((tag) => (
                   <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">{tag}</span>
                 ))}
+              </div>
+            )}
+            {item.link && (
+              <div class="mt-2">
+                <a href={item.link} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-[var(--link-color)] hover:underline">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  {normalizedLang === 'en' ? 'Source' : '来源'}
+                </a>
               </div>
             )}
           </div>
@@ -163,6 +175,96 @@ const cacheVersion = Date.now().toString()
 </style>
 
 <script>
+  let overlayEl = null;
+
+  function closeOverlay() {
+    if (overlayEl) {
+      document.removeEventListener('keydown', overlayEl.__keyHandler);
+      overlayEl.remove();
+      overlayEl = null;
+    }
+  }
+
+  function openGalleryPreview(imageSrc) {
+    closeOverlay();
+
+    overlayEl = document.createElement('div');
+    overlayEl.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden';
+    overlayEl.onclick = (e) => { if (e.target === overlayEl) closeOverlay(); };
+
+    let scale = 1, posX = 0, posY = 0, dragging = false, lastX = 0, lastY = 0;
+
+    const img = document.createElement('img');
+    img.src = imageSrc;
+    img.className = 'max-w-full max-h-full object-contain rounded shadow-2xl select-none';
+    img.style.transition = 'transform 0.1s ease-out';
+    img.style.cursor = 'grab';
+    img.draggable = false;
+
+    const updateTransform = () => {
+      img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+    };
+
+    overlayEl.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      scale = Math.max(0.5, Math.min(5, scale + delta));
+      updateTransform();
+    }, { passive: false });
+
+    img.addEventListener('mousedown', (e) => {
+      dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      img.style.cursor = 'grabbing';
+      img.style.transition = 'none';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      posX += e.clientX - lastX;
+      posY += e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (dragging) {
+        dragging = false;
+        img.style.cursor = 'grab';
+        img.style.transition = 'transform 0.1s ease-out';
+      }
+    });
+
+    img.addEventListener('dblclick', () => {
+      scale = 1; posX = 0; posY = 0;
+      updateTransform();
+    });
+
+    overlayEl.appendChild(img);
+    document.body.appendChild(overlayEl);
+
+    const onKey = (e) => { if (e.key === 'Escape') closeOverlay(); };
+    document.addEventListener('keydown', onKey);
+    overlayEl.__keyHandler = onKey;
+  }
+
+  function initGalleryPreview() {
+    const imgs = document.querySelectorAll('img[data-gallery-src]');
+    imgs.forEach(img => {
+      if (img.dataset.bound === 'true') return;
+      img.dataset.bound = 'true';
+      img.addEventListener('click', () => {
+        openGalleryPreview(img.dataset.gallerySrc);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initGalleryPreview);
+  document.addEventListener('astro:page-load', initGalleryPreview);
+
   const bioContent = document.getElementById('artist-bio-content');
   const bioToggle = document.getElementById('artist-bio-toggle');
 
