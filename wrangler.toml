@@ -1,0 +1,4 @@
+name = "music-proxy"
+main = "worker/music-proxy.js"
+compatibility_date = "2026-05-12"
+workers_dev = true
