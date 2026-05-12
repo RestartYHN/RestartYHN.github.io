@@ -1598,6 +1598,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return current;
   }
 
+  async function prewarmFirstTrack() {
+    if (!tracks.length) return;
+    const current = await prepareTrackForPlayback(0);
+    if (!current) return;
+    updateNowPlaying(current);
+    renderTrackList();
+    updatePlayerPosition();
+    syncToGlobalPlayer();
+  }
+
   function updatePlayerPosition() {
     const posEl = document.getElementById("music-player-position");
     if (posEl && tracks.length > 0) {
@@ -2287,13 +2297,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   function togglePlay() {
     if (!audio) return;
     if (audio.paused) {
-      if (!audio.src && tracks.length > 0) {
-        prepareTrackForPlayback(currentIndex).then(current => {
-          if (current) { updateNowPlaying(current); renderTrackList(); updatePlayerPosition(); syncToGlobalPlayer(); }
-          if (current?.audio) { hideStatus(); audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e)); }
-        });
-        return;
-      }
       audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
     } else {
       audio.pause();
@@ -2575,6 +2578,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (musicConfig.defaultPlaylistId) {
       currentPlaylistId = musicConfig.defaultPlaylistId;
       await loadPlaylistSongs(musicConfig.defaultPlaylistId, { preserveActivePlayback: shouldPreservePlaybackOnInit });
+      await prewarmFirstTrack();
       return;
     }
 
@@ -2582,6 +2586,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       currentPlaylistId = String(userData.playlists[0].id || "");
       if (currentPlaylistId) {
         await loadPlaylistSongs(currentPlaylistId, { preserveActivePlayback: shouldPreservePlaybackOnInit });
+        await prewarmFirstTrack();
         return;
       }
     }
