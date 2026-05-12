@@ -443,36 +443,26 @@ import { musicConfig } from '@/data/music';
     }
 
     async function getBestDirectAudioUrl(id) {
-      const levels = ["standard", "higher", "exhigh", "lossless"];
-      const realIpCandidates = Array.from(
-        new Set([
-          "",
-          NETEASE_REAL_IP,
-          "211.161.244.70",
-        ].filter(Boolean)),
-      );
+      const levels = ["standard", "exhigh"];
+      const realIP = NETEASE_REAL_IP || "";
 
       for (const level of levels) {
-        for (const realIP of realIpCandidates) {
-          try {
-            const params = realIP ? { id, level, realIP } : { id, level };
-            const urlResp = await getNeteaseJson("/song/url/v1", params);
-            const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
-            const normalized = normalizeAudioUrl(urlItem?.url || "");
-            if (normalized) return normalized;
-          } catch (e) {}
-        }
-      }
-
-      for (const realIP of realIpCandidates) {
         try {
-          const params = realIP ? { id, br: 320000, realIP } : { id, br: 320000 };
-          const legacyResp = await getNeteaseJson("/song/url", params);
-          const legacyItem = Array.isArray(legacyResp?.data) ? legacyResp.data[0] : null;
-          const normalized = normalizeAudioUrl(legacyItem?.url || "");
+          const params = realIP ? { id, level, realIP } : { id, level };
+          const urlResp = await getNeteaseJson("/song/url/v1", params);
+          const urlItem = Array.isArray(urlResp?.data) ? urlResp.data[0] : null;
+          const normalized = normalizeAudioUrl(urlItem?.url || "");
           if (normalized) return normalized;
         } catch (e) {}
       }
+
+      try {
+        const params = realIP ? { id, br: 320000, realIP } : { id, br: 320000 };
+        const legacyResp = await getNeteaseJson("/song/url", params);
+        const legacyItem = Array.isArray(legacyResp?.data) ? legacyResp.data[0] : null;
+        const normalized = normalizeAudioUrl(legacyItem?.url || "");
+        if (normalized) return normalized;
+      } catch (e) {}
 
       return "";
     }
