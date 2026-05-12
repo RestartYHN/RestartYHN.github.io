@@ -67,9 +67,10 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
 
     <!-- 移动端标签目录 -->
     <details id="tag-filter-mobile" class="lg:hidden mb-6 border border-[var(--button-border-color)] rounded-xl p-3">
-      <summary class="text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
-        {normalizedLang === 'en' ? 'Tags' : '标签'}
-        <span id="selected-count-mobile" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+      <summary class="flex items-center gap-2 text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
+        <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
+        <span id="selected-count-mobile" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+        <button id="filter-mode-toggle-mobile" class="ml-auto px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
       </summary>
       <div class="mt-2 max-h-60 overflow-y-auto">
         <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
@@ -122,10 +123,13 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
 
       <!-- 桌面端右侧标签目录 -->
       <aside id="tag-filter" class="hidden lg:block fixed top-24 w-44 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto" style="right:1rem">
-        <h3 class="text-sm font-semibold text-[var(--text-color)] mb-3">
-          {normalizedLang === 'en' ? 'Tags' : '标签'}
-          <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
-        </h3>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-[var(--text-color)]">
+            {normalizedLang === 'en' ? 'Tags' : '标签'}
+            <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+          </h3>
+          <button id="filter-mode-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
+        </div>
         <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
           {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
         </button>
@@ -210,7 +214,18 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
     const allBtns = containers.flatMap(c => [...c.querySelectorAll('.tag-filter-btn')]);
     const articles = document.querySelectorAll('#gallery-grid article');
     const selected = new Set();
+    let useOr = false;
     const countEls = [document.getElementById('selected-count'), document.getElementById('selected-count-mobile')].filter(Boolean);
+
+    const toggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-mobile')].filter(Boolean);
+    toggles.forEach(t => {
+      t.addEventListener('click', (e) => {
+        e.preventDefault();
+        useOr = !useOr;
+        toggles.forEach(b => { b.textContent = useOr ? 'OR' : 'AND'; });
+        applyFilter();
+      });
+    });
 
     function applyFilter() {
       articles.forEach(article => {
@@ -218,8 +233,16 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
           article.style.display = '';
         } else {
           const tags = JSON.parse(article.dataset.tags || '[]');
-          article.style.display = [...selected].every(t => tags.includes(t)) ? '' : 'none';
+          article.style.display = useOr
+            ? selected.values().some(t => tags.includes(t)) ? '' : 'none'
+            : [...selected].every(t => tags.includes(t)) ? '' : 'none';
         }
+      });
+
+      toggles.forEach(b => {
+        b.classList.toggle('bg-[var(--link-color)]', useOr);
+        b.classList.toggle('text-white', useOr);
+        b.classList.toggle('border-[var(--link-color)]', useOr);
       });
 
       countEls.forEach(el => {

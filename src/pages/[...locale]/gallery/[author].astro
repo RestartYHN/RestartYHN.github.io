@@ -79,7 +79,7 @@ const cacheVersion = Date.now().toString()
     </div>
 
     {allTags.length > 0 && (
-      <div id="tag-filter" class="flex flex-wrap gap-2 mb-6">
+      <div id="tag-filter" class="flex flex-wrap items-center gap-2 mb-6">
         <button data-tag="" class="tag-filter-btn px-3 py-1.5 text-sm rounded-md border border-[var(--link-color)] bg-[var(--link-color)] text-white transition-colors">
           {normalizedLang === 'en' ? 'All' : '全部'}
         </button>
@@ -88,6 +88,9 @@ const cacheVersion = Date.now().toString()
             {tag}
           </button>
         ))}
+        <button id="filter-mode-toggle" class="px-2 py-1.5 text-xs rounded-md border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors ml-auto" title={normalizedLang === 'en' ? 'Toggle AND/OR' : '切换与/或运算'}>
+          AND
+        </button>
       </div>
     )}
 
@@ -279,9 +282,21 @@ const cacheVersion = Date.now().toString()
     const btns = filterBar.querySelectorAll('.tag-filter-btn');
     const articles = document.querySelectorAll('#gallery-grid article');
     const selected = new Set();
+    let useOr = false;
+    const modeToggle = document.getElementById('filter-mode-toggle');
+
+    if (modeToggle) {
+      modeToggle.addEventListener('click', () => {
+        useOr = !useOr;
+        modeToggle.textContent = useOr ? 'OR' : 'AND';
+        modeToggle.classList.toggle('bg-[var(--link-color)]', useOr);
+        modeToggle.classList.toggle('text-white', useOr);
+        modeToggle.classList.toggle('border-[var(--link-color)]', useOr);
+        applyFilter();
+      });
+    }
 
     function applyFilter() {
-      const activeTag = btns[0].dataset.tag === '' ? null : [...selected];
       const allBtn = filterBar.querySelector('[data-tag=""]');
       const tagBtns = filterBar.querySelectorAll('[data-tag]:not([data-tag=""])');
 
@@ -311,7 +326,9 @@ const cacheVersion = Date.now().toString()
           article.style.display = '';
         } else {
           const tags = JSON.parse(article.dataset.tags || '[]');
-          article.style.display = [...selected].every(t => tags.includes(t)) ? '' : 'none';
+          article.style.display = useOr
+            ? selected.values().some(t => tags.includes(t)) ? '' : 'none'
+            : [...selected].every(t => tags.includes(t)) ? '' : 'none';
         }
       });
     }
