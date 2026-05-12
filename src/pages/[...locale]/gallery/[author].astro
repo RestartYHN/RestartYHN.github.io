@@ -195,7 +195,6 @@ const cacheVersion = Date.now().toString()
   }
 
   function openGalleryPreview(imageSrc) {
-    console.log('openGalleryPreview called, src:', imageSrc);
     closeOverlay();
 
     overlayEl = document.createElement('div');
@@ -269,7 +268,6 @@ const cacheVersion = Date.now().toString()
   }
 
   function initGalleryPreview() {
-    console.log('initGalleryPreview running');
     const imgs = document.querySelectorAll('img[data-gallery-src]');
     imgs.forEach(img => {
       if (img.dataset.bound === 'true') return;
