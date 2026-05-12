@@ -198,8 +198,14 @@ const cacheVersion = Date.now().toString()
     closeOverlay();
 
     overlayEl = document.createElement('div');
-    overlayEl.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden';
+    overlayEl.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden relative';
     overlayEl.onclick = (e) => { if (e.target === overlayEl) closeOverlay(); };
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors';
+    closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+    closeBtn.onclick = (e) => { e.stopPropagation(); closeOverlay(); };
+    overlayEl.appendChild(closeBtn);
 
     let scale = 1, posX = 0, posY = 0, dragging = false, lastX = 0, lastY = 0;
 
