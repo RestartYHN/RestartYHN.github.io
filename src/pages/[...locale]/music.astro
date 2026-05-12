@@ -2287,6 +2287,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   function togglePlay() {
     if (!audio) return;
     if (audio.paused) {
+      if (!audio.src && tracks.length > 0) {
+        prepareTrackForPlayback(currentIndex).then(current => {
+          if (current) { updateNowPlaying(current); renderTrackList(); updatePlayerPosition(); syncToGlobalPlayer(); }
+          if (current?.audio) { hideStatus(); audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e)); }
+        });
+        return;
+      }
       audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
     } else {
       audio.pause();
