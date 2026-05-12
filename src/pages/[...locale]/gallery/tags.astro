@@ -161,6 +161,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
   }
 
   function openGalleryPreview(imageSrc) {
+    console.log('openGalleryPreview called, src:', imageSrc);
     closeOverlay();
     overlayEl = document.createElement('div');
     overlayEl.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden relative';
@@ -201,6 +202,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
   }
 
   function initGalleryPreview() {
+    console.log('initGalleryPreview running');
     document.querySelectorAll('img[data-gallery-src]').forEach(img => {
       if (img.dataset.bound === 'true') return;
       img.dataset.bound = 'true';
