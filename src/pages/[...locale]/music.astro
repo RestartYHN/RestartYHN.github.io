@@ -1120,7 +1120,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         updatePlayerPosition();
         if (current?.audio && audio?.src) {
           hideStatus();
-          audio.play().catch(() => {});
+          audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
         }
       });
     });
@@ -1542,7 +1542,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         
         if (current?.audio && audio?.src) {
           hideStatus();
-          audio.play().catch(() => {});
+          audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
         } else if (current?.id) {
           showStatus(
             isEn
@@ -2275,7 +2275,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           updatePlayerPosition();
           bootstrapGlobalPlayer();
           hideStatus();
-          try { audio.play().catch(() => {}); } catch (e) {}
+          try { audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e)); } catch (e) {}
         } catch (e) {
           console.warn('[music] fetch track for episode failed', e);
           showStatus(isEn ? 'Failed to load episode.' : '加载剧集失败。', 'error');
@@ -2287,7 +2287,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   function togglePlay() {
     if (!audio) return;
     if (audio.paused) {
-      audio.play().catch(() => {});
+      audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
     } else {
       audio.pause();
     }
@@ -2348,7 +2348,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       syncToGlobalPlayer();
       if (current?.audio && audio?.src) {
         hideStatus();
-        audio?.play().catch(() => {});
+        audio?.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
       } else {
         showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
       }
@@ -2366,10 +2366,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       syncToGlobalPlayer();
       if (current?.audio && audio?.src) {
         hideStatus();
-        audio?.play().catch(() => {});
+        audio?.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
       } else {
         showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
       }
+    };
+    _musicHandlers.onError = () => {
+      console.warn('[music] Audio error:', audio?.error?.code, audio?.error?.message, 'src:', audio?.src);
     };
     _musicHandlers.onEnded = async () => {
       if (!tracks.length) return;
@@ -2384,7 +2387,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       syncToGlobalPlayer();
       if (current?.audio && audio?.src) {
         hideStatus();
-        audio.play().catch(() => {});
+        audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
       }
     };
     _musicHandlers.onTimeUpdate = syncLyrics;
@@ -2412,6 +2415,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     audio.addEventListener("timeupdate", _musicHandlers.onProgressTimeUpdate);
     audio.addEventListener("loadedmetadata", _musicHandlers.onLoadedMetadata);
     audio.addEventListener("ended", _musicHandlers.onEnded);
+    audio.addEventListener("error", _musicHandlers.onError);
     btnPrev.addEventListener("click", _musicHandlers.onPrev);
     btnNext.addEventListener("click", _musicHandlers.onNext);
     progressEl.addEventListener("input", _musicHandlers.onProgressInput);
@@ -2424,6 +2428,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (_musicHandlers.onProgressTimeUpdate) audio?.removeEventListener("timeupdate", _musicHandlers.onProgressTimeUpdate);
     if (_musicHandlers.onLoadedMetadata) audio?.removeEventListener("loadedmetadata", _musicHandlers.onLoadedMetadata);
     if (_musicHandlers.onEnded) audio?.removeEventListener("ended", _musicHandlers.onEnded);
+    if (_musicHandlers.onError) audio?.removeEventListener("error", _musicHandlers.onError);
     if (_musicHandlers.onPrev) btnPrev?.removeEventListener("click", _musicHandlers.onPrev);
     if (_musicHandlers.onNext) btnNext?.removeEventListener("click", _musicHandlers.onNext);
     if (_musicHandlers.onProgressInput) progressEl?.removeEventListener("input", _musicHandlers.onProgressInput);

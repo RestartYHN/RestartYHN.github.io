@@ -743,7 +743,7 @@ import { musicConfig } from '@/data/music';
       if (!track) return;
       updateNowPlaying(track);
       if (track.audio) {
-        audio.play().catch(() => {});
+        audio.play().catch(e => console.warn('[GlobalPlayer] Play failed:', e.message));
       }
       updatePlayButtonState();
       // Sync playlist modal active indicator if open
@@ -778,7 +778,7 @@ import { musicConfig } from '@/data/music';
           await playCurrent();
           return;
         }
-        if (audio.paused) audio.play().catch(() => {});
+        if (audio.paused) audio.play().catch(e => console.warn('[GlobalPlayer] Play failed:', e.message));
         else audio.pause();
         updatePlayButtonState();
       };
@@ -819,6 +819,11 @@ import { musicConfig } from '@/data/music';
       audio.addEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       audio.addEventListener('play', updatePlayButtonState);
       audio.addEventListener('pause', updatePlayButtonState);
+      state.handlers.onError = () => {
+        console.warn('[GlobalPlayer] Audio error:', audio.error?.code, audio.error?.message, 'src:', audio.src);
+      };
+      audio.addEventListener('error', state.handlers.onError);
+      try { audio.crossOrigin = 'anonymous'; } catch (e) {}
       progressEl.addEventListener('input', state.handlers.onProgressInput);
 
       // Play mode toggle
@@ -852,6 +857,7 @@ import { musicConfig } from '@/data/music';
       if (audio && state.handlers.onEnded) audio.removeEventListener('ended', state.handlers.onEnded);
       if (audio && state.handlers.onLoadedMetadata) audio.removeEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       if (progressEl && state.handlers.onProgressInput) progressEl.removeEventListener('input', state.handlers.onProgressInput);
+      if (audio && state.handlers.onError) audio.removeEventListener('error', state.handlers.onError);
       // play mode toggle removed
       if (btnPlaylist) btnPlaylist.removeEventListener('click', openPlaylistModal);
       if (playlistModalBackdrop) playlistModalBackdrop.removeEventListener('click', closePlaylistModal);
