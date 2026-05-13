@@ -64,17 +64,6 @@
             overlayEl.appendChild(nextBtn);
         }
 
-        let touchStartX = 0;
-        let touchLastX = 0;
-        overlayEl.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchLastX = touchStartX; }, {passive: true});
-        overlayEl.addEventListener('touchmove', (e) => { touchLastX = e.changedTouches[0].screenX; }, {passive: true});
-        overlayEl.addEventListener('touchend', () => {
-            if (scale === 1) {
-                if (touchStartX - touchLastX > 50) updateImage(currentIndex + 1);
-                if (touchLastX - touchStartX > 50) updateImage(currentIndex - 1);
-            }
-        });
-
         overlayEl.addEventListener('wheel', (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -84,7 +73,6 @@
         }, { passive: false });
 
         img.addEventListener('mousedown', (e) => {
-          if (scale === 1) return;
           dragging = true;
           lastX = e.clientX;
           lastY = e.clientY;
