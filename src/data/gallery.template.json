@@ -41,8 +41,8 @@
       "thumb": "/gallery/Matcha/work-001.webp",
       "year": 2026,
       "tags": [
-        "魔法少女小圆",
-        "同人"
+        "IP:魔法少女小圆",
+        "画师:抹茶"
       ],
       "enabled": true,
       "order": 1,
@@ -59,7 +59,8 @@
       "thumb": "/gallery/Matcha/work-002.webp",
       "year": 2026,
       "tags": [
-        "同人"
+        "IP:原创",
+        "画师:抹茶"
       ],
       "enabled": true,
       "order": 2,
@@ -76,7 +77,8 @@
       "thumb": "/gallery/Rumoon/work-001.webp",
       "year": 2026,
       "tags": [
-        "同人"
+        "IP:初音未来",
+        "画师:混合可可"
       ],
       "enabled": true,
       "order": 3,
@@ -93,7 +95,8 @@
       "thumb": "/gallery/Rumoon/work-002.webp",
       "year": 2026,
       "tags": [
-        "同人"
+        "IP:初音未来",
+        "画师:混合可可"
       ],
       "enabled": true,
       "order": 4,

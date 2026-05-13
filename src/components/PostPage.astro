@@ -1,12 +1,11 @@
 ---
 import { blogCoverUrl} from '@utils/url-utils'
 import PostCard from '@components/PostCard.astro';
-import type { CollectionEntry } from 'astro:content';
 
 const { page, basePath = '/blog/' } = Astro.props;
 
 ---
-{page.data.map((entry: CollectionEntry<"blog">) => (
+{page.data.map((entry: any) => (
         <PostCard 
             entry={entry}
             title={entry.data.title} 

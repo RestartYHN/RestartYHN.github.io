@@ -43,7 +43,7 @@ export async function GET() {
 		const slugId = post.data.slugId
 		const title = post.data.title
 		const content = [post.data.description, post.body].filter(Boolean).join(' ')
-		const tags = [post.data.category || ''].filter(Boolean)
+		const tags = [post.data.category || '', ...(post.data.categories || [])].filter(Boolean)
 
 		docs.push({
 			id: `post-${slugId}-${lang}`,
@@ -65,7 +65,7 @@ export async function GET() {
 		const slugId = entry.data.slugId
 		const title = entry.data.title
 		const content = [entry.data.description, entry.body].filter(Boolean).join(' ')
-		const tags = [entry.data.category || ''].filter(Boolean)
+		const tags = [entry.data.category || '', ...(entry.data.categories || [])].filter(Boolean)
 
 		docs.push({
 			id: `appreciation-${slugId}-${lang}`,

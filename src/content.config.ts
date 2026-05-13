@@ -13,6 +13,7 @@ const blogCollection = defineCollection({
         // pinned: optional numeric priority; if absent, article is not pinned
         pinned: z.number().optional(),
         category: z.string().optional(),
+        categories: z.array(z.string()).optional().default([]),
     }),
 })
 
@@ -33,6 +34,7 @@ const appreciationCollection = defineCollection({
         slugId: z.string(),
         pinned: z.number().optional(),
         category: z.string().optional(),
+        categories: z.array(z.string()).optional().default([]),
     }),
 })
 export const collections = {

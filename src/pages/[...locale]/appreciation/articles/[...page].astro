@@ -6,6 +6,7 @@ import Navi from '@components/control/Navi.astro';
 import FabMenu from '@components/control/FabMenu.astro';
 
 import { getCollection } from 'astro:content';
+import { getAppreciationEntrySort } from '@utils/content-utils'
 import { siteConfig } from '@/config';
 import { i18n } from "astro:config/client";
 import type { GetStaticPaths } from 'astro';
@@ -22,9 +23,8 @@ export const getStaticPaths = (async ({ paginate }) => {
   for (const locale of localeConfig.locales) {
     const localeCode = typeof locale === 'string' ? locale : locale.path;
     const localeParam = localeCode === localeConfig.defaultLocale ? undefined : localeCode;
-    const entries = await getCollection('appreciation');
-    const sorted = entries.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-    const paginatedPaths = paginate(sorted, {
+    const entries = await getAppreciationEntrySort(localeParam ?? localeConfig.defaultLocale);
+    const paginatedPaths = paginate(entries, {
       pageSize: siteConfig.pageSize,
       params: { locale: localeParam }
     });

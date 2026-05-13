@@ -6,22 +6,25 @@
   import i18nit from '@i18n/translation';
   import { formatMonthDay } from '@/utils/time'
   import { getRelativeLocaleUrl } from '@utils/url-utils';
+  import CategoryTree from './CategoryTree.svelte';
 
   export let sortedPosts = [];
   export let currentLang = "zh-cn";
   export let defaultLocale = "zh-cn";
+  export let baseUrl = "/blog/";
 
-  let selectedCategories = [];
+  let selectedTags = [];
+  let useOr = false;
   const t = i18nit(currentLang);
 
-  // 提取所有分类并去重
-  $: categories = [...new Set(sortedPosts.map(post => post.data.category || 'undefined'))].sort();
+  $: allTags = [...new Set(sortedPosts.flatMap(p => p.data?.categories || []))];
 
-  // 响应式过滤逻辑 - 特殊处理 undefined 情况
-  $: filteredPosts = selectedCategories.length > 0
+  $: filteredPosts = selectedTags.length > 0
     ? sortedPosts.filter(post => {
-        const postCat = post.data.category || 'undefined';
-        return selectedCategories.includes(postCat);
+        const postTags = post.data?.categories || [];
+        return useOr
+          ? selectedTags.some(t => postTags.includes(t))
+          : selectedTags.every(t => postTags.includes(t));
       })
     : sortedPosts;
 
@@ -36,23 +39,18 @@
   $: years = Object.keys(postsByYear).sort((a, b) => b - a);
 
   onMount(() => {
-    // 获取初始 URL 参数 - 特殊处理 undefined
     const params = new URLSearchParams(window.location.search);
-    const categoryParam = params.get('category');
-    
-    // 当参数为 'undefined' 时，专门用于显示未分类文章
-    if (categoryParam === 'undefined') {
-      selectedCategories = ['undefined'];
-    } else if (categoryParam && categoryParam !== 'null') {
-      selectedCategories = categoryParam.split(',');
-    }
+    const tagParam = params.get('tags');
+    if (tagParam) selectedTags = tagParam.split(',');
 
-    // 处理浏览器前进/后退
+    const orParam = params.get('mode');
+    if (orParam === 'or') useOr = true;
+
     const handlePopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      selectedCategories = params.get('category')?.split(',') || [];
+      const p = new URLSearchParams(window.location.search);
+      selectedTags = p.get('tags')?.split(',') || [];
+      useOr = p.get('mode') === 'or';
     };
-
     window.addEventListener('popstate', handlePopState);
 
     const syncAsideHeight = () => {
@@ -99,26 +97,16 @@
     }
   });
 
-  // 筛选点击逻辑
-  function toggleCategory(cat) {
-    if (cat === null) {
-      selectedCategories = []; // 点击“全部”则清空
-    } else {
-      if (selectedCategories.includes(cat)) {
-        // 如果已选中，则移除
-        selectedCategories = selectedCategories.filter(c => c !== cat);
-      } else {
-        // 如果未选中，则添加
-        selectedCategories = [...selectedCategories, cat];
-      }
-    }
-
-    // 更新 URL，方便分享和刷新
+  function handleTreeChange(e: CustomEvent) {
+    selectedTags = e.detail.selectedTags;
+    useOr = e.detail.useOr;
     const url = new URL(window.location);
-    if (selectedCategories.length > 0) {
-      url.searchParams.set('category', selectedCategories.join(','));
+    if (selectedTags.length > 0) {
+      url.searchParams.set('tags', selectedTags.join(','));
+      url.searchParams.set('mode', useOr ? 'or' : 'and');
     } else {
-      url.searchParams.delete('category');
+      url.searchParams.delete('tags');
+      url.searchParams.delete('mode');
     }
     window.history.replaceState({}, '', url);
   }
@@ -141,8 +129,8 @@
                 <div class="space-y-2">
                     {#each postsByYear[year] as post (post.id)}
                         <div animate:flip={{ duration: 600 }} in:fade={{ duration: 150 }} out:fade={{ duration: 150 }} >
-                            <a 
-                                href={getRelativeLocaleUrl(currentLang, `/blog/${post.id}`)} 
+                            <a
+                                href={getRelativeLocaleUrl(currentLang, baseUrl + post.id)} 
                                 class="flex items-center gap-4 active:bg-[var(--button-hover-color)] hover:bg-[var(--button-hover-color)] p-2 rounded transition-all duration-200 group"
                             >
                                 <span class="text-[var(--text-color-70)] min-w-[80px] md:min-w-[120px]">
@@ -175,24 +163,11 @@
         id="category-sidebar"
         class="hidden lg:block absolute left-[var(--toc-offset-left)] top-70 bottom-0 w-[var(--category-width)]">
         <div class="sticky top-24">
-            <div class="flex items-center gap-2 text-[var(--text-color)] font-bold mb-4 border-b border-[var(--button-border-color)] pb-2 uppercase tracking-wider">
-                <Icon icon="fa6-solid:hashtag" class="text-xs" />
-                <span>{t("category")}</span>
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-                
-                {#each categories as cat}
-                    <button 
-                        on:click={() => toggleCategory(cat)}
-                        class="px-3 py-1 text-xs rounded-md transition-all border
-                        {selectedCategories.includes(cat) 
-                            ? 'bg-[var(--link-color)] text-white border-[var(--link-color)]' 
-                            : 'hover:border-[var(--link-color)] border-[var(--button-border-color)] text-[var(--text-color)]'}"
-                    >
-                        {cat === 'undefined' ? t("pagecard.uncategorized") : cat}
-                    </button>
-                {/each}
-            </div>
+            <CategoryTree
+                allTags={allTags}
+                selectedTags={selectedTags}
+                lang={currentLang}
+                on:change={handleTreeChange}
+            />
         </div>
     </aside>

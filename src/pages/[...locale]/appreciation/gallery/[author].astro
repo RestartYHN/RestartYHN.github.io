@@ -47,6 +47,11 @@ const coverSubTitle = normalizedLang === 'en'
   ? `${authorWorks.length} works`
   : `共 ${authorWorks.length} 幅作品`
 const allTags = [...new Set(authorWorks.flatMap(w => w.tags || []))]
+function displayTag(tag: string): [string, string] {
+  const idx = tag.indexOf(':');
+  if (idx === -1) return ['', tag];
+  return [tag.slice(0, idx), tag.slice(idx + 1)];
+}
 const cacheVersion = Date.now().toString()
 ---
 
@@ -109,9 +114,14 @@ const cacheVersion = Date.now().toString()
             <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
             {item.tags?.length > 0 && (
               <div class="mt-2 flex flex-wrap gap-1">
-                {item.tags.map((tag) => (
-                  <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">{tag}</span>
-                ))}
+                {item.tags.map((tag) => {
+                  const [dim, val] = displayTag(tag);
+                  return (
+                    <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">
+                      {dim ? <><span class="opacity-50">{dim}·</span>{val}</> : val}
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>

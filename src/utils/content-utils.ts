@@ -90,7 +90,43 @@ export async function getSpec(
     return collection;
 }
 
-export async function getMemos() {
-  const collection = await getCollection('memos');
-  return collection;
+export type AppreciationEntryWithLocaleStatus = CollectionEntry<'appreciation'> & {
+  isFallback?: boolean;
+};
+
+export async function getAppreciationEntrySort(lang: string) {
+  const defaultLanguage = i18n.defaultLocale;
+  const entries = await getCollection('appreciation', ({ data }) => {
+    return import.meta.env.PROD ? data.draft !== true : true;
+  });
+
+  const grouped = new Map<string, Record<string, CollectionEntry<'appreciation'>>>();
+  for (const entry of entries) {
+    const parts = entry.id.split('/');
+    const fileName = parts.pop()!;
+    const slugId = parts.join('/');
+    const language = fileName.replace('.md', '');
+    if (!grouped.has(slugId)) grouped.set(slugId, {});
+    grouped.get(slugId)![language] = entry;
+  }
+
+  const selected: AppreciationEntryWithLocaleStatus[] = [];
+  for (const [id, translations] of grouped.entries()) {
+    let selectedEntry: CollectionEntry<'appreciation'> | undefined;
+    let isFallback = false;
+    if (lang && lang !== defaultLanguage) {
+      if (translations[lang]) selectedEntry = translations[lang];
+      else if (translations[defaultLanguage]) { selectedEntry = translations[defaultLanguage]; isFallback = true; }
+    } else {
+      if (translations[defaultLanguage]) selectedEntry = translations[defaultLanguage];
+    }
+    if (selectedEntry) selected.push({ ...selectedEntry, id, isFallback });
+  }
+
+  return selected.sort((a, b) => {
+    const pa = Number(a.data?.pinned || 0);
+    const pb = Number(b.data?.pinned || 0);
+    if (pb !== pa) return pb - pa;
+    return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+  });
 }
