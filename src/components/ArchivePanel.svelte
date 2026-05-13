@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { flip } from 'svelte/animate';
   import { fade } from 'svelte/transition';
