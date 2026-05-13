@@ -156,10 +156,12 @@ const className = Astro.props.class
     import PhotoSwipeLightbox from 'photoswipe/lightbox';
 
     function createPhotoSwipeLightbox() {
-      const container = document.querySelector('.markdown-content');
-      if (container) {
-        // 查找文章区域内所有的 figure 元素
-        // console.log('Initializing PhotoSwipe Lightbox for images in .markdown-content');
+      const containers = document.querySelectorAll('.markdown-content');
+      if (containers.length === 0) {
+        console.log('No .markdown-content found, skipping PhotoSwipe Lightbox initialization.');
+        return;
+      }
+      containers.forEach((container) => {
         const figures = container.querySelectorAll('figure');
 
         figures.forEach((figure) => {
@@ -210,19 +212,17 @@ const className = Astro.props.class
           a.appendChild(img);
         });
 
-        // 初始化 Lightbox
-        const lightbox = new PhotoSwipeLightbox({
-          // 指定文章内所有包含图片的链接
-          gallery: '.markdown-content',
-          children: 'a.pswp-link',
-          pswpModule: () => import('photoswipe'),
-          wheelToZoom: true
-        });
-        lightbox.init();
-        console.log('PhotoSwipe Lightbox initialized');
-      }else {
-        console.log('No .markdown-content found, skipping PhotoSwipe Lightbox initialization.');
-      }
+      });
+      // 初始化 Lightbox
+      const lightbox = new PhotoSwipeLightbox({
+        // 指定文章内所有包含图片的链接
+        gallery: '.markdown-content',
+        children: 'a.pswp-link',
+        pswpModule: () => import('photoswipe'),
+        wheelToZoom: true
+      });
+      lightbox.init();
+      console.log('PhotoSwipe Lightbox initialized');
     }
 
     document.addEventListener('astro:page-load', createPhotoSwipeLightbox);

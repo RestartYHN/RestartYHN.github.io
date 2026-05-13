@@ -32,7 +32,7 @@
 
   <div class="relative">
     <div
-      class="markdown-content onload-animation overflow-hidden"
+      class="onload-animation overflow-hidden"
       style="max-height: {needsCollapse && !isExpanded ? MAX_HEIGHT + 'px' : 'none'};"
     >
       <div bind:clientHeight={contentHeight}>
