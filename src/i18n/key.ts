@@ -1,14 +1,13 @@
 export interface Translation {
     header: {
         home: string;
-        article: string;
+        blog: string;
         music: string;
         guestbook: string;
         archive: string;
         about: string;
         friends: string;
-        links: string;
-        gallery: string;
+        appreciation: string;
         memos: string;
     };
     cover: {
@@ -18,6 +17,7 @@ export interface Translation {
             about: string;
             friends: string;
             memos: string;
+            appreciation: string;
         };
         subTitle: {
             home: string;
@@ -25,6 +25,7 @@ export interface Translation {
             about: string;
             friends: string;
             memos: string;
+            appreciation: string;
         };
         rotatingSubTitle: {
             home: string[];

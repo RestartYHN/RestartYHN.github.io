@@ -13,21 +13,22 @@ import i18nit from '@i18n/translation'
 import { Icon } from "astro-icon/components";
 
 interface Props {
-    entry: CollectionEntry<'blog'>;
+    entry: CollectionEntry<'blog'> | CollectionEntry<'appreciation'>;
     title: string;
     description: string;
     image: string;
     pubDate: Date;
     url: string;
     fallback: boolean;
+    basePath?: string;
 }
 
-const { entry, title, description, image, pubDate, url, fallback } = Astro.props;
+const { entry, title, description, image, pubDate, url, fallback, basePath = '/blog/' } = Astro.props;
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
 const t = i18nit(currentLang);
 
-const pageUrl = getRelativeLocaleUrl(currentLang, "/blog/" + url);
+const pageUrl = getRelativeLocaleUrl(currentLang, basePath + url);
 const { remarkPluginFrontmatter } = await render(entry);
 ---
 

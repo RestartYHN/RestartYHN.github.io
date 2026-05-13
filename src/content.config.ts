@@ -22,8 +22,22 @@ const specCollection = defineCollection({
 const memosCollection = defineCollection({
     loader: glob({ pattern: '**/[^_]*.md', base: "./src/content/memos" }),
 })
+const appreciationCollection = defineCollection({
+    loader: glob({ pattern: '**/[^_]*.md', base: "./src/content/appreciation" }),
+    schema: z.object({
+        title: z.string(),
+        pubDate: z.date(),
+        draft: z.boolean().optional().default(false),
+        description: z.string().optional().default(''),
+        image: z.string().optional().default(''),
+        slugId: z.string(),
+        pinned: z.number().optional(),
+        category: z.string().optional(),
+    }),
+})
 export const collections = {
     blog: blogCollection,
     spec: specCollection,
     memos: memosCollection,
+    appreciation: appreciationCollection,
 }

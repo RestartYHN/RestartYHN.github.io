@@ -36,13 +36,13 @@ const getLocalePath = (path: string, targetLocale: string) => {
 };
 
 const indexPage = getRelativeLocaleUrl(currentLang, "/");
-const articlesPage = getRelativeLocaleUrl(currentLang, "/articles/");
+const blogPage = getRelativeLocaleUrl(currentLang, "/blog/");
 const musicPage = getRelativeLocaleUrl(currentLang, "/music/");
 const guestbookPage = getRelativeLocaleUrl(currentLang, "/guestbook/");
 const archivesPage = getRelativeLocaleUrl(currentLang, "/archives/");
 const friendsPage = getRelativeLocaleUrl(currentLang, "/friends/");
 const aboutPage = getRelativeLocaleUrl(currentLang, "/about/");
-const galleryPage = getRelativeLocaleUrl(currentLang, "/gallery/");
+const galleryPage = getRelativeLocaleUrl(currentLang, "/appreciation/gallery/");
 const memosPage = getRelativeLocaleUrl(currentLang, "/memos/");
 const isExternalAvatar = profileConfig.avatar?.startsWith("/") || profileConfig.avatar?.startsWith("http");
 const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
@@ -136,13 +136,13 @@ if (profileConfig.indexPage) {
               }`}>
               {t("header.home")}
           </a>
-            <!-- 文章链接 -->
-            <a href={ articlesPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname.startsWith(articlesPage)
+            <!-- 博客链接 -->
+            <a href={ blogPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname.startsWith(blogPage)
                 ? 'bg-[var(--button-hover-color)]'
                 : 'hover:bg-[var(--button-hover-color)]'
               }`}>
-              {t("header.article")}
+              {t("header.blog")}
             </a>
             <!-- 音乐链接 -->
             <a href={ musicPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
@@ -152,13 +152,13 @@ if (profileConfig.indexPage) {
               }`}>
               {t("header.music")}
             </a>
-            <!-- 画廊链接 -->
+            <!-- 鉴赏链接 -->
             <a href={ galleryPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
               Astro.url.pathname.startsWith(galleryPage)
                 ? 'bg-[var(--button-hover-color)]'
                 : 'hover:bg-[var(--button-hover-color)]'
               }`}>
-              {t("header.gallery")}
+              {t("header.appreciation")}
             </a>
             <!-- 友链链接 -->
             <a href={ friendsPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
@@ -219,9 +219,9 @@ if (profileConfig.indexPage) {
                 <Icon name="fa6-solid:house" class="w-4 h-4 opacity-70" />
                 <span>{t("header.home")}</span>
             </a>
-            <a href={ articlesPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+            <a href={ blogPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
               <Icon name="fa6-solid:newspaper" class="w-4 h-4 opacity-70" />
-              <span>{t("header.article")}</span>
+              <span>{t("header.blog")}</span>
             </a>
             <a href={ musicPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
               <Icon name="fa6-solid:music" class="w-4 h-4 opacity-70" />
@@ -229,7 +229,7 @@ if (profileConfig.indexPage) {
             </a>
             <a href={ galleryPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
               <Icon name="fa6-solid:images" class="w-4 h-4 opacity-70" />
-              <span>{t("header.gallery")}</span>
+              <span>{t("header.appreciation")}</span>
             </a>
             <a href={ friendsPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
                 <Icon name="fa6-solid:link" class="w-4 h-4 opacity-70" />

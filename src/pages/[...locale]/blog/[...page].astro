@@ -34,11 +34,11 @@ export const getStaticPaths = (async ({ paginate }) => {
   return paths;
 }) satisfies GetStaticPaths
 
-const pageTitle = `${t("header.article")} - ${siteConfig.title}`;
+const pageTitle = `${t("header.blog")} - ${siteConfig.title}`;
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
-  <Cover title={t("header.article")} subTitle={t("cover.subTitle.archive").replace('{count}', String(page.lastPage * siteConfig.pageSize))} />
+  <Cover title={t("header.blog")} subTitle={t("cover.subTitle.archive").replace('{count}', String(page.lastPage * siteConfig.pageSize))} />
   <PostPage page={page} />
   <Navi page={page} />
   <FabMenu showBackBottom={true} />

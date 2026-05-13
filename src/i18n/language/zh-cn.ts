@@ -3,14 +3,13 @@ import type { Translation } from "@i18n/key";
 const translation: Translation = {
     header: {
         home: "首页",
-        article: "文章",
+        blog: "博客",
         music: "音乐",
         guestbook: "留言",
         archive: "归档",
         about: "关于",
         friends: "友链",
-        links: "链接",
-        gallery: "画廊",
+        appreciation: "鉴赏",
         memos: "碎碎念",
     },
     cover: {
@@ -20,6 +19,7 @@ const translation: Translation = {
             about: "关于",
             friends: "友链",
             memos: "碎碎念",
+            appreciation: "鉴赏",
         },
         subTitle: {
             home: "明日には良くなるからね.",
@@ -27,6 +27,7 @@ const translation: Translation = {
             about: "一个极简的Blog模板",
             friends: "有趣的灵魂",
             memos: "记录生活的点点滴滴",
+            appreciation: "欣赏与品味",
         },
         rotatingSubTitle: {
             home: [

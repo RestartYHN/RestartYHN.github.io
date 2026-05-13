@@ -23,7 +23,7 @@ const posts = allPosts.slice().sort((a,b) => b.data.pubDate.valueOf() - a.data.p
         {currentLang === 'en' ? 'Cards below the cover, like a quick reading shelf.' : '在封面下方放一组文章卡片，方便快速浏览。'}
       </p>
     </div>
-    <a href={getRelativeLocaleUrl(currentLang, '/articles/')} class="text-sm text-[var(--text-color-70)] transition-colors hover:text-[var(--link-color)]">
+    <a href={getRelativeLocaleUrl(currentLang, '/blog/')} class="text-sm text-[var(--text-color-70)] transition-colors hover:text-[var(--link-color)]">
       {currentLang === 'en' ? 'View all' : '查看全部'} →
     </a>
   </div>

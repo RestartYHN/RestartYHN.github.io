@@ -3,7 +3,7 @@ import { i18n } from "astro:config/client";
 import i18nit from '@i18n/translation'
 import { getRelativeLocaleUrl } from '@utils/url-utils';
 
-const { page } = Astro.props;
+const { page, base = '/blog/' } = Astro.props;
 
 const currentPage = page.currentPage;
 const totalPages = page.lastPage;
@@ -40,9 +40,9 @@ function getVisiblePages(current: number, total: number) {
 
 const visiblePages = getVisiblePages(currentPage, totalPages);
 
-// 返回文章列表的页面 URL（基于 /articles/ 路径），由 getRelativeLocaleUrl 处理语言前缀
-const getPageUrl = (p: number) => {
-  return p === 1 ? '/articles/' : `/articles/${p}/`;
+// 返回文章列表的页面 URL，由 getRelativeLocaleUrl 处理语言前缀
+const getPageUrl = (p: number, base: string = '/blog/') => {
+  return p === 1 ? base : `${base}${p}/`;
 };
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
@@ -57,7 +57,7 @@ const btnDisabledProps = "text-[var(--text-color-30)] border-[var(--button-borde
 <nav data-aos="fade-up" class="flex flex-row justify-between items-center gap-1 my-8 max-w-[var(--page-width)] mx-auto text-sm">
   
   <a 
-    href={showPrevious ? getRelativeLocaleUrl(currentLang, getPageUrl(currentPage - 1)) : "#"} 
+    href={showPrevious ? getRelativeLocaleUrl(currentLang, getPageUrl(currentPage - 1, base)) : "#"} 
     class={`${btnBaseClass} ${showPrevious ? btnActiveProps : btnDisabledProps}`}
     aria-label="Previous Page"
   >
@@ -84,7 +84,7 @@ const btnDisabledProps = "text-[var(--text-color-30)] border-[var(--button-borde
       const isCurrent = p === currentPage;
       return (
         <a
-          href={getRelativeLocaleUrl(currentLang, getPageUrl(p as number))}
+          href={getRelativeLocaleUrl(currentLang, getPageUrl(p as number, base))}
           class={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg border transition-all duration-200 
             ${isCurrent 
               ? 'border-[var(--button-border-color)] font-bold text-[var(--text-color)] pointer-events-none' 
@@ -98,7 +98,7 @@ const btnDisabledProps = "text-[var(--text-color-30)] border-[var(--button-borde
   </div>
 
   <a 
-    href={showNext ? getRelativeLocaleUrl(currentLang, getPageUrl(currentPage + 1)) : "#"} 
+    href={showNext ? getRelativeLocaleUrl(currentLang, getPageUrl(currentPage + 1, base)) : "#"} 
     class={`${btnBaseClass} ${showNext ? btnActiveProps : btnDisabledProps}`}
     aria-label="Next Page"
   >

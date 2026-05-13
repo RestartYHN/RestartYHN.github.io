@@ -3,7 +3,7 @@ import { blogCoverUrl} from '@utils/url-utils'
 import PostCard from '@components/PostCard.astro';
 import type { CollectionEntry } from 'astro:content';
 
-const { page } = Astro.props;
+const { page, basePath = '/blog/' } = Astro.props;
 
 ---
 {page.data.map((entry: CollectionEntry<"blog">) => (
@@ -14,6 +14,7 @@ const { page } = Astro.props;
             image={blogCoverUrl(entry.data.image, entry.id)}
             pubDate={entry.data.pubDate}
             url={entry.id} 
-            fallback={entry.isFallback}>
+            fallback={entry.isFallback}
+            basePath={basePath}>
         </PostCard>
 ))}

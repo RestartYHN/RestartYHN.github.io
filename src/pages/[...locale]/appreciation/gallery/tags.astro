@@ -53,7 +53,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
   <div class="mx-auto w-full max-w-[var(--page-width)]">
     <div class="mb-4">
-      <a href={`${getRelativeLocaleUrl(currentLang, '/gallery/')}?v=${cacheVersion}`} class="text-sm text-[var(--link-color)] hover:underline">
+      <a href={`${getRelativeLocaleUrl(currentLang, '/appreciation/gallery/')}?v=${cacheVersion}`} class="text-sm text-[var(--link-color)] hover:underline">
         {normalizedLang === 'en' ? '← Back to Gallery' : '← 返回画廊'}
       </a>
     </div>
@@ -103,7 +103,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
               <div class="p-3">
                 <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title[normalizedLang]}</h3>
                 {authorInfo && (
-                  <a href={`${getRelativeLocaleUrl(currentLang, `/gallery/${authorInfo.slug}/`)}?v=${cacheVersion}`} class="inline-block mt-1 text-sm text-[var(--link-color)] hover:underline">
+                  <a href={`${getRelativeLocaleUrl(currentLang, `/appreciation/gallery/${authorInfo.slug}/`)}?v=${cacheVersion}`} class="inline-block mt-1 text-sm text-[var(--link-color)] hover:underline">
                     {authorInfo.name[normalizedLang]}
                   </a>
                 )}

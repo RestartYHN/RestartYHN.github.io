@@ -3,14 +3,13 @@ import type { Translation } from "@i18n/key";
 const translation: Translation = {
     header: {
         home: "Home",
-        article: "Articles",
+        blog: "Blog",
         music: "Music",
         guestbook: "Guestbook",
         archive: "Archive",
         about: "About",
         friends: "Friends",
-        links: "Links",
-        gallery: "Gallery",
+        appreciation: "Appreciation",
         memos: "Memos",
     },
     cover: {
@@ -20,6 +19,7 @@ const translation: Translation = {
             about: "About",
             friends: "Friends",
             memos: "Memos",
+            appreciation: "Appreciation",
         },
         subTitle: {
             home: "It will get better by tomorrow.",
@@ -27,6 +27,7 @@ const translation: Translation = {
             about: "A minimalist blog template",
             friends: "Interesting Souls",
             memos: "Capturing the little moments of life",
+            appreciation: "Appreciate and enjoy",
         },
         rotatingSubTitle: {
             home: [

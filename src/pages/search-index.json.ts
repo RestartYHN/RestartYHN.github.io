@@ -57,6 +57,47 @@ export async function GET() {
 		})
 	}
 
+	const appreciationEntries = await getCollection('appreciation')
+	for (const entry of appreciationEntries) {
+		const parts = entry.id.split('/')
+		const fileName = parts.pop()!
+		const lang = fileName.replace('.md', '')
+		const slugId = entry.data.slugId
+		const title = entry.data.title
+		const content = [entry.data.description, entry.body].filter(Boolean).join(' ')
+		const tags = [entry.data.category || ''].filter(Boolean)
+
+		docs.push({
+			id: `appreciation-${slugId}-${lang}`,
+			title,
+			content,
+			bigrams: buildBigrams(title, content, tags.join(' ')),
+			tags,
+			url: `${pathPrefix(lang)}/appreciation/articles/${slugId}/`,
+			type: 'appreciation',
+			lang,
+		})
+	}
+
+	const memoEntries = await getCollection('memos')
+	for (const memo of memoEntries) {
+		const dateStr = memo.id
+		const lang = 'zh-cn'
+		const title = dateStr
+		const content = memo.body || ''
+
+		docs.push({
+			id: `memo-${dateStr}-${lang}`,
+			title,
+			content,
+			bigrams: buildBigrams(title, content),
+			tags: [],
+			url: `${pathPrefix(lang)}/memos/`,
+			type: 'memo',
+			lang,
+		})
+	}
+
 	const { authors, works } = loadGalleryData()
 	for (const author of authors) {
 		for (const lang of ['zh-cn', 'en'] as const) {
@@ -68,7 +109,7 @@ export async function GET() {
 				content,
 				bigrams: buildBigrams(title, content),
 				tags: [],
-				url: `${pathPrefix(lang)}/gallery/${author.slug}/`,
+				url: `${pathPrefix(lang)}/appreciation/gallery/${author.slug}/`,
 				type: 'gallery-author',
 				lang,
 			})
@@ -85,7 +126,7 @@ export async function GET() {
 				content,
 				bigrams: buildBigrams(title, content, tags.join(' ')),
 				tags,
-				url: work.link || `${pathPrefix(lang)}/gallery/${work.author}/`,
+				url: work.link || `${pathPrefix(lang)}/appreciation/gallery/${work.author}/`,
 				type: 'gallery-work',
 				lang,
 			})
