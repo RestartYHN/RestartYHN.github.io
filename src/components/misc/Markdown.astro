@@ -215,7 +215,8 @@ const className = Astro.props.class
           // 指定文章内所有包含图片的链接
           gallery: '.markdown-content',
           children: 'a.pswp-link',
-          pswpModule: () => import('photoswipe')
+          pswpModule: () => import('photoswipe'),
+          wheelToZoom: true
         });
         lightbox.init();
         console.log('PhotoSwipe Lightbox initialized');
