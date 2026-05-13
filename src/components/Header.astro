@@ -43,6 +43,7 @@ const archivesPage = getRelativeLocaleUrl(currentLang, "/archives/");
 const friendsPage = getRelativeLocaleUrl(currentLang, "/friends/");
 const aboutPage = getRelativeLocaleUrl(currentLang, "/about/");
 const galleryPage = getRelativeLocaleUrl(currentLang, "/gallery/");
+const memosPage = getRelativeLocaleUrl(currentLang, "/memos/");
 const isExternalAvatar = profileConfig.avatar?.startsWith("/") || profileConfig.avatar?.startsWith("http");
 const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
 
@@ -188,7 +189,15 @@ if (profileConfig.indexPage) {
                 ? 'bg-[var(--button-hover-color)]'
                 : 'hover:bg-[var(--button-hover-color)]'
               }`}>
-              {t("header.guestbook")}
+            {t("header.guestbook")}
+          </a>
+            <!-- 碎碎念链接 -->
+            <a href={ memosPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
+              Astro.url.pathname.startsWith(memosPage)
+                ? 'bg-[var(--button-hover-color)]'
+                : 'hover:bg-[var(--button-hover-color)]'
+              }`}>
+              {t("header.memos")}
             </a>
         </div>
     </div>
@@ -237,6 +246,10 @@ if (profileConfig.indexPage) {
             <a href={ guestbookPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
               <Icon name="fa6-solid:comments" class="w-4 h-4 opacity-70" />
               <span>{t("header.guestbook")}</span>
+            </a>
+            <a href={ memosPage } class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors active:bg-[var(--button-hover-color)] active:text-[var(--link-color)]">
+              <Icon name="fa6-solid:book" class="w-4 h-4 opacity-70" />
+              <span>{t("header.memos")}</span>
             </a>
         </nav>
 

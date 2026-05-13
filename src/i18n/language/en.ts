@@ -11,6 +11,7 @@ const translation: Translation = {
         friends: "Friends",
         links: "Links",
         gallery: "Gallery",
+        memos: "Memos",
     },
     cover: {
         title: {
@@ -18,12 +19,14 @@ const translation: Translation = {
             archive: "Archive",
             about: "About",
             friends: "Friends",
+            memos: "Memos",
         },
         subTitle: {
             home: "It will get better by tomorrow.",
             archive: "Total of {count} articles",
             about: "A minimalist blog template",
             friends: "Interesting Souls",
+            memos: "Capturing the little moments of life",
         },
         rotatingSubTitle: {
             home: [
@@ -139,6 +142,12 @@ const translation: Translation = {
         light: "Switch to Light Mode",
         dark: "Switch to Dark Mode",
         system: "Switch to System Mode"
+    },
+    memoCard: {
+        words: "words",
+        minutes: "min read",
+        expanded: "Read more",
+        collapsed: "Collapse"
     }
 }
 
