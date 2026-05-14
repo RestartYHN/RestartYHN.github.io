@@ -6,6 +6,7 @@ category: 指南
 image: "./images/banner.png"
 draft: false
 slugId: momo/intro/release
+categories: [类型:指南]
 ---
 
 

@@ -6,7 +6,7 @@ category: 指南
 image: ""
 draft: false
 slugId: momo/intro/config
-categories: 指南
+categories: [类型:指南]
 ---
 
 ## 网站信息配置
