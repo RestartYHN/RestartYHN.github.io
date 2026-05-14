@@ -3,7 +3,7 @@ title: "Markdown 扩展语法速查表"
 description: "防剧透 / 彩虹渐变 / 下划线 / 注音 — 全部组合测试"
 pubDate: 2026-05-08
 category: demo
-slugId: md-demo-2026
+slugId: demo
 categories: [类型:demo]
 ---
 
