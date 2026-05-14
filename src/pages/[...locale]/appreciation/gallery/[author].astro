@@ -122,7 +122,7 @@ const cacheVersion = Date.now().toString()
     </div>
 
     {allTags.length > 0 && (
-      <details id="tag-filter" class="mb-6 border border-[var(--button-border-color)] rounded-xl p-3">
+      <details id="tag-filter" class="lg:hidden mb-6 border border-[var(--button-border-color)] rounded-xl p-3">
         <summary class="flex items-center gap-2 text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
           <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
           <span id="selected-count" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
@@ -153,6 +153,39 @@ const cacheVersion = Date.now().toString()
           </>))}
         </div>
       </details>
+    )}
+
+    {allTags.length > 0 && (
+      <aside id="tag-filter-desktop" class="hidden lg:block absolute left-[var(--toc-offset-left)] top-20 w-44 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-5rem)] overflow-y-auto z-10">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-[var(--text-color)]">
+            {normalizedLang === 'en' ? 'Tags' : '标签'}
+          </h3>
+          <button id="filter-mode-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
+        </div>
+        <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
+          {normalizedLang === 'en' ? 'All' : '全部'}
+        </button>
+        {dimGroups.map(group => (<>
+          <div class="tag-dim-group-desktop" data-dim={group.dim}>
+            <span class="block text-xs font-bold text-[var(--link-color)] px-2 py-0.5 mt-2 cursor-pointer" data-dim-toggle={group.dim}>{group.dim}</span>
+            <div class="tag-dim-values-desktop ml-1 hidden">
+              {group.letters.map(l => (
+                <div class="tag-letter-group-desktop" data-letter={l.key}>
+                  <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
+                  <div class="tag-letter-values-desktop ml-2" class:hidden={l.values.length > 3}>
+                    {l.values.map(v => (
+                      <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
+                        {v.val} <span class="opacity-50">({v.count})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>))}
+      </aside>
     )}
 
     <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mb-8">
@@ -383,62 +416,59 @@ const cacheVersion = Date.now().toString()
   document.addEventListener('astro:page-load', initGalleryPreview);
 
   function initTagFilter() {
-    const filterBar = document.getElementById('tag-filter');
-    if (!filterBar || filterBar.dataset.bound === 'true') return;
-    filterBar.dataset.bound = 'true';
+    const containers = [document.getElementById('tag-filter'), document.getElementById('tag-filter-desktop')].filter(Boolean);
+    if (containers.length === 0) return;
+    if (containers[0].dataset.bound === 'true') return;
+    containers.forEach(c => { c.dataset.bound = 'true'; });
 
-    filterBar.querySelectorAll('[data-dim-toggle]').forEach(toggle => {
-      toggle.addEventListener('click', () => {
-        const dim = toggle.dataset.dimToggle;
-        const values = filterBar.querySelector(`.tag-dim-group[data-dim="${dim}"] .tag-dim-values`);
-        if (values) values.classList.toggle('hidden');
-      });
-    });
-
-    filterBar.querySelectorAll('[data-letter-toggle]').forEach(toggle => {
-      toggle.addEventListener('click', () => {
-        const key = toggle.dataset.letterToggle;
-        const parent = toggle.closest('.tag-letter-group');
-        if (parent) {
-          const values = parent.querySelector('.tag-letter-values');
+    containers.forEach(filterBar => {
+      filterBar.querySelectorAll('[data-dim-toggle]').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          const dim = toggle.dataset.dimToggle;
+          const suffix = filterBar.id === 'tag-filter-desktop' ? '-desktop' : '';
+          const values = filterBar.querySelector(`.tag-dim-values${suffix}[data-dim="${dim}"], .tag-dim-group${suffix}[data-dim="${dim}"] .tag-dim-values${suffix}`);
           if (values) values.classList.toggle('hidden');
-        }
+        });
+      });
+      filterBar.querySelectorAll('[data-letter-toggle]').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          const parent = toggle.closest(`.tag-letter-group, .tag-letter-group-desktop`);
+          if (parent) {
+            const values = parent.querySelector('.tag-letter-values, .tag-letter-values-desktop');
+            if (values) values.classList.toggle('hidden');
+          }
+        });
       });
     });
 
-    const btns = filterBar.querySelectorAll('.tag-filter-btn');
+    const allBtns = containers.flatMap(c => [...c.querySelectorAll('.tag-filter-btn')]);
     const articles = document.querySelectorAll('#gallery-grid article');
     const selected = new Set();
     let useOr = false;
-    const modeToggle = document.getElementById('filter-mode-toggle');
+    const modeToggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-desktop')].filter(Boolean);
 
-    if (modeToggle) {
-      modeToggle.addEventListener('click', () => {
+    modeToggles.forEach(t => {
+      t.addEventListener('click', () => {
         useOr = !useOr;
-        modeToggle.textContent = useOr ? 'OR' : 'AND';
-        modeToggle.classList.toggle('bg-[var(--link-color)]', useOr);
-        modeToggle.classList.toggle('text-white', useOr);
-        modeToggle.classList.toggle('border-[var(--link-color)]', useOr);
+        modeToggles.forEach(b => { b.textContent = useOr ? 'OR' : 'AND'; b.classList.toggle('bg-[var(--link-color)]', useOr); b.classList.toggle('text-white', useOr); b.classList.toggle('border-[var(--link-color)]', useOr); });
         applyFilter();
       });
-    }
+    });
 
     function applyFilter() {
-      const allBtn = filterBar.querySelector('[data-tag=""]');
-      const tagBtns = filterBar.querySelectorAll('[data-tag]:not([data-tag=""])');
-
-      if (selected.size === 0) {
-        allBtn.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-        allBtn.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+      containers.forEach(filterBar => {
+        const allBtn = filterBar.querySelector('[data-tag=""]');
+        const tagBtns = filterBar.querySelectorAll('[data-tag]:not([data-tag=""])');
+        if (!allBtn) return;
+        if (selected.size === 0) {
+          allBtn.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+          allBtn.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+        } else {
+          allBtn.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+          allBtn.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+        }
         tagBtns.forEach(b => {
-          b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-          b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        });
-      } else {
-        allBtn.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-        allBtn.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        tagBtns.forEach(b => {
-          if (selected.has(b.dataset.tag)) {
+          if (selected.size > 0 && selected.has(b.dataset.tag)) {
             b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
             b.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
           } else {
@@ -446,8 +476,7 @@ const cacheVersion = Date.now().toString()
             b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
           }
         });
-      }
-
+      });
       articles.forEach(article => {
         if (selected.size === 0) {
           article.style.display = '';
@@ -460,18 +489,12 @@ const cacheVersion = Date.now().toString()
       });
     }
 
-    btns.forEach(btn => {
+    allBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const tag = btn.dataset.tag;
-        if (!tag) {
-          selected.clear();
-        } else {
-          if (selected.has(tag)) {
-            selected.delete(tag);
-          } else {
-            selected.add(tag);
-          }
-        }
+        if (!tag) { selected.clear(); }
+        else if (selected.has(tag)) { selected.delete(tag); }
+        else { selected.add(tag); }
         applyFilter();
       });
     });
