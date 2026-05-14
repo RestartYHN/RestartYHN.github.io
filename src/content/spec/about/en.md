@@ -6,11 +6,11 @@ This blog has been significantly extended from the [Momo](https://github.com/Mot
 ## New Features
 
 - **Memos**: Local timeline/micro-blog based on Astro Content Collections, zero backend, Markdown writing, auto-collapse cards
-- **Appreciation System**: Gallery + article appreciation with multi-level tag taxonomy (IP, artist, country, author, genre, etc.), AND/OR filtering
-- **Gallery Enhancement**: Image lightbox preview, prev/next navigation, wheel zoom, mobile touch swipe
-- **Archive Enhancement**: Separate blog and appreciation archives, dimension-grouped tag tree, initial letter jump, collapsible sections
+- **Appreciation System**: Dedicated appreciation page with integrated gallery and article curation, multi-level tag taxonomy, AND/OR filtering, dedicated archives
+- **Gallery Enhancement**: Image lightbox preview, prev/next navigation, wheel zoom
+- **Archive Enhancement**: Separate blog and appreciation archives, dimension-grouped tag tree, initial letter grouping, collapsible sections, mobile adaptation
+- **Multi-level Tags**: Unified `dimension:value` tag format across the site, sidebar grouped by dimension, sorted by initial letter
 - **Cover Image Lightbox**: Blog post cover images integrated with PhotoSwipeLightbox for fullscreen preview
 - **Comment Image Preview**: Comment images with carousel navigation
-- **Multi-level Tags**: Unified `dimension:value` tag format across the site, sidebar grouped by dimension, sorted by initial letter
+- **Music Player**: Global music player with playlist support
 - **Custom Background**: Multiple background images with cycling switcher, light/dark theme aware
-- **Mobile Adaptation**: Collapsible tag panels for archives, synced gallery filters on mobile
