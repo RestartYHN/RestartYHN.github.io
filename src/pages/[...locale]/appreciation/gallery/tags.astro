@@ -2,12 +2,12 @@
 import MainPageLayout from '@layouts/MainPageLayout.astro'
 import Cover from '@components/Cover.astro'
 import FabMenu from '@components/control/FabMenu.astro'
-import CategoryTree from '@components/CategoryTree.svelte'
 import { siteConfig } from '@/config'
 import i18nit from '@i18n/translation'
 import { i18n } from "astro:config/client"
 import { getRelativeLocaleUrl } from '@utils/url-utils'
 import { loadGalleryData } from '@utils/gallery-utils'
+import { pinyin } from 'pinyin-pro'
 
 export async function getStaticPaths() {
   return i18n?.locales.map(locale => ({
@@ -19,8 +19,65 @@ const currentLang = Astro.currentLocale || i18n!.defaultLocale
 const normalizedLang = currentLang === 'en' ? 'en' : 'zh-cn'
 const t = i18nit(currentLang)
 
+function parseTag(tag: string): [string, string] {
+  const idx = tag.indexOf(':');
+  if (idx === -1) return ['', tag];
+  return [tag.slice(0, idx), tag.slice(idx + 1)];
+}
+
+function getInitial(tag: string): string {
+  const [, val] = parseTag(tag);
+  const ch = val.charAt(0);
+  if (/[a-zA-Z]/.test(ch)) return ch.toUpperCase()
+  if (/[0-9]/.test(ch)) return '#'
+  if (/[\u4e00-\u9fff]/.test(ch)) {
+    const py = pinyin(ch, { pattern: 'first', toneType: 'none' })
+    return py ? py.toUpperCase() : '#'
+  }
+  return '#'
+}
+
 const { authors, works } = loadGalleryData()
-const allTags = [...new Set(works.flatMap(w => w.tags || []))]
+const tagCounts: Record<string, number> = {}
+works.forEach(w => {
+  (w.tags || []).forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1 })
+})
+const allTags = [...new Set(works.flatMap(w => w.tags || []))].sort((a, b) => {
+  const [, va] = parseTag(a);
+  const [, vb] = parseTag(b);
+  return va.localeCompare(vb, 'zh-u-co-pinyin') || a.localeCompare(b);
+})
+
+const dimGroups: { dim: string, letters: { key: string, values: { val: string, full: string, count: number }[] }[] }[] = (() => {
+  const map = new Map<string, Map<string, Map<string, number>>>();
+  for (const tag of allTags) {
+    const [dim, val] = parseTag(tag);
+    const d = dim || '其他';
+    const init = getInitial(val);
+    if (!map.has(d)) map.set(d, new Map());
+    const dm = map.get(d)!;
+    if (!dm.has(init)) dm.set(init, new Map());
+    const vm = dm.get(init)!;
+    vm.set(val, (vm.get(val) || 0) + 1);
+  }
+  const result: typeof dimGroups = [];
+  for (const [dim, dm] of map) {
+    const letters: { key: string; values: { val: string; full: string; count: number }[] }[] = [];
+    for (const [key, vm] of dm) {
+      const values = Array.from(vm.entries()).map(([val, count]) => ({
+        val,
+        full: dim === '其他' ? val : `${dim}:${val}`,
+        count,
+      }));
+      values.sort((a, b) => a.val.localeCompare(b.val, 'zh-u-co-pinyin'));
+      letters.push({ key, values });
+    }
+    letters.sort((a, b) => a.key.localeCompare(b.key));
+    result.push({ dim, letters });
+  }
+  result.sort((a, b) => a.dim.localeCompare(b.dim, 'zh-u-co-pinyin'));
+  return result;
+})()
 
 const cacheVersion = Date.now().toString()
 const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.appreciation')} - ${siteConfig.title}`
@@ -41,52 +98,114 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
         : `${works.length} 幅作品 · ${allTags.length} 个标签`}
     />
 
-    <div class="flex flex-col lg:flex-row gap-6 mb-8">
-      <div class="lg:w-56 flex-shrink-0">
-        <div class="sticky top-20">
-          <CategoryTree
-            allTags={allTags}
-            lang={currentLang}
-            client:visible
-          />
-        </div>
-      </div>
-
-      <div class="flex-1">
-        <section id="gallery-grid" class="columns-1 sm:columns-2 gap-4 space-y-4">
-          {works.map((item) => {
-            const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
-            return (
-              <article data-tags={JSON.stringify(item.tags || [])} class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70">
-                <img
-                  src={item.image}
-                  alt={item.title[normalizedLang]}
-                  data-gallery-src={item.image}
-                  class="w-full h-auto object-contain cursor-zoom-in"
-                  loading="lazy" decoding="async"
-                />
-                <div class="p-3">
-                  <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title[normalizedLang]}</h3>
-                  {authorInfo && (
-                    <a href={`${getRelativeLocaleUrl(currentLang, `/appreciation/gallery/${authorInfo.slug}/`)}?v=${cacheVersion}`} class="inline-block mt-1 text-sm text-[var(--link-color)] hover:underline">
-                      {authorInfo.name[normalizedLang]}
-                    </a>
-                  )}
-                  <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
+    <details id="tag-filter-mobile" class="lg:hidden mb-6 border border-[var(--button-border-color)] rounded-xl p-3">
+      <summary class="flex items-center gap-2 text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
+        <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
+        <span id="selected-count-mobile" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+        <button id="filter-mode-toggle-mobile" class="ml-auto px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
+      </summary>
+      <div class="mt-2">
+        <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
+          {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
+        </button>
+        {dimGroups.map(group => (<>
+          <div class="tag-dim-group-mobile" data-dim={group.dim}>
+            <span class="block text-xs font-bold text-[var(--link-color)] px-2 py-0.5 mt-2 cursor-pointer" data-dim-toggle={group.dim}>{group.dim}</span>
+            <div class="tag-dim-values-mobile ml-1 hidden">
+              {group.letters.map(l => (
+                <div class="tag-letter-group-mobile" data-letter={l.key}>
+                  <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
+                  <div class="tag-letter-values-mobile ml-2" class:hidden={l.values.length > 3}>
+                    {l.values.map(v => (
+                      <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
+                        {v.val} <span class="opacity-50">({v.count})</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </article>
-            )
-          })}
-        </section>
+              ))}
+            </div>
+          </div>
+        </>))}
       </div>
+    </details>
+
+    <div class="relative mb-8">
+      <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+        {works.map((item) => {
+          const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
+          return (
+            <article data-tags={JSON.stringify(item.tags || [])} class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70">
+              <img
+                src={item.image}
+                alt={item.title[normalizedLang]}
+                data-gallery-src={item.image}
+                class="w-full h-auto object-contain cursor-zoom-in"
+                loading="lazy" decoding="async"
+              />
+              <div class="p-3">
+                <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title[normalizedLang]}</h3>
+                {authorInfo && (
+                  <a href={`${getRelativeLocaleUrl(currentLang, `/appreciation/gallery/${authorInfo.slug}/`)}?v=${cacheVersion}`} class="inline-block mt-1 text-sm text-[var(--link-color)] hover:underline">
+                    {authorInfo.name[normalizedLang]}
+                  </a>
+                )}
+                <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
+                {item.tags?.length > 0 && (
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    {item.tags.map((tag) => {
+                      const [dim, val] = parseTag(tag);
+                      return (
+                        <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">
+                          {dim ? <><span class="opacity-50">{dim}·</span>{val}</> : val}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </article>
+          )
+        })}
+      </section>
+
+      <aside id="tag-filter" class="hidden lg:block fixed top-24 w-44 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-8rem)] overflow-y-auto" style="right:1rem">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-[var(--text-color)]">
+            {normalizedLang === 'en' ? 'Tags' : '标签'}
+            <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+          </h3>
+          <button id="filter-mode-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
+        </div>
+        <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
+          {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
+        </button>
+        {dimGroups.map(group => (<>
+          <div class="tag-dim-group" data-dim={group.dim}>
+            <span class="block text-xs font-bold text-[var(--link-color)] px-2 py-0.5 mt-2 cursor-pointer" data-dim-toggle={group.dim}>{group.dim}</span>
+            <div class="tag-dim-values ml-1 hidden">
+              {group.letters.map(l => (
+                <div class="tag-letter-group" data-letter={l.key}>
+                  <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
+                  <div class="tag-letter-values ml-2" class:hidden={l.values.length > 3}>
+                    {l.values.map(v => (
+                      <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
+                        {v.val} <span class="opacity-50">({v.count})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>))}
+      </aside>
     </div>
   </div>
   <FabMenu showBackBottom={true} />
 </MainPageLayout>
 
 <script>
-  import CategoryTree from '@components/CategoryTree.svelte';
-
   let overlayEl = null;
 
   function closeOverlay() {
@@ -191,16 +310,77 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
   document.addEventListener('DOMContentLoaded', initGalleryPreview);
   document.addEventListener('astro:page-load', initGalleryPreview);
 
-  function initCategoryFilter() {
-    const tree = document.querySelector('.category-tree');
-    if (!tree || tree.dataset.bound === 'true') return;
-    tree.dataset.bound = 'true';
+  function initTagFilter() {
+    const containers = [document.getElementById('tag-filter'), document.getElementById('tag-filter-mobile')].filter(Boolean);
+    if (containers.length === 0) return;
+    if (containers[0].dataset.bound === 'true') return;
+    containers.forEach(c => { c.dataset.bound = 'true'; });
 
+    containers.forEach(filterBar => {
+      filterBar.querySelectorAll('[data-dim-toggle]').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          const dim = toggle.dataset.dimToggle;
+          const cls = filterBar.id === 'tag-filter-mobile' ? '.tag-dim-group-mobile' : '.tag-dim-group';
+          const values = filterBar.querySelector(`${cls}[data-dim="${dim}"] .tag-dim-values, ${cls}[data-dim="${dim}"] .tag-dim-values-mobile`);
+          if (values) values.classList.toggle('hidden');
+        });
+      });
+
+      filterBar.querySelectorAll('[data-letter-toggle]').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          const parent = toggle.closest('.tag-letter-group, .tag-letter-group-mobile');
+          if (parent) {
+            const values = parent.querySelector('.tag-letter-values, .tag-letter-values-mobile');
+            if (values) values.classList.toggle('hidden');
+          }
+        });
+      });
+    });
+
+    const allBtns = containers.flatMap(c => [...c.querySelectorAll('.tag-filter-btn')]);
     const articles = document.querySelectorAll('#gallery-grid article');
+    const selected = new Set();
+    let useOr = false;
+    const countEls = [document.getElementById('selected-count'), document.getElementById('selected-count-mobile')].filter(Boolean);
+    const modeToggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-mobile')].filter(Boolean);
 
-    tree.addEventListener('change', (e) => {
-      const selected = new Set(e.detail.selectedTags);
-      const useOr = e.detail.useOr ?? false;
+    modeToggles.forEach(t => {
+      t.addEventListener('click', () => {
+        useOr = !useOr;
+        modeToggles.forEach(b => { b.textContent = useOr ? 'OR' : 'AND'; b.classList.toggle('bg-[var(--link-color)]', useOr); b.classList.toggle('text-white', useOr); b.classList.toggle('border-[var(--link-color)]', useOr); });
+        applyFilter();
+      });
+    });
+
+    function applyFilter() {
+      containers.forEach(filterBar => {
+        const allBtn = filterBar.querySelector('[data-tag=""]');
+        const tagBtns = filterBar.querySelectorAll('[data-tag]:not([data-tag=""])');
+        if (!allBtn) return;
+
+        if (selected.size === 0) {
+          allBtn.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+          allBtn.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+        } else {
+          allBtn.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+          allBtn.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+        }
+
+        tagBtns.forEach(b => {
+          if (selected.size > 0 && selected.has(b.dataset.tag)) {
+            b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+            b.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+          } else {
+            b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+            b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
+          }
+        });
+      });
+
+      countEls.forEach(el => {
+        el.classList.toggle('hidden', selected.size === 0);
+        if (selected.size > 0) el.textContent = `· ${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
+      });
 
       articles.forEach(article => {
         if (selected.size === 0) {
@@ -212,9 +392,19 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
             : [...selected].every(t => tags.includes(t)) ? '' : 'none';
         }
       });
+    }
+
+    allBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.tag;
+        if (!tag) { selected.clear(); }
+        else if (selected.has(tag)) { selected.delete(tag); }
+        else { selected.add(tag); }
+        applyFilter();
+      });
     });
   }
 
-  document.addEventListener('DOMContentLoaded', initCategoryFilter);
-  document.addEventListener('astro:page-load', initCategoryFilter);
+  document.addEventListener('DOMContentLoaded', initTagFilter);
+  document.addEventListener('astro:page-load', initTagFilter);
 </script>

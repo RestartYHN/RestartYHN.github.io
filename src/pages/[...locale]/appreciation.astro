@@ -1,0 +1,66 @@
+---
+import MainPageLayout from '@layouts/MainPageLayout.astro'
+import Cover from '@components/Cover.astro'
+import FabMenu from '@components/control/FabMenu.astro'
+import { siteConfig } from '@/config'
+import i18nit from '@i18n/translation'
+import { i18n } from "astro:config/client"
+import { getRelativeLocaleUrl } from '@utils/url-utils'
+
+export async function getStaticPaths() {
+  return i18n?.locales.map(locale => ({
+    params: { locale: locale == i18n?.defaultLocale ? undefined : (locale as string) }
+  }))
+}
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale
+const normalizedLang = currentLang === 'en' ? 'en' : 'zh-cn'
+const t = i18nit(currentLang)
+
+const pageTitle = `${t("header.appreciation")} - ${siteConfig.title}`
+---
+
+<MainPageLayout title={pageTitle} lang={currentLang}>
+  <div class="mx-auto w-full max-w-[var(--page-width)]">
+    <Cover title={t("cover.title.appreciation")} subTitle={t("cover.subTitle.appreciation")} />
+
+    <div class="flex flex-wrap gap-3 mb-6">
+      <a href={getRelativeLocaleUrl(currentLang, '/appreciation/gallery/tags/')} class="text-sm text-[var(--link-color)] hover:underline">
+        {normalizedLang === 'en' ? 'Browse Tags' : '浏览标签'}
+      </a>
+      <span class="text-[var(--text-color-70)]">|</span>
+      <a href={getRelativeLocaleUrl(currentLang, '/appreciation/archives/')} class="text-sm text-[var(--link-color)] hover:underline">
+        {normalizedLang === 'en' ? 'Archive' : '归档'}
+      </a>
+    </div>
+
+    <div class="grid gap-6 sm:grid-cols-2 mt-8 mb-8">
+      <a
+        href={getRelativeLocaleUrl(currentLang, '/appreciation/gallery/')}
+        class="group block overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 hover:border-[var(--link-color)] transition-colors p-8 text-center"
+      >
+        <div class="text-5xl mb-4">🖼️</div>
+        <h2 class="text-xl font-semibold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors">
+          {normalizedLang === 'en' ? 'Gallery' : '画廊'}
+        </h2>
+        <p class="mt-2 text-sm text-[var(--text-color-70)]">
+          {normalizedLang === 'en' ? 'Illustration works from artists I love' : '我喜欢的画师和ta们的插画作品'}
+        </p>
+      </a>
+
+      <a
+        href={getRelativeLocaleUrl(currentLang, '/appreciation/articles/')}
+        class="group block overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 hover:border-[var(--link-color)] transition-colors p-8 text-center"
+      >
+        <div class="text-5xl mb-4">📝</div>
+        <h2 class="text-xl font-semibold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors">
+          {normalizedLang === 'en' ? 'Articles' : '文章'}
+        </h2>
+        <p class="mt-2 text-sm text-[var(--text-color-70)]">
+          {normalizedLang === 'en' ? 'Curated appreciation articles' : '精选鉴赏文章'}
+        </p>
+      </a>
+    </div>
+  </div>
+  <FabMenu showBackBottom={true} />
+</MainPageLayout>

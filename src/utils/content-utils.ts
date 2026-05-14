@@ -130,3 +130,8 @@ export async function getAppreciationEntrySort(lang: string) {
     return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
   });
 }
+
+export async function getMemos() {
+  const collection = await getCollection('memos');
+  return collection;
+}

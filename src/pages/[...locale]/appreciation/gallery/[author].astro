@@ -7,6 +7,7 @@ import i18nit from '@i18n/translation'
 import { i18n } from "astro:config/client"
 import { getRelativeLocaleUrl } from '@utils/url-utils'
 import { getAuthorWorks, loadGalleryData } from '@utils/gallery-utils'
+import { pinyin } from 'pinyin-pro'
 
 export async function getStaticPaths() {
   const paths = []
@@ -47,11 +48,48 @@ const coverSubTitle = normalizedLang === 'en'
   ? `${authorWorks.length} works`
   : `共 ${authorWorks.length} 幅作品`
 const allTags = [...new Set(authorWorks.flatMap(w => w.tags || []))]
-function displayTag(tag: string): [string, string] {
+function parseTag(tag: string): [string, string] {
   const idx = tag.indexOf(':');
   if (idx === -1) return ['', tag];
   return [tag.slice(0, idx), tag.slice(idx + 1)];
 }
+function getInitial(tag: string): string {
+  const [, val] = parseTag(tag);
+  const ch = val.charAt(0);
+  if (/[a-zA-Z]/.test(ch)) return ch.toUpperCase();
+  if (/[0-9]/.test(ch)) return '#';
+  if (/[\u4e00-\u9fff]/.test(ch)) {
+    const py = pinyin(ch, { pattern: 'first', toneType: 'none' });
+    return py ? py.toUpperCase() : '#';
+  }
+  return '#';
+}
+const dimGroups: { dim: string, letters: { key: string, values: { val: string, full: string, count: number }[] }[] }[] = (() => {
+  const map = new Map<string, Map<string, Map<string, number>>>();
+  for (const tag of allTags) {
+    const [dim, val] = parseTag(tag);
+    const d = dim || '其他';
+    const init = getInitial(val);
+    if (!map.has(d)) map.set(d, new Map());
+    const dm = map.get(d)!;
+    if (!dm.has(init)) dm.set(init, new Map());
+    const vm = dm.get(init)!;
+    vm.set(val, (vm.get(val) || 0) + 1);
+  }
+  const result: typeof dimGroups = [];
+  for (const [dim, dm] of map) {
+    const letters: { key: string; values: { val: string; full: string; count: number }[] }[] = [];
+    for (const [key, vm] of dm) {
+      const values = Array.from(vm.entries()).map(([val, count]) => ({ val, full: `${dim}:${val}`, count }));
+      values.sort((a, b) => a.val.localeCompare(b.val, 'zh-u-co-pinyin'));
+      letters.push({ key, values });
+    }
+    letters.sort((a, b) => a.key.localeCompare(b.key));
+    result.push({ dim, letters });
+  }
+  result.sort((a, b) => a.dim.localeCompare(b.dim, 'zh-u-co-pinyin'));
+  return result;
+})()
 const cacheVersion = Date.now().toString()
 ---
 
@@ -84,19 +122,37 @@ const cacheVersion = Date.now().toString()
     </div>
 
     {allTags.length > 0 && (
-      <div id="tag-filter" class="flex flex-wrap items-center gap-2 mb-6">
-        <button data-tag="" class="tag-filter-btn px-3 py-1.5 text-sm rounded-md border border-[var(--link-color)] bg-[var(--link-color)] text-white transition-colors">
-          {normalizedLang === 'en' ? 'All' : '全部'}
-        </button>
-        {allTags.map((tag) => (
-          <button data-tag={tag} class="tag-filter-btn px-3 py-1.5 text-sm rounded-md border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">
-            {tag}
+      <details id="tag-filter" class="mb-6 border border-[var(--button-border-color)] rounded-xl p-3">
+        <summary class="flex items-center gap-2 text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
+          <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
+          <span id="selected-count" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+          <button id="filter-mode-toggle" class="ml-auto px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
+        </summary>
+        <div class="mt-2">
+          <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
+            {normalizedLang === 'en' ? 'All' : '全部'}
           </button>
-        ))}
-        <button id="filter-mode-toggle" class="px-2 py-1.5 text-xs rounded-md border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors ml-auto" title={normalizedLang === 'en' ? 'Toggle AND/OR' : '切换与/或运算'}>
-          AND
-        </button>
-      </div>
+          {dimGroups.map(group => (<>
+            <div class="tag-dim-group" data-dim={group.dim}>
+              <span class="block text-xs font-bold text-[var(--link-color)] px-2 py-0.5 mt-2 cursor-pointer" data-dim-toggle={group.dim}>{group.dim}</span>
+              <div class="tag-dim-values ml-1 hidden">
+                {group.letters.map(l => (
+                  <div class="tag-letter-group" data-letter={l.key}>
+                    <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
+                    <div class="tag-letter-values ml-2" class:hidden={l.values.length > 3}>
+                      {l.values.map(v => (
+                        <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
+                          {v.val} <span class="opacity-50">({v.count})</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>))}
+        </div>
+      </details>
     )}
 
     <section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mb-8">
@@ -115,7 +171,7 @@ const cacheVersion = Date.now().toString()
             {item.tags?.length > 0 && (
               <div class="mt-2 flex flex-wrap gap-1">
                 {item.tags.map((tag) => {
-                  const [dim, val] = displayTag(tag);
+                  const [dim, val] = parseTag(tag);
                   return (
                     <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">
                       {dim ? <><span class="opacity-50">{dim}·</span>{val}</> : val}
@@ -330,6 +386,25 @@ const cacheVersion = Date.now().toString()
     const filterBar = document.getElementById('tag-filter');
     if (!filterBar || filterBar.dataset.bound === 'true') return;
     filterBar.dataset.bound = 'true';
+
+    filterBar.querySelectorAll('[data-dim-toggle]').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const dim = toggle.dataset.dimToggle;
+        const values = filterBar.querySelector(`.tag-dim-group[data-dim="${dim}"] .tag-dim-values`);
+        if (values) values.classList.toggle('hidden');
+      });
+    });
+
+    filterBar.querySelectorAll('[data-letter-toggle]').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const key = toggle.dataset.letterToggle;
+        const parent = toggle.closest('.tag-letter-group');
+        if (parent) {
+          const values = parent.querySelector('.tag-letter-values');
+          if (values) values.classList.toggle('hidden');
+        }
+      });
+    });
 
     const btns = filterBar.querySelectorAll('.tag-filter-btn');
     const articles = document.querySelectorAll('#gallery-grid article');
