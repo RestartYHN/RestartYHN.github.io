@@ -12,6 +12,7 @@
   export let currentLang = "zh-cn";
   export let defaultLocale = "zh-cn";
   export let baseUrl = "/blog/";
+  export let subTitle = "";
 
   let selectedCategories: string[] = [];
   let useOr = false;
@@ -155,7 +156,7 @@
 <div class="archives mx-auto w-full max-w-[var(--page-width)]">
     <div class="text-center pt-5 pb-10 max-w-[var(--page-width)] mx-auto md:mt-0 mt-28">
         <p class="text-[var(--text-color)] text-3xl py-5 font-bold">{t("header.archive")}</p>
-        <p class="text-[var(--text-color-70)] font-bold">{t("cover.subTitle.archive", {count: filteredPosts.length})}</p>
+        <p class="text-[var(--text-color-70)] font-bold">{subTitle || t("cover.subTitle.archive", {count: filteredPosts.length})}</p>
     </div>
 
     {#if flatCategories.length > 0}

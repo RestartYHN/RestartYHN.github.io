@@ -17,6 +17,9 @@ export async function getStaticPaths() {
 
 const allPosts = await getAppreciationEntrySort(currentLang);
 const pageTitle = `${t("header.appreciation")} - ${t("header.archive")} - ${siteConfig.title}`;
+const subTitle = currentLang === 'en'
+  ? 'Curated articles, literary excerpts, and personal creations'
+  : '收录个人喜欢的插画、文学作品及个人创作';
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
@@ -25,6 +28,7 @@ const pageTitle = `${t("header.appreciation")} - ${t("header.archive")} - ${site
         sortedPosts={allPosts}
         currentLang={currentLang}
         defaultLocale={i18n!.defaultLocale}
+        subTitle={subTitle}
         baseUrl="/appreciation/articles/"
     />
     <FabMenu showBackBottom={true} />
