@@ -24,18 +24,22 @@ const cacheVersion = Date.now().toString()
 const pageTitle = `${t("header.gallery")} - ${siteConfig.title}`
 const coverTitle = normalizedLang === 'en' ? 'Gallery' : '画廊'
 const coverSubTitle = normalizedLang === 'en'
-  ? 'Artists I love and their illustration works'
-  : '我喜欢的画师和ta们的插画作品'
+  ? 'My favorite illustrators/IPs and image appreciation'
+  : '我喜爱的画师/IP以及图片鉴赏'
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
   <div class="mx-auto w-full max-w-[var(--page-width)]" >
     <Cover title={coverTitle} subTitle={coverSubTitle} />
 
-    <div class="mb-6">
+    <div class="mb-6 flex flex-wrap gap-4">
+      <a href={getRelativeLocaleUrl(currentLang, '/appreciation/')} class="inline-flex items-center gap-1 px-4 py-2 text-sm rounded-lg border border-[var(--button-border-color)] text-[var(--text-color)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        {normalizedLang === 'en' ? 'Back' : '返回鉴赏'}
+      </a>
       <a href={`${getRelativeLocaleUrl(currentLang, '/appreciation/gallery/tags/')}?v=${cacheVersion}`} class="inline-flex items-center gap-1 px-4 py-2 text-sm rounded-lg border border-[var(--button-border-color)] text-[var(--text-color)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
-        {normalizedLang === 'en' ? 'Browse by Tags' : '按标签浏览'}
+        {normalizedLang === 'en' ? 'Gallery Overview' : '画廊总览'}
       </a>
     </div>
 

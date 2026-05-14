@@ -23,11 +23,11 @@ const translation: Translation = {
         },
         subTitle: {
             home: "It will get better by tomorrow.",
-            archive: "Total of {count} articles",
-            about: "A minimalist blog template",
-            friends: "Interesting Souls",
-            memos: "Capturing the little moments of life",
-            appreciation: "Appreciate and enjoy",
+            archive: "Collections of config guides and personal blogs",
+            about: "Personal introduction and update log",
+            friends: "Friend links and personal external link recommendations",
+            memos: "Recording daily instant thoughts and casual rants",
+            appreciation: "Collections of favorite illustrations, articles, and occasional personal creations",
         },
         rotatingSubTitle: {
             home: [

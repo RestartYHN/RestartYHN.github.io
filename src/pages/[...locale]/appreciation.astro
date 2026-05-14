@@ -26,11 +26,11 @@ const pageTitle = `${t("header.appreciation")} - ${siteConfig.title}`
 
     <div class="flex flex-wrap gap-3 mb-6">
       <a href={getRelativeLocaleUrl(currentLang, '/appreciation/gallery/tags/')} class="text-sm text-[var(--link-color)] hover:underline">
-        {normalizedLang === 'en' ? 'Browse Tags' : '浏览标签'}
+        {normalizedLang === 'en' ? 'Gallery Overview' : '画廊总览'}
       </a>
       <span class="text-[var(--text-color-70)]">|</span>
       <a href={getRelativeLocaleUrl(currentLang, '/appreciation/archives/')} class="text-sm text-[var(--link-color)] hover:underline">
-        {normalizedLang === 'en' ? 'Archive' : '归档'}
+        {normalizedLang === 'en' ? 'Article Archive' : '文章归档'}
       </a>
     </div>
 
@@ -44,7 +44,7 @@ const pageTitle = `${t("header.appreciation")} - ${siteConfig.title}`
           {normalizedLang === 'en' ? 'Gallery' : '画廊'}
         </h2>
         <p class="mt-2 text-sm text-[var(--text-color-70)]">
-          {normalizedLang === 'en' ? 'Illustration works from artists I love' : '我喜欢的画师和ta们的插画作品'}
+          {normalizedLang === 'en' ? 'My favorite illustrators/IPs and image appreciation' : '我喜爱的画师/IP以及图片鉴赏'}
         </p>
       </a>
 
@@ -57,7 +57,7 @@ const pageTitle = `${t("header.appreciation")} - ${siteConfig.title}`
           {normalizedLang === 'en' ? 'Articles' : '文章'}
         </h2>
         <p class="mt-2 text-sm text-[var(--text-color-70)]">
-          {normalizedLang === 'en' ? 'Curated appreciation articles' : '精选鉴赏文章'}
+          {normalizedLang === 'en' ? 'Articles I like, paragraph excerpts, and personal creations' : '我喜欢的文章、段落摘录和个人创作'}
         </p>
       </a>
     </div>

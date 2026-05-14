@@ -23,11 +23,11 @@ const translation: Translation = {
         },
         subTitle: {
             home: "明日には良くなるからね.",
-            archive: "收录开发者所写配置指南和个人文章",
-            about: "一个极简的Blog模板",
-            friends: "有趣的灵魂",
-            memos: "记录生活的点点滴滴",
-            appreciation: "欣赏与品味",
+            archive: "收录开发者所写配置指南和个人博客",
+            about: "个人介绍和更新记录",
+            friends: "友情链接和个人外部链接推荐",
+            memos: "记录日常生活的即时想法和吐槽",
+            appreciation: "收录个人喜欢的插画图片和作家文章，偶尔掉落个人创作",
         },
         rotatingSubTitle: {
             home: [
