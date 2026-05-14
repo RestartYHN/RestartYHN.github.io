@@ -6,6 +6,7 @@ image: "./image/image3rd.jpg"
 draft: false
 slugId: 3rd
 category: 随笔
+categories: [类型:随笔]
 ---
 
 ## 简介

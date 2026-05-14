@@ -7,6 +7,7 @@ image: ""
 draft: false
 pinned: 1
 slugId: momo/memory
+categories: [类型:随笔]
 ---
 
 # 凡是过往，皆为序章

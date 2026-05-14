@@ -6,6 +6,7 @@ category: 测试
 image: ""
 draft: true
 slugId: momo/test/alert
+categories: 测试
 ---
 
 ## Alert 组件测试

@@ -6,6 +6,7 @@ category: 测试
 image: ""
 draft: true
 slugId: momo/test/card
+categories: 测试
 ---
 
 ## 音乐卡片

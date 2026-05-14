@@ -7,6 +7,7 @@ draft: false
 slugId: 1st
 pinned: 1
 category: 随笔
+categories: [类型:随笔]
 ---
 
 ## 开始写作

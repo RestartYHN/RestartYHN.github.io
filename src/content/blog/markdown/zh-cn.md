@@ -5,6 +5,8 @@ description: 测试Markdown的基本功能
 image: "./cover.jpg"
 draft: false
 slugId: momo/markdown
+category: 测试
+categories: [类型:测试]
 ---
 
 

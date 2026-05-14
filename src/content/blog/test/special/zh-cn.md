@@ -6,6 +6,7 @@ category: 测试
 image: ""
 draft: false
 slugId: momo/test/special
+categories: 测试
 ---
 
 ## 引用测试

@@ -6,6 +6,7 @@ image: "./image/image1.jpg"
 draft: false
 slugId: 2nd
 category: 记录
+categories: [类型:记录]
 ---
 
 ## 开始写作

@@ -6,6 +6,7 @@ category: 指南
 image: ""
 draft: false
 slugId: momo/intro/publish
+categories: 指南
 ---
 
 
