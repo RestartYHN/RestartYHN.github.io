@@ -3,7 +3,7 @@ title: 川端康成《雨伞》
 pubDate: 2026-05-14
 slugId: 2nd
 description: 这仅仅是关于雨伞的一桩韵事……
-category: 短篇小说
+category: 掌小说
 categories: [国家:日本, 作者:川端康成, 体裁:掌小说, 流派:新感觉派]
 ---
 
