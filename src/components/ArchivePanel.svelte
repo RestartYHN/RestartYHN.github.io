@@ -266,7 +266,7 @@
 
 <aside 
     id="category-sidebar"
-    class="hidden lg:block absolute left-[var(--toc-offset-left)] top-70 bottom-0 w-[var(--category-width)]">
+    class="hidden lg:block absolute left-[var(--toc-offset-left)] top-70 bottom-0 w-[var(--category-width)] z-10">
     <div class="sticky top-24">
         <div class="flex items-center gap-2 text-[var(--text-color)] font-bold mb-4 border-b border-[var(--button-border-color)] pb-2 uppercase tracking-wider">
             <Icon icon="fa6-solid:hashtag" class="text-xs" />
