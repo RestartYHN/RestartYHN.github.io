@@ -6,7 +6,7 @@ category: 测试
 image: ""
 draft: true
 slugId: momo/test/toc
-categories: 测试
+categories: [类型:测试]
 ---
 
 用来测试目录功能

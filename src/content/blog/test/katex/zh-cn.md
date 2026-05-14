@@ -6,7 +6,7 @@ category: 测试
 image: ""
 draft: false
 slugId: momo/test/katex
-categories: 测试
+categories: [类型:测试]
 ---
 
 ## KaTeX 数学公式测试

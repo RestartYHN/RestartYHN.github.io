@@ -6,7 +6,7 @@ category: 测试
 image: ""
 draft: true
 slugId: momo/test/draft
-categories: 测试
+categories: [类型:测试]
 ---
 
 ## 草稿
