@@ -72,10 +72,12 @@ const { remarkPluginFrontmatter } = await render(entry);
                         <Icon name="fa6-solid:clock" class="mr-1"></Icon> 
                         <span class="py-1 px-1">{remarkPluginFrontmatter.minutes || 0} {t("pagecard.minutes")}</span>
                     </p>
+                    {#if entry.data.category}
                     <p class="flex items-center whitespace-nowrap mr-2">
                         <Icon name="fa6-solid:hashtag" class="mr-1"></Icon> 
-                        <a href={getRelativeLocaleUrl(currentLang, `/archives/?category=${entry.data.category}`)} class="category-tag">{entry.data.category || t("pagecard.uncategorized")}</a>
+                        <a href={getRelativeLocaleUrl(currentLang, `/appreciation/archives/?tags=${entry.data.category}`)} class="category-tag">{entry.data.category}</a>
                     </p>
+                    {/if}
                 </div>
             </div>
         </div>
