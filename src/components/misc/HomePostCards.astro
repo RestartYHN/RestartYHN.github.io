@@ -58,7 +58,7 @@ const posts = allPosts.slice().sort((a,b) => b.data.pubDate.valueOf() - a.data.p
             <div class="mb-2 flex items-center justify-between gap-2 text-xs text-[var(--text-color-70)]">
               <span>{formatFullDate(post.data.pubDate, currentLang)}</span>
               <span class="rounded-full bg-[var(--button-hover-color)] px-1.5 py-0.5 text-[11px]">
-                {post.data.category || t('pagecard.uncategorized')}
+                {post.data.category || ''}
               </span>
             </div>
 

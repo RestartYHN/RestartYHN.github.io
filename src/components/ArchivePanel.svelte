@@ -17,10 +17,7 @@
   let useOr = false;
   const t = i18nit(currentLang);
 
-  $: flatCategories = [...new Set(sortedPosts.flatMap(p => [
-    ...(p.data?.categories || []),
-    ...(p.data?.category ? [p.data.category] : [])
-  ]))].sort((a, b) => a.localeCompare(b, 'zh-u-co-pinyin'));
+  $: flatCategories = [...new Set(sortedPosts.flatMap(p => p.data?.categories || []))].sort((a, b) => a.localeCompare(b, 'zh-u-co-pinyin'));
 
   function parseTag(tag: string): [string, string] {
     const idx = tag.indexOf(':');
@@ -85,7 +82,7 @@
 
   $: filteredPosts = selectedCategories.length > 0
     ? sortedPosts.filter(post => {
-        const postTags = [...(post.data?.categories || []), ...(post.data?.category ? [post.data.category] : [])];
+        const postTags = post.data?.categories || [];
         return useOr
           ? selectedCategories.some(t => postTags.includes(t))
           : selectedCategories.every(t => postTags.includes(t));
@@ -256,7 +253,7 @@
                                 </span>
                                 <span class="hidden md:flex items-center font-mono text-sm text-[var(--text-color-70)]">
                                     <Icon icon="fa6-solid:hashtag" class="mr-1" />
-                                    {post.data.category || t("pagecard.uncategorized")}
+                                    {post.data.category || ''}
                                 </span>
                             </a>
                         </div>
