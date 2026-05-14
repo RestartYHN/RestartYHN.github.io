@@ -23,7 +23,7 @@ const translation: Translation = {
         },
         subTitle: {
             home: "明日には良くなるからね.",
-            archive: "收录开发者所写配置指南和个人博客",
+            archive: "收录相关功能指南和个人博客",
             about: "个人介绍和更新记录",
             friends: "友情链接和个人外部链接推荐",
             memos: "记录日常生活的即时想法和吐槽",
