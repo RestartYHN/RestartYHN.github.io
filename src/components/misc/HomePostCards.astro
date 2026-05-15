@@ -17,10 +17,10 @@ const posts = allPosts.slice().sort((a,b) => b.data.pubDate.valueOf() - a.data.p
   <div class="mb-4 flex items-end justify-between gap-3 border-b border-[var(--button-border-color)] pb-3">
     <div>
       <h2 class="text-2xl font-bold text-[var(--text-color)]">
-        {currentLang === 'en' ? 'Latest Posts' : '最新文章'}
+        {currentLang === 'en' ? 'Latest Blog' : '最新博客'}
       </h2>
       <p class="mt-1 text-sm text-[var(--text-color-70)]">
-        {currentLang === 'en' ? 'Cards below the cover, like a quick reading shelf.' : '在封面下方放一组文章卡片，方便快速浏览。'}
+        {currentLang === 'en' ? 'Quick browse my blog' : '快速浏览我的博客'}
       </p>
     </div>
     <a href={getRelativeLocaleUrl(currentLang, '/blog/')} class="text-sm text-[var(--text-color-70)] transition-colors hover:text-[var(--link-color)]">
