@@ -1,6 +1,6 @@
 ---
 import { render } from 'astro:content'
-import { formatFullDate } from '@/utils/time'
+import { formatFullDate, formatFullDateTime } from '@/utils/time'
 import { i18n } from "astro:config/client";
 import i18nit from '@i18n/translation'
 
@@ -12,10 +12,13 @@ const { memo } = Astro.props;
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
 const t = i18nit(currentLang);
 
-const dateStr = memo.id; 
+const dateStr = memo.id;
 const { Content } = await render(memo);
 
-const dateFormatted = formatFullDate(new Date(dateStr), currentLang);
+const hasTime = /[T ]\d{2}:\d{2}/.test(dateStr);
+const dateFormatted = hasTime
+  ? formatFullDateTime(new Date(dateStr.replace('T', ' ')), currentLang)
+  : formatFullDate(new Date(dateStr), currentLang);
 ---
 
 <MemoCardSvelte 

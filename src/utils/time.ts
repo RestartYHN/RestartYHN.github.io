@@ -46,3 +46,16 @@ export function formatFullDate(dateInput: string | Date, lang: string = 'zh-CN')
 
   return lang.startsWith('zh') ? addPanguSpace(formatted) : formatted;
 }
+
+export function formatFullDateTime(dateInput: string | Date, lang: string = 'zh-CN'): string {
+  const date = ensureDate(dateInput);
+  const formatted = new Intl.DateTimeFormat(normalizeLocale(lang), {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+
+  return lang.startsWith('zh') ? addPanguSpace(formatted) : formatted;
+}
