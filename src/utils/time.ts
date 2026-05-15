@@ -2,10 +2,12 @@
  * 格式化日期函数，支持字符串和 Date 对象
  */
 const ensureDate = (input: string | Date): Date => {
-  if (input instanceof Date) return input;
-  
-  // 如果是字符串 YYYY-MM-DD
-  const [year, month, day] = input.split('-').map(Number);
+  if (input instanceof Date) {
+    if (isNaN(input.getTime())) return new Date();
+    return input;
+  }
+  const [year, month, day] = input.replace(/T.*/, '').split('-').map(Number);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return new Date();
   return new Date(year, month - 1, day);
 };
 

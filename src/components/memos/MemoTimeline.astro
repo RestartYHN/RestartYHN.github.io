@@ -15,10 +15,19 @@ const t = i18nit(currentLang);
 const dateStr = memo.id;
 const { Content } = await render(memo);
 
-const hasTime = /[T ]\d{2}:\d{2}/.test(dateStr);
-const dateFormatted = hasTime
-  ? formatFullDateTime(new Date(dateStr.replace('T', ' ')), currentLang)
-  : formatFullDate(new Date(dateStr), currentLang);
+const d = dateStr.split(/[tT]/)[0].split('-').map(Number);
+const timeMatch = dateStr.match(/[tT](\d{2})(\d{2})$/);
+let dateFormatted: string;
+let hasTime = false;
+if (timeMatch && d.length === 3 && !isNaN(d[2])) {
+  hasTime = true;
+  const hh = Number(timeMatch[1]), mm = Number(timeMatch[2]);
+  dateFormatted = formatFullDateTime(new Date(d[0], d[1] - 1, d[2], hh, mm), currentLang);
+} else {
+  dateFormatted = d.length === 3 && !isNaN(d[2])
+    ? formatFullDate(new Date(d[0], d[1] - 1, d[2]), currentLang)
+    : dateStr;
+}
 ---
 
 <MemoCardSvelte 
