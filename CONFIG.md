@@ -44,11 +44,13 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 ```
 
 ### 音乐播放器
-编辑 `src/data/music-playlist.json`，歌单格式：
-```json
-{ "id": "1", "title": "歌名", "artist": "歌手", "src": "/music/xxx.mp3", "cover": "/music/xxx.jpg" }
-```
-音频文件放入 `public/music/`。
+使用网易云音乐在线 API。编辑 `src/data/music.ts`：
+- `neteaseUserId` — 网易云用户 ID（公开歌单模式）
+- `defaultPlaylistId` — 默认加载的歌单 ID
+- `preferPublicProfile` — `true` = 读取公开歌单，无需登录
+- `seedTracks` — 默认占位歌曲列表
+
+歌单 ID 从网易云分享链接获取：`music.163.com/playlist?id=xxxxx` 中的数字。
 
 ### 编辑页面文字
 - 全局文案：`src/i18n/language/zh-cn.ts` / `en.ts`
