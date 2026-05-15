@@ -113,10 +113,10 @@ const id = 'global-bg-switcher';
       } else {
         const theme = document.documentElement.getAttribute('data-theme');
         if (theme === 'dark' || (!theme && prefersDark)) {
-          const i = images.findIndex((p) => p.includes('dark-cg'));
+          const i = images.findIndex((p) => p.includes('black'));
           if (i >= 0) idx = i;
         } else {
-          const i = images.findIndex((p) => p.includes('xmm'));
+          const i = images.findIndex((p) => p.includes('white'));
           if (i >= 0) idx = i;
         }
       }
