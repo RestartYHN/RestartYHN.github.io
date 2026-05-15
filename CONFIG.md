@@ -52,6 +52,13 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 
 歌单 ID 从网易云分享链接获取：`music.163.com/playlist?id=xxxxx` 中的数字。
 
+### 播客
+编辑 `src/pages/[...locale]/music.astro` 第 2462 行 `rids` 数组：
+```js
+const rids = ['1490741063', '新播客ID'];
+```
+播客 ID 从网易云播客分享链接获取：`music.163.com/radio?id=xxxxx` 中的数字。
+
 ### 编辑页面文字
 - 全局文案：`src/i18n/language/zh-cn.ts` / `en.ts`
 - 关于页面：`src/content/spec/about/zh-cn.md` / `en.md`
