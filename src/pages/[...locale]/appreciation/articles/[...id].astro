@@ -122,11 +122,11 @@ const { remarkPluginFrontmatter } = await render(entry);
         }
         {
             siteConfig.blogNavi.enable &&
-            <BlogNavi prev={prev} next={next}/>
+            <BlogNavi prev={prev} next={next} basePath="/appreciation/articles/"/>
         }
         {
             siteConfig.comments.enable && 
-            <Comments postSlug={entry.data.slugId} language={currentLang} postTitle={entry.data.title} client:visible/>
+            <Comments postSlug={`appreciation:${entry.data.slugId}`} language={currentLang} postTitle={entry.data.title} client:visible/>
         }
     </div>
     {
