@@ -430,10 +430,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   @media (max-width: 768px) {
     .music-bottom-player {
       display: grid;
-      grid-template-columns: 54px minmax(0, 1fr) auto auto auto;
+      grid-template-columns: 54px minmax(0, 1fr) auto auto auto auto;
       grid-template-areas:
-        "cover info prev play next"
-        "progress progress progress progress progress";
+        "cover info prev play next list"
+        "progress progress progress progress progress progress";
       gap: 0.45rem 0.5rem;
       align-items: center;
       padding: 0.65rem;
@@ -458,6 +458,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     #music-next {
       grid-area: next;
+    }
+
+    #music-playlist-btn {
+      grid-area: list;
     }
 
     .music-progress-wrap {
