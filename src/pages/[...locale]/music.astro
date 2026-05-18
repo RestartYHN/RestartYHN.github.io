@@ -1481,10 +1481,18 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     activeLyricIndex = -1;
     lastLyricScrollAtMs = 0;
     renderLyrics(lyricLines);
-    if (lyricsEl) {
-      lyricsEl.scrollTo({ top: 0, behavior: "auto" });
+    if (lyricsEl && lyricLines.length) {
+      const initialIdx = Math.max(0, getActiveLyricIndex(0));
+      const line = lyricsEl.querySelector(`li[data-i='${initialIdx}']`);
+      if (line) {
+        const isMobile = window.matchMedia("(max-width: 768px)").matches;
+        const ratio = isMobile ? 0.72 : 0.62;
+        const targetTop = line.offsetTop - lyricsEl.clientHeight * ratio + line.clientHeight / 2;
+        lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: "auto" });
+      } else {
+        lyricsEl.scrollTo({ top: 0, behavior: "auto" });
+      }
     }
-  }
 
   function renderTrackList() {
     if (!trackListEl) return;
