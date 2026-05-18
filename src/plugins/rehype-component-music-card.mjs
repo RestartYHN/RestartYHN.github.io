@@ -45,9 +45,15 @@ export function MusicCardComponent(properties, children) {
                 const apiBase = "https://api-enhanced-ashy-nine.vercel.app";
 
                 // 调用 api-enhanced 标准接口获取歌曲详细信息
-                fetch(apiBase + '/song/detail?ids=${songId}', { referrerPolicy: "no-referrer" })
-                    .then(response => response.json())
-                    .then(data => {
+                const songIdStr = String(${songId});
+                const baseUrl = apiBase; // 保存引用避免闭包内指向变化
+                
+                // 并行获取歌曲详情和歌词
+                Promise.all([
+                    fetch(baseUrl + '/song/detail?ids=' + songIdStr, { referrerPolicy: "no-referrer" }).then(r => r.json()),
+                    fetch(baseUrl + '/lyric?id=' + songIdStr, { referrerPolicy: "no-referrer" }).then(r => r.json())
+                ])
+                    .then(([data, lyricData]) => {
                         if (data && data.code === 200 && data.songs && data.songs.length > 0) {
                             const track = data.songs[0];
                             
@@ -83,12 +89,14 @@ export function MusicCardComponent(properties, children) {
                                     const state = typeof globalController.getState === "function" ? globalController.getState() : null;
                                     
                                     const newTrack = {
-                                        id: "${songId}",
+                                        id: songIdStr,
                                         title: track.name || "未知曲目",
                                         artist: artistName,
                                         cover: track.al && track.al.picUrl ? (track.al.picUrl + "?param=130y130") : "",
                                         // 采用网易云官方外链接口，无需强制查 API
-                                        audio: "https://music.163.com/song/media/outer/url?id=${songId}.mp3"
+                                        audio: "https://music.163.com/song/media/outer/url?id=" + songIdStr + ".mp3",
+                                        lyric: (lyricData && lyricData.lrc && lyricData.lrc.lyric) || "",
+                                        tlyric: (lyricData && lyricData.tlyric && lyricData.tlyric.lyric) || ""
                                     };
 
                                     if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
