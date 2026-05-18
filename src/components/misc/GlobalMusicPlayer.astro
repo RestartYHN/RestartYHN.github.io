@@ -813,7 +813,7 @@ import { musicConfig } from '@/data/music';
         console.warn('[GlobalPlayer] Audio error:', audio.error?.code, audio.error?.message, 'src:', audio.src);
       };
       audio.addEventListener('error', state.handlers.onError);
-      // [Fix] Removed restrictive crossOrigin='anonymous'
+      try { audio.crossOrigin = 'anonymous'; } catch (e) {}
       progressEl.addEventListener('input', state.handlers.onProgressInput);
 
       // Play mode toggle
