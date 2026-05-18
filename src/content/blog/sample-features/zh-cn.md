@@ -12,7 +12,7 @@ categories: [类型:测试, 状态:示例]
 ### 音乐卡片 (Vercel API)
 这是刚才配置好的网易云音乐卡片，会自动调用您的 `api-enhanced` 接口加载：
 
-::music{id="30431366"}
+::music{id="1825057515"}
 
 ### GitHub 卡片
 可以很方便地展示 GitHub 仓库状态：
