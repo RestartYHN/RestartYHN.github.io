@@ -80,68 +80,48 @@ export function MusicCardComponent(properties, children) {
                                 const globalController = window.__globalMusicBootstrapV1;
                                 if (globalController && typeof globalController.syncState === "function") {
                                     e.preventDefault();
+                                    const state = typeof globalController.getState === "function" ? globalController.getState() : null;
                                     
-                                    // 给卡片加一点正加载的反馈
-                                    card.classList.add("fetch-waiting");
-                                    
-                                    // 【升级版】：在这里不去写死外链，而是动态调取您自己的接口获取免 302 重定向的直链
-                                    fetch(apiBase + '/song/url/v1?id=${songId}&level=standard', { referrerPolicy: "no-referrer" })
-                                        .then(res => res.json())
-                                        .then(resData => {
-                                            card.classList.remove("fetch-waiting");
-                                            
-                                            let audioUrl = "";
-                                            if (resData && resData.data && resData.data[0] && resData.data[0].url) {
-                                                audioUrl = resData.data[0].url;
-                                                // 如果是 http，根据原系统机制改为 https 避免 mixed-content
-                                                if (window.location.protocol === "https:" && audioUrl.startsWith("http://")) {
-                                                    audioUrl = audioUrl.replace("http://", "https://");
-                                                }
-                                            } else {
-                                                console.warn("[MUSIC-CARD] Failed to get real URL via API, fallback to outer url.", resData);
-                                                // 如果直连接口挂了/获取不到（比如必须VIP的无损），降级回外链方案
-                                                audioUrl = "https://music.163.com/song/media/outer/url?id=${songId}.mp3";
+                                    const newTrack = {
+                                        id: "${songId}",
+                                        title: track.name || "未知曲目",
+                                        artist: artistName,
+                                        cover: track.al && track.al.picUrl ? (track.al.picUrl + "?param=130y130") : "",
+                                        // 采用网易云官方外链接口，无需强制查 API
+                                        audio: "https://music.163.com/song/media/outer/url?id=${songId}.mp3"
+                                    };
+
+                                    if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
+                                        // 把这首歌插到当前播放位置的下一首
+                                        const tracks = [...state.tracks];
+                                        const existsIndex = tracks.findIndex(t => String(t.id) === String(newTrack.id));
+                                        
+                                        if (existsIndex !== -1) {
+                                            // 如果列表里已经有这首歌，直接跳过去
+                                            globalController.syncState({ tracks, currentIndex: existsIndex });
+                                        } else {
+                                            // 插入下一首
+                                            tracks.splice(state.currentIndex + 1, 0, newTrack);
+                                            globalController.syncState({ tracks, currentIndex: state.currentIndex + 1 });
+                                        }
+                                    } else {
+                                        // 全局播放器当前没歌，直接初始化
+                                        globalController.syncState({ tracks: [newTrack], currentIndex: 0 });
+                                    }
+
+                                    // 模拟自动播放
+                                    setTimeout(() => {
+                                        const audio = document.getElementById("music-audio");
+                                        if (audio) {
+                                            // 【修复 CORS 问题】移除 audio 的跨域限制，允许直接播放网易云重定向的无 CORS 头的媒体资源
+                                            audio.removeAttribute("crossorigin");
+                                            audio.crossOrigin = null;
+
+                                            if (typeof audio.play === "function" && audio.paused) {
+                                                audio.play().catch(console.warn);
                                             }
-                                            
-                                            const state = typeof globalController.getState === "function" ? globalController.getState() : null;
-                                            
-                                            const newTrack = {
-                                                id: "${songId}",
-                                                title: track.name || "未知曲目",
-                                                artist: artistName,
-                                                cover: track.al && track.al.picUrl ? (track.al.picUrl + "?param=130y130") : "",
-                                                audio: audioUrl
-                                            };
-
-                                            if (state && Array.isArray(state.tracks)) {
-                                                const tracks = [...state.tracks];
-                                                const existsIndex = tracks.findIndex(t => String(t.id) === String(newTrack.id));
-                                                
-                                                if (existsIndex !== -1) {
-                                                    // 如果旧纪录里有这首歌，但当时它可能取的是降级的 URL 或者外链，直接在此用真直链覆盖更新一下它的音频属性！
-                                                    tracks[existsIndex] = { ...tracks[existsIndex], audio: audioUrl };
-                                                    globalController.syncState({ tracks, currentIndex: existsIndex });
-                                                } else {
-                                                    tracks.splice(state.currentIndex + 1, 0, newTrack);
-                                                    globalController.syncState({ tracks, currentIndex: state.currentIndex + 1 });
-                                                }
-                                            } else {
-                                                globalController.syncState({ tracks: [newTrack], currentIndex: 0 });
-                                            }
-
-                                            // 自动播放
-                                            setTimeout(() => {
-                                                const audio = document.getElementById("music-audio");
-                                                if (audio && typeof audio.play === "function" && audio.paused) {
-                                                    audio.play().catch(console.warn);
-                                                }
-                                            }, 50);
-
-                                        })
-                                        .catch(err => {
-                                            card.classList.remove("fetch-waiting");
-                                            console.warn("[MUSIC-CARD] Failed to get real URL:", err);
-                                        });
+                                        }
+                                    }, 50);
                                 }
                             });
                         }
