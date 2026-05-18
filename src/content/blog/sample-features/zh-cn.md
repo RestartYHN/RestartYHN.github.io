@@ -17,7 +17,7 @@ categories: [类型:测试, 状态:示例]
 ### GitHub 卡片
 可以很方便地展示 GitHub 仓库状态：
 
-::github{repo="restartyhn/Momo"}
+::github{repo="RestartYHN/RestartYHN.github.io"}
 
 ### 外部视频导入
 通过 iframe 直接嵌入 Bilibili 视频，自适应宽度：
