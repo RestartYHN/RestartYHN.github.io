@@ -865,6 +865,7 @@ import { musicConfig } from '@/data/music';
         unbind();
         return;
       }
+      unbind();
       bind();
       if (state.tracks[state.currentIndex]) {
         updateNowPlaying(state.tracks[state.currentIndex]);
