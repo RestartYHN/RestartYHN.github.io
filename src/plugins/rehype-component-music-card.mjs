@@ -112,8 +112,12 @@ export function MusicCardComponent(properties, children) {
                                     // 模拟自动播放
                                     setTimeout(() => {
                                         const audio = document.getElementById("music-audio");
-                                        if (audio && typeof audio.play === "function") {
-                                            if (audio.paused) {
+                                        if (audio) {
+                                            // 【修复 CORS 问题】移除 audio 的跨域限制，允许直接播放网易云重定向的无 CORS 头的媒体资源
+                                            audio.removeAttribute("crossorigin");
+                                            audio.crossOrigin = null;
+
+                                            if (typeof audio.play === "function" && audio.paused) {
                                                 audio.play().catch(console.warn);
                                             }
                                         }
