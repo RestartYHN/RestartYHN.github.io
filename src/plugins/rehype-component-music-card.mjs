@@ -71,6 +71,55 @@ export function MusicCardComponent(properties, children) {
                             card.classList.remove("fetch-waiting");
                             card.dataset.loaded = "true";
                             console.log("[MUSIC-CARD] Loaded: ${songId}");
+
+                            // 绑定点击事件：拦截默认跳转，联动全局悬浮播放器
+                            card.addEventListener("click", function(e) {
+                                // 如果按下 Ctrl/Command 则保持原行为(新标签页打开)
+                                if (e.ctrlKey || e.metaKey) return;
+                                
+                                const globalController = window.__globalMusicBootstrapV1;
+                                if (globalController && typeof globalController.syncState === "function") {
+                                    e.preventDefault();
+                                    const state = typeof globalController.getState === "function" ? globalController.getState() : null;
+                                    
+                                    const newTrack = {
+                                        id: "${songId}",
+                                        title: track.name || "未知曲目",
+                                        artist: artistName,
+                                        cover: track.al && track.al.picUrl ? (track.al.picUrl + "?param=130y130") : "",
+                                        // 采用网易云官方外链接口，无需强制查 API
+                                        audio: "https://music.163.com/song/media/outer/url?id=${songId}.mp3"
+                                    };
+
+                                    if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
+                                        // 把这首歌插到当前播放位置的下一首
+                                        const tracks = [...state.tracks];
+                                        const existsIndex = tracks.findIndex(t => String(t.id) === String(newTrack.id));
+                                        
+                                        if (existsIndex !== -1) {
+                                            // 如果列表里已经有这首歌，直接跳过去
+                                            globalController.syncState({ tracks, currentIndex: existsIndex });
+                                        } else {
+                                            // 插入下一首
+                                            tracks.splice(state.currentIndex + 1, 0, newTrack);
+                                            globalController.syncState({ tracks, currentIndex: state.currentIndex + 1 });
+                                        }
+                                    } else {
+                                        // 全局播放器当前没歌，直接初始化
+                                        globalController.syncState({ tracks: [newTrack], currentIndex: 0 });
+                                    }
+
+                                    // 模拟自动播放
+                                    setTimeout(() => {
+                                        const audio = document.getElementById("music-audio");
+                                        if (audio && typeof audio.play === "function") {
+                                            if (audio.paused) {
+                                                audio.play().catch(console.warn);
+                                            }
+                                        }
+                                    }, 50);
+                                }
+                            });
                         }
                     })
                     .catch(err => {
