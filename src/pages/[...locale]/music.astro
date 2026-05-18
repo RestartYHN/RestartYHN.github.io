@@ -969,14 +969,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     progressWrap = document.querySelector(".music-progress-wrap");
     playIcon = btnMainPlay?.querySelector(".music-control-icon-play");
     pauseIcon = btnMainPlay?.querySelector(".music-control-icon-pause");
-    // Ensure crossOrigin is set before any src assignment to allow CORS-enabled hosts
-    try {
-      if (audio && audio.crossOrigin !== 'anonymous') {
-        audio.crossOrigin = 'anonymous';
-      }
-    } catch (e) {
-      console.debug('[music] set crossOrigin failed', e);
-    }
+    // [Fix] Removed restrictive crossOrigin='anonymous' to allow playing 302-redirect NetEase outer links.
   }
 
   let tracks = [];
