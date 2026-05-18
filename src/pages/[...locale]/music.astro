@@ -1400,11 +1400,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     activeLyricIndex = active;
     lyricsEl.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
-    if (active < 0) return;
-
-    const activeLine = lyricsEl.querySelector(`li[data-i='${active}']`);
+    const targetIdx = active < 0 ? 0 : active;
+    const activeLine = lyricsEl.querySelector(`li[data-i='${targetIdx}']`);
     if (activeLine) {
-      activeLine.classList.add("active");
+      if (active >= 0) activeLine.classList.add("active");
 
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
       const ACTIVE_LINE_VIEWPORT_RATIO = isMobile ? 0.72 : 0.62;
