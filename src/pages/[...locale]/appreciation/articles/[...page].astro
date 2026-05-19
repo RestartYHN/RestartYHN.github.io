@@ -34,7 +34,8 @@ export const getStaticPaths = (async ({ paginate }) => {
   return paths;
 }) satisfies GetStaticPaths
 
-const pageTitle = `${t("header.appreciation")} - ${siteConfig.title}`;
+const articleTitle = currentLang === 'en' ? 'Articles' : '文章';
+const pageTitle = `${articleTitle} - ${t("header.appreciation")} - ${siteConfig.title}`;
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>

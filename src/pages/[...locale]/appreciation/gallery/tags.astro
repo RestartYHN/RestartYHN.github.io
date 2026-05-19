@@ -80,7 +80,7 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
 })()
 
 const cacheVersion = Date.now().toString()
-const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.appreciation')} - ${siteConfig.title}`
+const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总览'} - ${t('header.appreciation')} - ${siteConfig.title}`
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
@@ -92,7 +92,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Tags' : '标签'} - ${t('header.
     </div>
 
     <Cover
-      title={normalizedLang === 'en' ? 'Gallery Tags' : '画廊标签'}
+      title={normalizedLang === 'en' ? 'Gallery Overview' : '画廊总览'}
       subTitle={normalizedLang === 'en'
         ? `${works.length} works · ${allTags.length} tags`
         : `${works.length} 幅作品 · ${allTags.length} 个标签`}
