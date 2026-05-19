@@ -1,5 +1,6 @@
 /// <reference types="mdast" />
 import { h } from "hastscript";
+import { musicConfig } from "../data/music.ts";
 
 /**
  * Creates a NetEase Music Card.
@@ -39,10 +40,7 @@ export function MusicCardComponent(properties, children) {
                 // 幂等性检查：如果卡片不存在，或已经标记为加载完成，则不再执行
                 if (!card || card.dataset.loaded === "true") return;
 
-                // 【需要修改这里】
-                // 填入您使用 vercel 部署的 api-enhanced (NeteaseCloudMusicApi) 地址：
-                // 注意末尾不要带斜杠，例如 "https://netease-api.yourdomain.com"
-                const apiBase = "https://api-enhanced-ashy-nine.vercel.app";
+                const apiBase = "${musicConfig.neteaseApiBase || musicConfig.apiBase}";
 
                 // 调用 api-enhanced 标准接口获取歌曲详细信息
                 fetch(apiBase + '/song/detail?ids=${songId}', { referrerPolicy: "no-referrer" })
