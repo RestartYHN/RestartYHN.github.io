@@ -450,12 +450,17 @@
           bind:value={content} bind:this={contentArea}></textarea>
         <!-- 顶层表单使用 fallback 注入器，不再保留原始 openPicker 按钮 -->
         <div class="flex justify-between items-center mt-1">
-          <div>
+          <div class="flex items-center gap-2">
             <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" bind:this={fileInput} on:change={handleFileSelect} />
             <button type="button" on:click={() => fileInput?.click()} disabled={uploadingImage}
               class="text-xs text-[var(--text-color)] inline-flex items-center gap-1 px-2 py-1 rounded border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               {uploadingImage ? '上传中...' : '图片'}
+            </button>
+            <button type="button" id="top-emoji-btn"
+              class="__emoji_inject_btn text-xs text-[var(--text-color)] inline-flex items-center gap-1 px-2 py-1 rounded border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors"
+              on:click={(e) => { e.preventDefault(); openPicker((emoji, target) => insertEmojiToTextarea(contentArea!, emoji), contentArea); }}>
+              表情
             </button>
           </div>
           <!-- {getWordCount(content).chars} {t('comments.characters')} / {getWordCount(content).words} {t('comments.words')} -->
