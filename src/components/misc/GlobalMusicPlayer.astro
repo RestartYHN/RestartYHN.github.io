@@ -885,6 +885,10 @@ import { musicConfig } from '@/data/music';
   }
 
   if (!window[GLOBAL_MUSIC_KEY]) {
+    window.__MUSIC_API__ = {
+      apiBase: musicConfig.apiBase,
+      neteaseApiBase: musicConfig.neteaseApiBase,
+    };
     window[GLOBAL_MUSIC_KEY] = makeController();
     window[GLOBAL_MUSIC_KEY].onRouteChange();
     document.addEventListener('astro:page-load', () => window[GLOBAL_MUSIC_KEY].onRouteChange());

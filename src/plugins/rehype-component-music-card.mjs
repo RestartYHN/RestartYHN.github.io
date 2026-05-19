@@ -1,6 +1,5 @@
 /// <reference types="mdast" />
 import { h } from "hastscript";
-import { musicConfig } from "../data/music.ts";
 
 /**
  * Creates a NetEase Music Card.
@@ -40,7 +39,7 @@ export function MusicCardComponent(properties, children) {
                 // 幂等性检查：如果卡片不存在，或已经标记为加载完成，则不再执行
                 if (!card || card.dataset.loaded === "true") return;
 
-                const apiBase = "${musicConfig.neteaseApiBase || musicConfig.apiBase}";
+                const apiBase = (window.__MUSIC_API__ && window.__MUSIC_API__.neteaseApiBase) || (window.__MUSIC_API__ && window.__MUSIC_API__.apiBase) || '';
 
                 // 调用 api-enhanced 标准接口获取歌曲详细信息
                 fetch(apiBase + '/song/detail?ids=${songId}', { referrerPolicy: "no-referrer" })
