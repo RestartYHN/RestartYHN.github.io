@@ -369,7 +369,7 @@
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = '__emoji_inject_btn';
-    btn.textContent = '表情 😊';
+    btn.textContent = '表情';
     // 使用 CSS 类来控制外观（半透明并适应主题/背景）
     btn.style.marginLeft = '8px';
     btn.addEventListener('click', () => {
