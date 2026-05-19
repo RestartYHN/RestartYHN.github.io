@@ -4,7 +4,7 @@ pubDate: 2026-05-18
 slugId: sample-features
 description: "这是一篇自动生成的示例文章，用于集中展示博客的各项 Markdown 扩展语法、特殊组件（音乐卡片、视频、GitHub 卡片）以及高级排版功能。"
 category: 测试
-categories: [类型:测试, 状态:示例]
+categories: [类型:测试]
 ---
 
 ## 1. 特殊卡片展示
