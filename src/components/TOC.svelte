@@ -15,8 +15,8 @@
 
 	// 弹簧动画：处理索引位置的连续过渡
 	const focusSpring = spring(-1, {
-		stiffness: 0.12,
-		damping: 0.7
+		stiffness: 0.25,
+		damping: 0.5
 	});
 
 	// 基础逻辑计算
@@ -73,11 +73,8 @@
 	// 动态样式算法：基于弹簧数值计算透明度与字重
 	function getSpringStyle(index, currentSpring) {
 		const distance = Math.abs(index - currentSpring);
-		// 距离当前激活项越近，越明显
-		const opacity = Math.max(0.2, 1 - distance * 0.2);
-		// 只有距离非常近时才加粗
-		const fontWeight = distance < 0.5 ? '700' : '400';
-		
+		const opacity = Math.max(0.45, 1 - distance * 0.35);
+		const fontWeight = distance < 0.3 ? '700' : distance < 1.5 ? '500' : '400';
 		return `opacity: ${opacity}; font-weight: ${fontWeight};`;
 	}
 
