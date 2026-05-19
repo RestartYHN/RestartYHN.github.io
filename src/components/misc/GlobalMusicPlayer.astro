@@ -211,14 +211,18 @@ import { musicConfig } from '@/data/music';
     }
 
     .music-progress-wrap {
-      grid-area: progress;
-      grid-column: 1 / -1;
-      margin-top: 0.2rem;
-      margin-left: -0.65rem;
-      margin-right: -0.65rem;
-      padding: 0 0.65rem;
+      position: absolute;
+      bottom: 0.4rem;
+      left: 0.4rem;
+      right: 0.4rem;
+      margin-top: 0;
+      padding: 0;
       grid-template-columns: 34px 1fr 34px;
       gap: 0.35rem;
+    }
+
+    .music-bottom-player {
+      padding-bottom: 2rem;
     }
 
     .music-control {

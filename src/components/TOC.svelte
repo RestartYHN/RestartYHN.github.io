@@ -112,7 +112,7 @@
 					<li>
 						<a
 							href={`#${heading.slug}`}
-							class="block py-1 text-sm transition-colors duration-300 hover:text-[var(--link-color)]"
+                            class="block py-1 px-1 text-sm rounded transition-colors duration-200 hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)]"
 							style:padding-left="{(heading.depth - minDepth) * 1.2}rem" 
 							style={getSpringStyle(i, $focusSpring)}
 							onclick={(e) => {
