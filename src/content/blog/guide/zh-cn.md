@@ -246,30 +246,19 @@ Momo 扩展的自定义文本效果（标准 Markdown 之外）：
 :::
 ```
 
-### 音乐卡片
-`::music{id="歌曲ID"}` 插入网易云音乐卡片，点击联动全局播放器。ID 从网易云歌曲链接获取：
-```markdown
-::music{id="1825057515"}
-```
-
-### GitHub 卡片
-`::github{repo="用户/仓库"}` 展示仓库状态卡片：
-```markdown
-::github{repo="RestartYHN/RestartYHN.github.io"}
-```
-
-### 视频
-`<iframe>` 嵌入外部视频，建议加 `width="100%"` 自适应宽度：
-```html
-<iframe src="//player.bilibili.com/player.html?bvid=BV..." width="100%" height="468"></iframe>
-```
-
 ### KaTeX 数学公式
 行内 `$E=mc^2$` → $E=mc^2$，块级 `$$公式$$`：
 
 $$
 f(x) = \int_{-\infty}^\infty \hat f(\xi)\,e^{2 \pi i \xi x} \,d\xi
 $$
+
+### 音乐卡片、GitHub 卡片、视频
+（实时演示见上方「功能展示」区）
+
+- 音乐：`::music{id="歌曲ID"}`，ID 从网易云链接获取
+- GitHub：`::github{repo="用户/仓库"}`
+- 视频：`<iframe src="..." width="100%" height="468"></iframe>`
 
 ### Typst 排版
 `\`\`\`typst\`\`\`` 代码块可编写 Typst 排版代码，渲染为 SVG 图形：
