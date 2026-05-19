@@ -40,6 +40,10 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 2. 编辑 `src/components/misc/BackgroundSwitcher.astro` 的 `images` 数组，用 R2 完整 URL
 3. 编辑 `src/data/bg-meta.ts`，key 同步改为 R2 URL
 
+### 过场动画
+1. 加载动画:`C:\Users\Yin_H\Downloads\Momo-main\public\images`添加gif文件
+2. 开场动画:`C:\Users\Yin_H\Downloads\Momo-main\public\images\splash`添加开场动画背景图，`layout.astro`同步图片名称
+
 ### 添加友链
 编辑 `src/config.ts` 的 `friendLinkConfig` 数组：
 ```ts
