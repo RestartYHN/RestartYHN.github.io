@@ -15,3 +15,4 @@ Based on the [Momo](https://github.com/Motues/Momo) project, this blog has been 
 - **Music Player**: a global music player with playlists deployed on Vercel using Netease Cloud Music API, with reverse proxy to mitigate blocking.
 - **Rotating Background**: supports multiple background images in a carousel, adapted to light/dark themes.
 - **Custom Cursor**: adds a Lilith custom cursor, with new click and trailing effects.
+- **R2 Image Hosting**: gallery and background images migrated to Cloudflare R2 with custom domain CDN, reducing repo size
