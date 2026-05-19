@@ -113,9 +113,24 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
     
     <script is:inline>
         let loaderTimeout;
+        
+        // 在这里配置你准备的多个过场动画 GIF 路径
+        const transitionGifs = [
+            "/images/transition1.gif",
+            "/images/transition2.gif",
+            "/images/transition3.gif", 
+            "/images/transition4.gif"
+        ];
 
         // 1. 开始准备跳转
         document.addEventListener('astro:before-preparation', () => {
+            // 每次页面跳转前，随机挑选一个过度动画
+            const gifElement = document.querySelector('.loading-gif');
+            if (gifElement) {
+                const randomGif = transitionGifs[Math.floor(Math.random() * transitionGifs.length)];
+                gifElement.src = randomGif;
+            }
+
             loaderTimeout = setTimeout(() => {
             const overlay = document.getElementById('loading-overlay');
             if (overlay) overlay.style.display = 'flex';
