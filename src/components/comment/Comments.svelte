@@ -370,8 +370,9 @@
     btn.type = 'button';
     btn.className = '__emoji_inject_btn';
     btn.textContent = '表情';
-    // 使用 CSS 类来控制外观（半透明并适应主题/背景）
-    btn.style.marginLeft = '8px';
+    btn.style.cssText = 'padding:2px 8px;font-size:12px;border-radius:4px;border:1px solid var(--button-border-color);background:transparent;color:var(--text-color);cursor:pointer;margin-left:8px;transition:all .15s ease';
+    btn.onmouseenter = () => { btn.style.background = 'var(--button-hover-color)'; btn.style.color = 'var(--link-color)'; };
+    btn.onmouseleave = () => { btn.style.background = 'transparent'; btn.style.color = 'var(--text-color)'; };
     btn.addEventListener('click', () => {
       const taEl = ta as HTMLTextAreaElement;
       // 使用统一的全局 picker（openPicker），避免与旧的 fallback portal 冲突
