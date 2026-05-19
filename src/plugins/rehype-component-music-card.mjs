@@ -77,9 +77,9 @@ export function MusicCardComponent(properties, children) {
                                 // 如果按下 Ctrl/Command 则保持原行为(新标签页打开)
                                 if (e.ctrlKey || e.metaKey) return;
                                 
+                                e.preventDefault();
                                 const globalController = window.__globalMusicBootstrapV1;
                                 if (globalController && typeof globalController.syncState === "function") {
-                                    e.preventDefault();
                                     const state = typeof globalController.getState === "function" ? globalController.getState() : null;
                                     
                                     const newTrack = {
