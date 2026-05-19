@@ -5,6 +5,7 @@ description: 收录常用功能配置方式与 Markdown 扩展演示
 slugId: guide
 category: 指南
 categories: [类型:指南]
+pinned: 1
 ---
 
 ## 配置指南

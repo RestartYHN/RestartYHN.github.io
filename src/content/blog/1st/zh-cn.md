@@ -5,7 +5,7 @@ description: Hello!
 image: "./images/IMG_1195.jpg"
 draft: false
 slugId: 1st
-pinned: 1
+pinned: 2
 category: 随笔
 categories: [类型:随笔]
 ---
