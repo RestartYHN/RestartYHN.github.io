@@ -113,7 +113,7 @@ ID 从 `music.163.com/radio?id=xxxxx` 获取。
 ::github{repo="RestartYHN/RestartYHN.github.io"}
 
 ### 视频
-<iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=BV1n281ePEd9" scrolling="no" frameborder="no" allowfullscreen="true" width="100%" height="468"></iframe>
+<iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=BV1sxUHBREEt" scrolling="no" frameborder="no" allowfullscreen="true" width="100%" height="468"></iframe>
 
 ---
 
