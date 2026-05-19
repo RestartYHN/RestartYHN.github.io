@@ -178,12 +178,36 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background-color: var(--bg-color);
+    /* 桌面端默认背景图 */
+    background-image: url('/images/splash/desktop2.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg-color); /* 兜底背景色 */
     display: flex;
     align-items: center;
     justify-content: center;
     /* 增加 transform 过渡，使用优雅的贝塞尔曲线实现“拉开帷幕” */
     transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1), opacity 1s cubic-bezier(0.7, 0, 0.3, 1), visibility 1s;
+  }
+
+  /* 移动端切换相对应的竖屏壁纸 */
+  @media (max-width: 768px) {
+    .splash-screen {
+      background-image: url('/images/splash/mobile1.jpg');
+    }
+  }
+
+  /* 添加稍微半透明的遮罩，保证头像和文字能看清，已去掉模糊效果 */
+  .splash-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.15); /* 明亮模式偏白遮罩 */
+    z-index: 0;
+  }
+
+  [data-theme="dark"] .splash-screen::before {
+    background-color: rgba(0, 0, 0, 0.3); /* 暗色模式偏黑遮罩 */
   }
   
   .splash-screen.hidden {
@@ -198,6 +222,7 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
     flex-direction: column;
     align-items: center;
     gap: 16px;
+    z-index: 1; /* 保证内容层在毛玻璃遮罩之上 */
   }
 
   .splash-avatar {
