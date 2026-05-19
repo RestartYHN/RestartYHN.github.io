@@ -7,6 +7,8 @@ import 'photoswipe/style.css'
 import { i18n } from "astro:config/client";
 import { ClientRouter } from "astro:transitions";
 import CursorTrail from "@/components/CursorTrail.astro";
+import { Image } from "astro:assets";
+import headerAvatar from "@assets/Motues.jpg";
 
 interface Props {
   title: string;
@@ -18,6 +20,9 @@ const { title, lang, description, noCache = false } = Astro.props;
 
 const pageTitle = title;
 const pageLang = lang || i18n?.defaultLocale || "zh-cn";
+
+const isExternalAvatar = profileConfig.avatar?.startsWith("/") || profileConfig.avatar?.startsWith("http");
+const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
 ---
 
 <!DOCTYPE html>
@@ -41,6 +46,11 @@ const pageLang = lang || i18n?.defaultLocale || "zh-cn";
         } else {
             document.documentElement.classList.remove('dark');
         }
+
+        // 开场动画状态判断
+        if (sessionStorage.getItem('splashShown')) {
+          document.documentElement.classList.add('splash-shown');
+        }
         })();
     </script>
     <meta charset="UTF-8">
@@ -60,8 +70,43 @@ const pageLang = lang || i18n?.defaultLocale || "zh-cn";
 </head>
 <body class="h-full bg-[var(--bg-color)]">
     
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen" aria-hidden="true">
+      <div class="splash-content">
+        {isExternalAvatar ? (
+          <img src={externalAvatarSrc ?? ""} alt={profileConfig.name} class="splash-avatar" />
+        ) : (
+          <Image src={headerAvatar} alt={profileConfig.name} quality={90} format="webp" loading="eager" class="splash-avatar" />
+        )}
+        <h1 class="splash-name">{profileConfig.name}</h1>
+      </div>
+    </div>
+    <script is:inline data-astro-rerun>
+      (function() {
+        const splash = document.getElementById('splash-screen');
+        if (!splash) return;
+        if (sessionStorage.getItem('splashShown')) {
+          // 兜底防御，确保完全移除
+          splash.remove();
+        } else {
+          // 首次访问，停顿 2.5 秒后淡出隐藏
+          setTimeout(() => {
+            splash.classList.add('hidden');
+            sessionStorage.setItem('splashShown', 'true');
+            
+            // 重要：必须等待动画结束后，才能加上 splash-shown 从而触发 display: none，否则动画会被打断！
+            setTimeout(() => {
+              document.documentElement.classList.add('splash-shown');
+              splash.remove();
+            }, 1000); // 这个 1000ms 需要和 css 中的 transition 时间一致
+          }, 2500);
+        }
+      })();
+    </script>
+
+    <!-- Page Loading Overlay -->
     <div id="loading-overlay" aria-hidden="true">
-      <div class="spinner"></div>
+      <img src="/images/transition.gif" alt="loading" class="loading-gif" />
     </div>
 
     <slot />
@@ -118,18 +163,73 @@ const pageLang = lang || i18n?.defaultLocale || "zh-cn";
     to { opacity: 1; }
   }
 
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--button-hover-color);
-    border-top: 4px solid var(--link-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+  .loading-gif {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
   }
 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  /* 开场屏基础样式 */
+  html.splash-shown .splash-screen {
+    display: none !important;
+  }
+  
+  .splash-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background-color: var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 增加 transform 过渡，使用优雅的贝塞尔曲线实现“拉开帷幕” */
+    transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1), opacity 1s cubic-bezier(0.7, 0, 0.3, 1), visibility 1s;
+  }
+  
+  .splash-screen.hidden {
+    /* 向上平移 100% 离开屏幕 */
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .splash-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .splash-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    animation: scaleUp 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+
+  .splash-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-color);
+    margin: 0;
+    opacity: 0;
+    animation: slideUpFade 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
+  }
+
+  [data-theme="dark"] .splash-avatar {
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+  }
+
+  @keyframes scaleUp {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes slideUpFade {
+    0% { transform: translateY(15px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
   }
 </style>
 
