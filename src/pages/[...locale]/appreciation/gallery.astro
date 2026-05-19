@@ -21,11 +21,12 @@ const t = i18nit(currentLang)
 const { authors, works } = loadGalleryData()
 const cacheVersion = Date.now().toString()
 
-const pageTitle = `${coverTitle} - ${t("header.appreciation")} - ${siteConfig.title}`
 const coverTitle = normalizedLang === 'en' ? 'Gallery' : '画廊'
 const coverSubTitle = normalizedLang === 'en'
   ? 'My favorite illustrators/IPs and image appreciation'
   : '我喜爱的画师/IP以及图片鉴赏'
+
+const pageTitle = `${coverTitle} - ${t("header.appreciation")} - ${siteConfig.title}`
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
