@@ -313,10 +313,12 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
   function initTagFilter() {
     const containers = [document.getElementById('tag-filter'), document.getElementById('tag-filter-mobile')].filter(Boolean);
     if (containers.length === 0) return;
-    if (containers[0].dataset.bound === 'true') return;
-    containers.forEach(c => { c.dataset.bound = 'true'; });
+    if (containers.every(c => c.dataset.bound === 'true')) return;
 
-    containers.forEach(filterBar => {
+    const unbound = containers.filter(c => c.dataset.bound !== 'true');
+    unbound.forEach(c => { c.dataset.bound = 'true'; });
+
+    unbound.forEach(filterBar => {
       filterBar.querySelectorAll('[data-dim-toggle]').forEach(toggle => {
         toggle.addEventListener('click', () => {
           const dim = toggle.dataset.dimToggle;
