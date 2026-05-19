@@ -78,8 +78,10 @@ function asLocaleText(
   }
 }
 
+const R2_BASE = 'https://img.restartyhn.top'
+
 function toPublicPath(author: string, file: string): string {
-  return `/gallery/${author}/${file}`
+  return `${R2_BASE}/${author}/${file}`
 }
 
 function normalizeKey(v: string | undefined): string {
