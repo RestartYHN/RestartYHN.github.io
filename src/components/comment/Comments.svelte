@@ -452,7 +452,7 @@
           <div>
             <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" bind:this={fileInput} on:change={handleFileSelect} />
             <button type="button" on:click={() => fileInput?.click()} disabled={uploadingImage}
-              class="text-xs text-[var(--text-color)]/70 hover:text-[var(--link-color)] inline-flex items-center gap-1">
+              class="text-xs text-[var(--text-color)] inline-flex items-center gap-1 px-2 py-1 rounded border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               {uploadingImage ? '上传中...' : '图片'}
             </button>
@@ -514,19 +514,17 @@
 
 <style>
   .__emoji_inject_btn {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid rgba(0,0,0,0.08);
-    /* 使用主题背景色并带半透明以适应图片背景；在支持的浏览器上使用 backdrop-filter 增强视觉 */
-    background: color-mix(in srgb, var(--bg-color) 70%, transparent);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid var(--button-border-color);
+    background: transparent;
     color: var(--text-color);
     cursor: pointer;
+    transition: all 0.15s ease;
   }
-
-  /* 在深色模式或当 --bg-color 接近黑色时，给边框更浅的高亮 */
-  @media (prefers-color-scheme: dark) {
-    .__emoji_inject_btn { border-color: rgba(255,255,255,0.06); }
+  .__emoji_inject_btn:hover {
+    background: var(--button-hover-color);
+    color: var(--link-color);
   }
 </style>
