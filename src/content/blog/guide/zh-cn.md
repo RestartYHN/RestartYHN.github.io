@@ -212,6 +212,19 @@ Momo 扩展的自定义文本效果（标准 Markdown 之外）：
 
 ### 提示框
 `:::` 语法创建提示容器，支持 `note`、`tip`、`important`、`caution`、`warning` 五种类型。可自定义标题：
+
+:::tip
+这是一个 `tip` 建议示例。
+:::
+
+:::note
+普通的 `note` 提示。
+:::
+
+:::caution
+`caution` 警告信息。
+:::
+
 ```markdown
 :::tip[自定义标题]
 内容
@@ -220,6 +233,12 @@ Momo 扩展的自定义文本效果（标准 Markdown 之外）：
 
 ### 引用
 `:::quote` 创建带装饰引号的引用区块：
+
+:::quote
+"生活就像海洋，只有意志坚强的人，才能到达彼岸。"
+<br><right>—— 马克思</right>
+:::
+
 ```markdown
 :::quote
 引用文字
@@ -246,7 +265,11 @@ Momo 扩展的自定义文本效果（标准 Markdown 之外）：
 ```
 
 ### KaTeX 数学公式
-行内 `$E=mc^2$`，块级 `$$公式$$`。
+行内 `$E=mc^2$` → $E=mc^2$，块级 `$$公式$$`：
+
+$$
+f(x) = \int_{-\infty}^\infty \hat f(\xi)\,e^{2 \pi i \xi x} \,d\xi
+$$
 
 ### Typst 排版
 `\`\`\`typst\`\`\`` 代码块可编写 Typst 排版代码，渲染为 SVG 图形：
