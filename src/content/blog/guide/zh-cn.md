@@ -88,6 +88,14 @@ ID 从 `music.163.com/radio?id=xxxxx` 获取。
 - `gallery-utils.ts` 的 `R2_BASE` 指向自定义域名
 - 博客和碎碎念图片较少，仍走 Git 本地存储
 
+### 评论区表情
+编辑 `src/components/comment/EmojiPicker.svelte` 第 14-61 行的 `bilibiliEmojis` 数组：
+```js
+{ name: 'doge', url: 'https://unpkg.com/@waline/emojis@1.1.0/bilibili/bb_doge.png' }
+```
+- 表情图片托管在 unpkg CDN，可替换为自定义 URL
+- 支持 Bilibili、颜文字、Emoji 三个 Tab 切换
+
 ### 编辑文字
 - 全局文案：`i18n/language/zh-cn.ts` / `en.ts`
 - 关于/友链：`content/spec/about/`、`content/spec/friends/`
