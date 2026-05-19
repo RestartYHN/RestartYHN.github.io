@@ -80,13 +80,13 @@ export function MusicCardComponent(properties, children) {
 
                             // 绑定点击事件：拦截默认跳转，联动全局悬浮播放器
                             card.addEventListener("click", function(e) {
-                                // 如果按下 Ctrl/Command 则保持原行为(新标签页打开)
                                 if (e.ctrlKey || e.metaKey) return;
+                                e.preventDefault();
                                 
                                 const globalController = window.__globalMusicBootstrapV1;
-                                if (globalController && typeof globalController.syncState === "function") {
-                                    e.preventDefault();
-                                    const state = typeof globalController.getState === "function" ? globalController.getState() : null;
+                                if (!globalController || typeof globalController.syncState !== "function") return;
+                                
+                                const state = typeof globalController.getState === "function" ? globalController.getState() : null;
                                     
                                     const newTrack = {
                                         id: songIdStr,
