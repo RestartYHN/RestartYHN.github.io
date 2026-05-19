@@ -91,7 +91,37 @@ function normalizeKey(v: string | undefined): string {
 export function loadGalleryData(): { authors: GalleryAuthor[]; works: GalleryWork[] } {
   const root = getGalleryRoot()
   if (!fs.existsSync(root)) {
-    return { authors: [], works: [] }
+    const meta = galleryMeta as GalleryMetaFile
+    const metaAuthors = meta.authors || []
+    const metaWorks = meta.works || []
+    const authors: GalleryAuthor[] = metaAuthors
+      .filter(a => a.enabled !== false)
+      .map((a, i) => ({
+        slug: a.slug,
+        name: asLocaleName(a.name, a.slug),
+        description: asLocaleText(a.description, '这里是画师简介。', 'Artist bio.'),
+        avatar: a.avatar || '',
+        order: a.order || i + 1,
+        enabled: a.enabled !== false,
+        workCount: metaWorks.filter(w => normalizeKey(w.author) === normalizeKey(a.slug) && w.enabled !== false).length,
+      }))
+      .sort((a, b) => a.order - b.order)
+    const works: GalleryWork[] = metaWorks
+      .filter(w => w.enabled !== false)
+      .map((w, i) => ({
+        id: w.id || `${normalizeKey(w.author || '')}-${String(i + 1).padStart(3, '0')}`,
+        author: w.author || '',
+        title: asLocaleName(w.title, w.id || ''),
+        image: w.image || '',
+        thumb: w.thumb || w.image || '',
+        year: w.year || new Date().getFullYear(),
+        tags: w.tags || [],
+        enabled: w.enabled !== false,
+        order: w.order || i + 1,
+        link: w.link || w.image || '',
+      }))
+      .sort((a, b) => a.order - b.order)
+    return { authors, works }
   }
 
   const meta = galleryMeta as GalleryMetaFile
