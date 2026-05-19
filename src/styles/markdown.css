@@ -171,6 +171,8 @@
   border-radius: 4px;
   font-family: 'JetBrains Mono Variable', ui-monospace;
   font-size: 0.9em;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 
@@ -186,7 +188,8 @@
   margin-top: 0.5rem !important;
   margin-bottom: 0.5rem !important;
   padding: 1rem;
-  overflow: auto;
+  overflow-x: auto;
+  max-width: 100%;
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 6px;
   font-family: 'JetBrains Mono Variable', ui-monospace;
