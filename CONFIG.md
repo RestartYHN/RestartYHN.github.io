@@ -24,18 +24,21 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 ```
 
 ### 添加画廊图片
-1. 图片放入 `public/gallery/画师名/`
-2. 编辑 `src/data/gallery.template.json` 登记信息：
+1. 通过 PicList 上传图片到 R2 桶 `img.restartyhn.top/画师名/`
+2. 编辑 `src/data/gallery.template.json` 登记信息（`image`、`thumb`、`avatar` 用 R2 完整 URL）：
 ```json
 "tags": ["IP:初音未来", "画师:混合可可"]
 ```
 3. 新画师需在 `authors` 数组注册
+4. `src/utils/gallery-utils.ts` 的 `R2_BASE` 指向你的 R2 自定义域
 
 ### 添加碎碎念
 `src/content/memos/` 下新建 `YYYY-MM-DD.md`，无 frontmatter，直接写内容。
 
 ### 自定义背景图
-图片放入 `public/cg/`，编辑 `src/components/misc/BackgroundSwitcher.astro` 的 `images` 数组添加路径。
+1. 通过 PicList 上传图片到 R2 桶 `img.restartyhn.top/cg/`
+2. 编辑 `src/components/misc/BackgroundSwitcher.astro` 的 `images` 数组，用 R2 完整 URL
+3. 编辑 `src/data/bg-meta.ts`，key 同步改为 R2 URL
 
 ### 添加友链
 编辑 `src/config.ts` 的 `friendLinkConfig` 数组：
