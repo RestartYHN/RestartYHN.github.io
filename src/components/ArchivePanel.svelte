@@ -173,7 +173,7 @@
                 {useOr ? 'OR' : 'AND'}
             </button>
         </summary>
-        <div class="mt-2">
+        <div class="mt-2 max-h-[50vh] overflow-y-auto">
             <button
                 class="mb-1 px-3 py-1 text-xs rounded-md border transition-all w-full text-left {selectedCategories.length === 0 ? 'bg-[var(--link-color)] text-white border-[var(--link-color)]' : 'hover:border-[var(--link-color)] border-[var(--button-border-color)] text-[var(--text-color)]'}"
                 on:click={() => toggleCategory(null)}

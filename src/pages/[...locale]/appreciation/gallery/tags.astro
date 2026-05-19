@@ -104,7 +104,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
         <span id="selected-count-mobile" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
         <button id="filter-mode-toggle-mobile" class="ml-auto px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
       </summary>
-      <div class="mt-2">
+      <div class="mt-2 max-h-[50vh] overflow-y-auto">
         <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
           {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
         </button>
