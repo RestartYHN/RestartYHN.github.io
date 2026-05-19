@@ -10,7 +10,7 @@ categories: [类型:指南]
 ## 配置指南
 
 ### 博客文章
-在 `src/content/blog/` 下新建目录，放 `zh-cn.md`：
+在 `src/content/blog/` 下新建目录，放 `zh-cn.md`。目录名 = slugId，图片放同级 `images/`：
 ```yaml
 ---
 title: 文章标题
@@ -19,30 +19,44 @@ slugId: my-post
 description: 简介
 image: "./images/cover.jpg"
 categories: [类型:随笔]
+pinned: 1          # 置顶优先级，数字越大越靠前，不填=不置顶
 ---
 ```
-目录名 = slugId，图片放同级 `images/` 下。
+- `categories` 为多级标签数组，格式 `维度:值`（如 `类型:随笔`、`体裁:教程`）
+- `category` 为旧版单字符串分类，向下兼容，归档中归入「其他」维度
+- 启用英文需另建 `en.md`
 
 ### 鉴赏文章
-目录建在 `src/content/appreciation/`，支持多级标签：
+目录建在 `src/content/appreciation/`，frontmatter 与博客文章格式一致。支持更多标签维度：
 ```yaml
 categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏析]
 ```
+- 标签维度自由定义，如 `IP`、`画师`、`作者`、`国家`、`文学体裁`、`流派`
+- 归档页按维度分组展示，支持 AND/OR 筛选
 
 ### 画廊
-PicList 上传到 R2 桶 `img.restartyhn.top/画师名/`，编辑 `src/data/gallery.template.json`：
-```json
-"tags": ["IP:初音未来", "画师:混合可可"]
-```
+使用 Cloudflare R2 图床 + PicList 上传。图片存入 `img.restartyhn.top/画师名/`，编辑 `src/data/gallery.template.json`：
+- `authors` 数组注册画师（slug、name、description、avatar、order）
+- `works` 数组登记作品（id、author、title、image、year、tags）
+- 标签格式：`"IP:初音未来"`、`"画师:混合可可"`
+- 新增画师需 R2 上传图片 + JSON 注册两步
 
 ### 碎碎念
-`src/content/memos/` 下新建 `YYYY-MM-DD.md`，无 frontmatter，直接写。
+`src/content/memos/` 下新建 `YYYY-MM-DD.md`，无 frontmatter，直接写 Markdown。
+- 文件名即日期，按时间降序排列
+- 支持时分：`YYYY-MM-DDTHHMM.md`（如 `2026-05-19T1227.md`）
+- 内容过长时卡片自动折叠
 
 ### 背景图
-PicList 上传到 R2 `img.restartyhn.top/cg/`，编辑 `BackgroundSwitcher.astro` 的 `images` 数组和 `bg-meta.ts`。
+PicList 上传到 R2 `img.restartyhn.top/cg/`，编辑两个文件：
+- `src/components/misc/BackgroundSwitcher.astro` 的 `images` 数组加 R2 URL
+- `src/data/bg-meta.ts` 的 key 同步改为 R2 URL，可配置 overlay/position/size
+- 默认深色主题加载 `dark-cg.jpg`，浅色主题加载 `xmm.jpg`
 
-### 过场动画
-`public/images/` 下放 GIF 文件；`public/images/splash/` 下放开场背景图，`Layout.astro` 同步图片名。
+### 开屏与过场动画
+- 加载中 GIF：`public/images/` 下放 GIF 文件，`Layout.astro` 中修改 `<img>` 的 `src`
+- 开场帷幕动画：`public/images/splash/` 下放背景图（桌面版 `desktop*.jpg`、移动版 `mobile*.jpg`），`Layout.astro` 同步图片名
+- 过场动画：支持多组 GIF 随机切换
 
 ### 友链
 `src/config.ts` 的 `friendLinkConfig` 数组：
@@ -51,10 +65,26 @@ PicList 上传到 R2 `img.restartyhn.top/cg/`，编辑 `BackgroundSwitcher.astro
 ```
 
 ### 音乐播放器
-编辑 `src/data/music.ts`：`neteaseUserId`、`defaultPlaylistId`、`seedTracks`。歌单 ID 从 `music.163.com/playlist?id=xxxxx` 获取。
+编辑 `src/data/music.ts`，使用网易云音乐 API：
+- `neteaseUserId` — 网易云用户 ID
+- `defaultPlaylistId` — 默认加载的歌单 ID，从 `music.163.com/playlist?id=xxxxx` 取数字部分
+- `preferPublicProfile` — `true` = 公开歌单免登录
+- `preferDirectNeteaseApi` — `true` = 直连网易云 API
+- `seedTracks` — 默认占位歌曲（id、title、artist、cover）
+- 页面歌词滚动自动定位，音乐卡片点击联动全局播放器
 
 ### 播客
-`music.astro` 第 2462 行 `rids` 数组，ID 从 `music.163.com/radio?id=xxxxx` 获取。
+`src/pages/[...locale]/music.astro` 第 2462 行 `rids` 数组：
+```js
+const rids = ['1490741063', '新播客ID'];
+```
+ID 从 `music.163.com/radio?id=xxxxx` 获取。
+
+### R2 图床
+画廊图片和背景图通过 Cloudflare R2 + 自定义域名 `img.restartyhn.top` 加载。
+- PicList（Amazon S3 协议）上传，按 `画师名/` 路径分文件夹
+- `gallery-utils.ts` 的 `R2_BASE` 指向自定义域名
+- 博客和碎碎念图片较少，仍走 Git 本地存储
 
 ### 编辑文字
 - 全局文案：`i18n/language/zh-cn.ts` / `en.ts`
