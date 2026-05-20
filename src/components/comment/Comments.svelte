@@ -12,6 +12,7 @@
   onMount(() => {
     const unsub = previewImageStore.subscribe(url => {
       if (url && !overlayEl) {
+        if (url.includes('/emoji')) return;
         const imgs = Array.from(document.querySelectorAll('.comment-content img')).filter((img: any) => !img.src.includes('/emoji')).map((img: any) => img.src);
         let currentIndex = imgs.indexOf(url);
         if(currentIndex === -1) currentIndex = 0;
