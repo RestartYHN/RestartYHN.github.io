@@ -333,6 +333,17 @@
 				title="表情">
 				😊
 			</button>
+			{#each REACT_TYPES as rt}
+				{@const cnt = reactions[rt.key] || 0}
+				{#if cnt > 0}
+					<button on:click={() => toggleReaction(rt.key)} disabled={reactPending}
+						class="text-xs hover:bg-[var(--button-hover-color)] rounded px-1 py-0.5 disabled:opacity-50 transition-colors"
+						class:font-bold={myReactions.includes(rt.key)}
+						class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
+						{rt.key} {cnt}
+					</button>
+				{/if}
+			{/each}
 		</div>
 		{#if showReactions}
 		<div class="mt-1 grid grid-cols-5 gap-1 text-xs">
