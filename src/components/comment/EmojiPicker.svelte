@@ -227,7 +227,7 @@
               {/each}
             </div>
           {:else if activeTab === 'kaomoji'}
-            <div class="grid grid-cols-3 gap-2 text-sm">
+            <div class="grid grid-cols-3 gap-2 text-sm overflow-y-auto max-h-[300px]">
               {#each KAOMOJI as k}
                 <button on:click={() => selectEmoji(k)} class="p-2 text-left hover:bg-[var(--button-hover-color)] rounded">{k}</button>
               {/each}
