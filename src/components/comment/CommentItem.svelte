@@ -129,33 +129,10 @@
 		}
 	}
 
-	async function compressImage(file: File): Promise<Blob> {
-		return new Promise((resolve, reject) => {
-			const img = new Image();
-			img.onload = () => {
-				const MAX = 2560;
-				let w = img.width, h = img.height;
-				if (w <= MAX && h <= MAX) return resolve(file);
-				if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-				else { w = Math.round(w * MAX / h); h = MAX; }
-				const canvas = document.createElement('canvas');
-				canvas.width = w; canvas.height = h;
-				canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-				canvas.toBlob(b => b ? resolve(b) : resolve(file), file.type, 0.85);
-			};
-			img.onerror = () => resolve(file);
-			img.src = URL.createObjectURL(file);
-		});
-	}
-
 	async function replyUploadAndInsert(file: File) {
 		replyUploadingImage = true;
-		let blob: Blob = file;
-		if (file.type.startsWith('image/') && !file.type.includes('gif')) {
-			blob = await compressImage(file);
-		}
 		const formData = new FormData();
-		formData.append('file', blob, file.name);
+		formData.append('file', file);
 		try {
 			const importSiteConfig = (await import('@/config')).siteConfig;
 			const apiUrl = importSiteConfig.comments.backendUrl;
