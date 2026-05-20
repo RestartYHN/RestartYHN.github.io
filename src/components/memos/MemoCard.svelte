@@ -94,7 +94,7 @@
 
   <div class="mt-2 flex items-center gap-2 text-sm text-[var(--text-color-70)]">
     <button on:click={() => showReactions = !showReactions}
-      class="w-6 h-6 rounded-full bg-[var(--bg-color)]/60 border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors flex-shrink-0"
+      class="w-6 h-6 rounded-full border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors flex-shrink-0"
       title="表情">
       😊
     </button>
