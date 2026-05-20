@@ -157,14 +157,20 @@
 	let myReactions: string[] = c?.myReactions || [];
 	let reactPending = false;
 
-	const REACT_TYPES = [
-		{ key: '👍', label: '赞' },
-		{ key: '❤️', label: '爱' },
-		{ key: '😂', label: '笑' },
-		{ key: '😮', label: '哇' },
-		{ key: '😢', label: '哭' },
-		{ key: '🎉', label: '贺' },
-	];
+  let showReactions = false;
+  const REACT_TYPES = [
+    { key: '❤️', label: '爱' },
+    { key: '😂', label: '笑' },
+    { key: '😅', label: '汗' },
+    { key: '👀', label: '盯' },
+    { key: '🎉', label: '贺' },
+    { key: '😮', label: '哇' },
+    { key: '😆', label: '乐' },
+    { key: '😉', label: '眨' },
+    { key: '😭', label: '哭' },
+    { key: '🍀', label: '运' },
+  ];
+  $: hasAnyReaction = REACT_TYPES.some(rt => (reactions[rt.key] || 0) > 0);
 
 	async function toggleReaction(type: string) {
 		if (reactPending) return;
@@ -297,18 +303,29 @@
 
 		<div class="mt-1 flex items-center gap-4 text-sm text-[var(--text-color-70)]">
 			<button on:click={() => dispatch('reply', c.id)} class="hover:text-[var(--link-color)]">{t('comments.reply') || '回复'}</button>
-			<div class="flex items-center gap-1">
-				{#each REACT_TYPES as rt}
-					<button on:click={() => toggleReaction(rt.key)} disabled={reactPending}
-						class="px-1.5 py-0.5 text-xs rounded hover:bg-[var(--button-hover-color)] disabled:opacity-50 transition-colors"
-						class:font-bold={myReactions.includes(rt.key)}
-						class:text-[var(--link-color)]={myReactions.includes(rt.key)}
-						title={rt.label}>
-						{rt.key} {(reactions[rt.key] || 0) > 0 ? reactions[rt.key] : ''}
-					</button>
-				{/each}
-			</div>
+			{#if hasAnyReaction || myReactions.length > 0}
+				<button on:click={() => showReactions = !showReactions}
+					class="w-6 h-6 rounded-full bg-white border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors"
+					title="表情">
+					😊
+				</button>
+			{/if}
 		</div>
+		{#if showReactions}
+		<div class="mt-1 grid grid-cols-5 gap-1 text-xs">
+			{#each REACT_TYPES as rt}
+				{@const cnt = reactions[rt.key] || 0}
+				{#if cnt > 0 || myReactions.includes(rt.key)}
+				<button on:click={() => toggleReaction(rt.key)} disabled={reactPending}
+					class="px-1.5 py-0.5 rounded hover:bg-[var(--button-hover-color)] disabled:opacity-50 transition-colors text-center"
+					class:font-bold={myReactions.includes(rt.key)}
+					class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
+					{rt.key} {cnt > 0 ? cnt : ''}
+				</button>
+				{/if}
+			{/each}
+		</div>
+		{/if}
 
 		{#if replyingToId === c.id}
 			<div class="mt-4 pl-4 border-l-2 border-gray-200">
