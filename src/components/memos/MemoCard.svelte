@@ -5,19 +5,66 @@
   export let words = 0;
   export let minutes = 0;
   export let language: string = 'zh-cn';
+  export let memoId: string = '';
 
   const t = i18nit(language);
 
   let isExpanded = false;
   let contentHeight = 0;
-  
-  const MAX_HEIGHT = 200; 
+  const MAX_HEIGHT = 200;
 
   $: needsCollapse = contentHeight > MAX_HEIGHT;
 
   function toggleExpand() {
     isExpanded = !isExpanded;
   }
+
+  let showReactions = false;
+  let reactions: Record<string, number> = {};
+  let myReactions: string[] = [];
+
+  const REACT_TYPES = [
+    { key: '❤️', label: '爱' },
+    { key: '😂', label: '笑' },
+    { key: '😅', label: '汗' },
+    { key: '👀', label: '盯' },
+    { key: '🎉', label: '贺' },
+    { key: '😮', label: '哇' },
+    { key: '😆', label: '乐' },
+    { key: '😉', label: '眨' },
+    { key: '😭', label: '哭' },
+    { key: '🍀', label: '运' },
+  ];
+
+  $: if (memoId) {
+    const stored = localStorage.getItem(`memo-rx-${memoId}`);
+    if (stored) {
+      try {
+        const d = JSON.parse(stored);
+        reactions = d.reactions || {};
+        myReactions = d.my || [];
+      } catch {}
+    }
+  }
+
+  function saveReactions() {
+    if (!memoId) return;
+    localStorage.setItem(`memo-rx-${memoId}`, JSON.stringify({ reactions, myReactions }));
+  }
+
+  function toggleReaction(type: string) {
+    const had = myReactions.includes(type);
+    if (had) {
+      myReactions = myReactions.filter(r => r !== type);
+      reactions[type] = Math.max(0, (reactions[type] || 1) - 1);
+    } else {
+      myReactions = [...myReactions, type];
+      reactions[type] = (reactions[type] || 0) + 1;
+    }
+    saveReactions();
+  }
+
+  $: hasAnyReaction = REACT_TYPES.some(rt => (reactions[rt.key] || 0) > 0);
 </script>
 
 <div class="memo-card rounded-lg p-6 mb-6 shadow-sm border border-[var(--button-border-color)]" >
@@ -46,6 +93,41 @@
       ></div>
     {/if}
   </div>
+
+  <div class="mt-2 flex items-center gap-2 text-sm text-[var(--text-color-70)]">
+    <button on:click={() => showReactions = !showReactions}
+      class="w-6 h-6 rounded-full bg-[var(--bg-color)]/60 border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors flex-shrink-0"
+      title="表情">
+      😊
+    </button>
+    <div class="flex items-center gap-0.5 flex-wrap">
+      {#each REACT_TYPES as rt}
+        {@const cnt = reactions[rt.key] || 0}
+        {#if cnt > 0}
+          <button on:click={() => toggleReaction(rt.key)}
+            class="text-xs hover:bg-[var(--button-hover-color)] rounded px-1 py-0.5 transition-colors flex-shrink-0"
+            class:font-bold={myReactions.includes(rt.key)}
+            class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
+            {rt.key} {cnt}
+          </button>
+        {/if}
+      {/each}
+    </div>
+  </div>
+
+  {#if showReactions}
+    <div class="mt-1 grid grid-cols-5 gap-1 text-xs w-fit">
+      {#each REACT_TYPES as rt}
+        {@const cnt = reactions[rt.key] || 0}
+        <button on:click={() => toggleReaction(rt.key)}
+          class="px-1.5 py-0.5 rounded hover:bg-[var(--button-hover-color)] transition-colors text-center"
+          class:font-bold={myReactions.includes(rt.key)}
+          class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
+          {rt.key} {cnt > 0 ? cnt : ''}
+        </button>
+      {/each}
+    </div>
+  {/if}
 
   {#if needsCollapse}
     <div class="mt-2 flex justify-center">
