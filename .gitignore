@@ -27,4 +27,5 @@ pnpm-debug.log*
 .vscode/
 
 public/gallery/
+public/emojis/
 public/cg/
