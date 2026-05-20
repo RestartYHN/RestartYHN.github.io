@@ -398,7 +398,6 @@
 		margin: 0 1px;
 		border-radius: 0;
 		cursor: default;
-		pointer-events: none;
 		max-height: 24px;
 		object-fit: contain;
 	}
