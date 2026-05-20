@@ -5,6 +5,7 @@ import { formatFullDate } from '@/utils/time';
 import ImageModule from '@components/misc/ImageModule.astro';
 import { i18n } from 'astro:config/client';
 import i18nit from '@i18n/translation';
+import { Icon } from "astro-icon/components";
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
 const t = i18nit(currentLang);
@@ -63,10 +64,10 @@ const posts = allPosts.slice().sort((a,b) => b.data.pubDate.valueOf() - a.data.p
             </div>
 
             <h3 class="mb-1.5 text-base font-bold leading-snug text-[var(--text-color)] transition-colors group-hover:text-[var(--link-color)]">
-              {post.data.title}
               {post.data.pinned && Number(post.data.pinned) > 0 && (
-                <span class="ml-2 inline-block text-[11px] font-semibold text-white bg-[#d5a56a] px-2 py-0.5 rounded">置顶</span>
+                <Icon name="fa6-solid:thumbtack" class="mr-1.5 text-[#FFC2BA] w-3.5 h-3.5 inline" />
               )}
+              {post.data.title}
             </h3>
 
             <p class="home-post-desc text-xs leading-5 text-[var(--text-color-70)]">
