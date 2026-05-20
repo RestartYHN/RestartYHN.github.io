@@ -142,7 +142,7 @@
 			});
 			const data = await res.json();
 			if (data.url) {
-				replyContent += (replyContent ? '\n' : '') + `![${file.name}](${apiUrl}${data.url})`;
+				replyContent += (replyContent ? '\n' : '') + `![${file.name}](${data.url})`;
 			} else {
 				alert('上传失败: ' + (data.message || '未知错误'));
 			}

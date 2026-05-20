@@ -181,7 +181,7 @@
       });
       const data = await res.json();
       if (data.url) {
-        content += (content ? '\n' : '') + `![${file.name}](${apiUrl}${data.url})`;
+        content += (content ? '\n' : '') + `![${file.name}](${data.url})`;
       } else {
         alert('上传失败: ' + (data.message || '未知错误'));
       }
