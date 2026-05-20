@@ -330,7 +330,7 @@
 			</button>
 			<div class="flex items-center gap-0.5 flex-wrap">
 			<button on:click={() => showReactions = !showReactions}
-				class="w-6 h-6 rounded-full bg-[var(--bg-color)] border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors flex-shrink-0"
+				class="w-6 h-6 rounded-full bg-[var(--bg-color)]/60 border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors flex-shrink-0"
 				title="表情">
 				😊
 			</button>
