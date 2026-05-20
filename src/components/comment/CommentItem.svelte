@@ -158,6 +158,10 @@
 	let reactPending = false;
 
   let showReactions = false;
+  let likeCount = c?.likeCount || 0;
+  let likedByMe = c?.likedByMe || false;
+  let likePending = false;
+
   const REACT_TYPES = [
     { key: '❤️', label: '爱' },
     { key: '😂', label: '笑' },
@@ -172,7 +176,24 @@
   ];
   $: hasAnyReaction = REACT_TYPES.some(rt => (reactions[rt.key] || 0) > 0);
 
-	async function toggleReaction(type: string) {
+  async function toggleLike() {
+    if (likePending) return;
+    likePending = true;
+    const wasLiked = likedByMe;
+    likedByMe = !wasLiked;
+    likeCount += likedByMe ? 1 : -1;
+    try {
+      const { siteConfig } = await import('@/config');
+      await fetch(`${siteConfig.comments.backendUrl}/api/comments/${c.id}/${wasLiked ? 'unlike' : 'like'}`, { method: 'POST' });
+    } catch {
+      likedByMe = wasLiked;
+      likeCount += wasLiked ? 1 : -1;
+    } finally {
+      likePending = false;
+    }
+  }
+
+  async function toggleReaction(type: string) {
 		if (reactPending) return;
 		reactPending = true;
 		const had = myReactions.includes(type);
@@ -301,15 +322,17 @@
 			{/if}
 		</div>
 
-		<div class="mt-1 flex items-center gap-4 text-sm text-[var(--text-color-70)]">
-			<button on:click={() => dispatch('reply', c.id)} class="hover:text-[var(--link-color)]">{t('comments.reply') || '回复'}</button>
-			{#if hasAnyReaction || myReactions.length > 0}
-				<button on:click={() => showReactions = !showReactions}
-					class="w-6 h-6 rounded-full bg-white border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors"
-					title="表情">
-					😊
-				</button>
-			{/if}
+		<div class="mt-1 flex items-center gap-3 text-sm text-[var(--text-color-70)]">
+			<button on:click={() => dispatch('reply', c.id)} class="hover:text-[var(--link-color)]">回复</button>
+			<button on:click={toggleLike} disabled={likePending} class="hover:text-[var(--link-color)] disabled:opacity-50" title={likedByMe ? '取消赞' : '点赞'}>
+				<span class={likedByMe ? 'text-[var(--link-color)]' : ''}>{likedByMe ? '♥' : '♡'}</span>
+				<span class="ml-0.5 text-xs">{likeCount || ''}</span>
+			</button>
+			<button on:click={() => showReactions = !showReactions}
+				class="w-6 h-6 rounded-full bg-white border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors"
+				title="表情">
+				😊
+			</button>
 		</div>
 		{#if showReactions}
 		<div class="mt-1 grid grid-cols-5 gap-1 text-xs">
