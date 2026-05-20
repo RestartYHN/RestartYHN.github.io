@@ -62,8 +62,8 @@
   ];
 
   const HUANGLIAN = [
-    { name: 'doge', file: 'doge.png' },
     { name: 'OK', file: 'OK.png' },
+    { name: 'doge', file: 'doge.png' },
     { name: '亲亲', file: '亲亲.png' },
     { name: '保佑', file: '保佑.png' },
     { name: '保卫萝卜_哇', file: '保卫萝卜_哇.png' },
@@ -167,7 +167,7 @@
     { name: '鼓掌', file: '鼓掌.png' },
   ];
 
-  const EMOJI_BASE = '/emojis/';
+  const EMOJI_BASE = 'https://img.restartyhn.top/emoji/';
 
   const unsub = state.subscribe(s => {
     open = s.open;
