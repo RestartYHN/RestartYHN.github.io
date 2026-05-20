@@ -135,6 +135,7 @@
   let totalPage = 1;
   let totalCount = 0;
   let hasMore = false;
+  let sortBy: 'time' | 'likes' = 'time';
 
   // 顶层评论表单数据
   let author = '';
@@ -253,13 +254,12 @@
     loading = true;
     try {
       const res = await fetch(
-        `${apiUrl}/api/comments?post_slug=${encodeURIComponent(postSlug)}&nested=true&page=${page}&limit=${limit}`
+        `${apiUrl}/api/comments?post_slug=${encodeURIComponent(postSlug)}&nested=true&page=${page}&limit=${limit}&sort_by=${sortBy}`
       );
       if (!res.ok) throw new Error(t('comments.loadFailed') || '加载失败');
       const data = await res.json();
       // 先取原始评论列表
       let loaded = data.data.comments;
-      // 过滤掉要隐藏的评论
       comments = removeCommentsByIds(loaded, HIDDEN_COMMENT_IDS);
       totalPage = data.data.pagination.totalPage;
       totalCount = data.data.pagination.totalCount || 0;
@@ -486,10 +486,28 @@
     {:else if error}
       <p data-aos="fade-up" class="text-red-500 text-center">{t('comments.loadFailed') || '加载失败：'}{error}</p>
     {:else}
-      <h4 data-aos="fade-up" class="text-[var(--text-color)] text-base font-semibold mb-4">{totalCount || comments.length} 条评论</h4>
+      <h4 data-aos="fade-up" class="text-[var(--text-color)] text-base font-semibold mb-4 flex items-center gap-2">
+        {totalCount || comments.length} 条评论
+        <select bind:value={sortBy} on:change={() => { page = 1; loadComments(); }}
+          class="ml-auto text-xs border border-[var(--button-border-color)] rounded px-2 py-1 bg-transparent text-[var(--text-color)]">
+          <option value="time">按时间</option>
+          <option value="likes">按点赞</option>
+        </select>
+      </h4>
+
+      {#each comments.filter(c => c.pinned) as c}
+        <div class="pinned-comment mb-4 border-l-[3px] border-[var(--link-color)] pl-3 bg-[var(--button-hover-color)]/50 rounded-r-lg">
+          <CommentItem {c} {postSlug} {author} {email} {url} {language}
+            on:reply={(e) => setReplyingTo(e.detail)} 
+            on:cancel={() => setReplyingTo(null)}
+            on:submit={async (e) => { await submitComment(e.detail.parentId, e.detail); }}
+            on:delete={handleCommentDelete}
+            replyingToId={replyingToId} />
+        </div>
+      {/each}
 
       <div class="space-y-6">
-        {#each comments as c}
+        {#each comments.filter(c => !c.pinned) as c}
           <CommentItem {c} {postSlug} {author} {email} {url} {language}
             on:reply={(e) => setReplyingTo(e.detail)} 
             on:cancel={() => setReplyingTo(null)}

@@ -153,24 +153,47 @@
 		}
 	}
 
-	let likeCount = c?.likeCount || 0;
-	let likedByMe = c?.likedByMe || false;
-	let likePending = false;
+	let reactions: Record<string, number> = c?.reactions || {};
+	let myReactions: string[] = c?.myReactions || [];
+	let reactPending = false;
 
-	async function toggleLike() {
-		if (likePending) return;
-		likePending = true;
-		const wasLiked = likedByMe;
-		likedByMe = !wasLiked;
-		likeCount += likedByMe ? 1 : -1;
+	const REACT_TYPES = [
+		{ key: '👍', label: '赞' },
+		{ key: '❤️', label: '爱' },
+		{ key: '😂', label: '笑' },
+		{ key: '😮', label: '哇' },
+		{ key: '😢', label: '哭' },
+		{ key: '🎉', label: '贺' },
+	];
+
+	async function toggleReaction(type: string) {
+		if (reactPending) return;
+		reactPending = true;
+		const had = myReactions.includes(type);
+		if (had) {
+			myReactions = myReactions.filter(r => r !== type);
+			reactions[type] = Math.max(0, (reactions[type] || 1) - 1);
+		} else {
+			myReactions = [...myReactions, type];
+			reactions[type] = (reactions[type] || 0) + 1;
+		}
 		try {
 			const { siteConfig } = await import('@/config');
-			await fetch(`${siteConfig.comments.backendUrl}/api/comments/${c.id}/${wasLiked ? 'unlike' : 'like'}`, { method: 'POST' });
+			await fetch(`${siteConfig.comments.backendUrl}/api/comments/${c.id}/react`, {
+				method: had ? 'DELETE' : 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ reaction_type: type })
+			});
 		} catch {
-			likedByMe = wasLiked;
-			likeCount += wasLiked ? 1 : -1;
+			if (had) {
+				myReactions = [...myReactions, type];
+				reactions[type] = (reactions[type] || 0) + 1;
+			} else {
+				myReactions = myReactions.filter(r => r !== type);
+				reactions[type] = Math.max(0, (reactions[type] || 1) - 1);
+			}
 		} finally {
-			likePending = false;
+			reactPending = false;
 		}
 	}
 
@@ -274,10 +297,17 @@
 
 		<div class="mt-1 flex items-center gap-4 text-sm text-[var(--text-color-70)]">
 			<button on:click={() => dispatch('reply', c.id)} class="hover:text-[var(--link-color)]">{t('comments.reply') || '回复'}</button>
-			<button on:click={toggleLike} disabled={likePending} class="hover:text-[var(--link-color)] disabled:opacity-50" title={likedByMe ? (t('comments.unlike') || '取消赞') : (t('comments.like') || '点赞')}>
-				<span class={likedByMe ? 'text-[var(--link-color)]' : ''}>{likedByMe ? '♥' : '♡'}</span>
-				<span class="ml-1">{likeCount}</span>
-			</button>
+			<div class="flex items-center gap-1">
+				{#each REACT_TYPES as rt}
+					<button on:click={() => toggleReaction(rt.key)} disabled={reactPending}
+						class="px-1.5 py-0.5 text-xs rounded hover:bg-[var(--button-hover-color)] disabled:opacity-50 transition-colors"
+						class:font-bold={myReactions.includes(rt.key)}
+						class:text-[var(--link-color)]={myReactions.includes(rt.key)}
+						title={rt.label}>
+						{rt.key} {(reactions[rt.key] || 0) > 0 ? reactions[rt.key] : ''}
+					</button>
+				{/each}
+			</div>
 		</div>
 
 		{#if replyingToId === c.id}
