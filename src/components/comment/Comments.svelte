@@ -447,6 +447,7 @@
         <textarea placeholder={t('comments.welcome')}
           class="rounded w-full border text-[var(--text-color)] border-[var(--button-border-color)]  focus:outline-none focus:border-[var(--link-color)] text-sm p-3 min-h-[100px]"
           on:paste={handlePaste}
+          on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(); } }}
           bind:value={content} bind:this={contentArea}></textarea>
         <!-- 顶层表单使用 fallback 注入器，不再保留原始 openPicker 按钮 -->
         <div class="flex justify-between items-center mt-1">
