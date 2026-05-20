@@ -329,7 +329,7 @@
 				<span class="ml-0.5 text-xs">{likeCount || ''}</span>
 			</button>
 			<button on:click={() => showReactions = !showReactions}
-				class="w-6 h-6 rounded-full bg-white border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors"
+				class="w-6 h-6 rounded-full bg-[var(--bg-color)] border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors"
 				title="表情">
 				😊
 			</button>
@@ -338,14 +338,12 @@
 		<div class="mt-1 grid grid-cols-5 gap-1 text-xs">
 			{#each REACT_TYPES as rt}
 				{@const cnt = reactions[rt.key] || 0}
-				{#if cnt > 0 || myReactions.includes(rt.key)}
 				<button on:click={() => toggleReaction(rt.key)} disabled={reactPending}
 					class="px-1.5 py-0.5 rounded hover:bg-[var(--button-hover-color)] disabled:opacity-50 transition-colors text-center"
 					class:font-bold={myReactions.includes(rt.key)}
 					class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
 					{rt.key} {cnt > 0 ? cnt : ''}
 				</button>
-				{/if}
 			{/each}
 		</div>
 		{/if}
