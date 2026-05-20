@@ -390,7 +390,7 @@
 		margin: 4px 0;
 	}
 
-	.comment-content :global(img[src*="/emoji/"]) {
+	.comment-content :global(img[src*="/emoji"]) {
 		height: 24px;
 		width: auto;
 		display: inline;
