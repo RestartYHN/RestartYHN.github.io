@@ -213,7 +213,7 @@
           {#if activeTab === 'huanglian'}
             <div class="grid grid-cols-8 gap-2 text-sm overflow-y-auto max-h-[300px]">
               {#each HUANGLIAN as s}
-                <button on:click={() => selectEmoji(`<img src="${EMOJI_BASE}${encodeURIComponent(s.file)}" height="24" style="display:inline;vertical-align:middle">`)} class="p-1 hover:bg-[var(--button-hover-color)] rounded flex items-center justify-center" title={s.name}>
+                <button on:click={() => selectEmoji(`![${s.name}](${EMOJI_BASE}${encodeURIComponent(s.file)})`)} class="p-1 hover:bg-[var(--button-hover-color)] rounded flex items-center justify-center" title={s.name}>
                   <img src={`${EMOJI_BASE}${encodeURIComponent(s.file)}`} alt={s.name} class="w-[40px] h-[40px] object-contain" />
                 </button>
               {/each}
@@ -221,7 +221,7 @@
           {:else if activeTab === 'tv'}
             <div class="grid grid-cols-8 gap-2 text-sm overflow-y-auto max-h-[300px]">
               {#each BILIBILI_STICKERS as s}
-                <button on:click={() => selectEmoji(`<img src="${s.url}" height="24" style="display:inline;vertical-align:middle">`)} class="p-1 hover:bg-[var(--button-hover-color)] rounded flex items-center justify-center">
+                <button on:click={() => selectEmoji(`![${s.name}](${s.url})`)} class="p-1 hover:bg-[var(--button-hover-color)] rounded flex items-center justify-center">
                   <img src={s.url} alt={s.name} class="w-[40px] h-[40px] object-contain" />
                 </button>
               {/each}

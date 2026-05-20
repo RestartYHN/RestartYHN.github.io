@@ -389,4 +389,16 @@
 		cursor: zoom-in;
 		margin: 4px 0;
 	}
+
+	.comment-content :global(img[src*="/emoji/"]) {
+		height: 24px;
+		width: auto;
+		display: inline;
+		vertical-align: middle;
+		margin: 0 1px;
+		border-radius: 0;
+		cursor: default;
+		max-height: 24px;
+		object-fit: contain;
+	}
 </style>
