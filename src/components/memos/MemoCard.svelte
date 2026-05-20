@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import i18nit from '../../i18n/translation.ts';
 
   export let dateFormatted = "";
@@ -23,6 +24,19 @@
   let reactions: Record<string, number> = {};
   let myReactions: string[] = [];
 
+  onMount(() => {
+    if (memoId) {
+      const stored = localStorage.getItem(`memo-rx-${memoId}`);
+      if (stored) {
+        try {
+          const d = JSON.parse(stored);
+          reactions = d.reactions || {};
+          myReactions = d.my || [];
+        } catch {}
+      }
+    }
+  });
+
   const REACT_TYPES = [
     { key: '❤️', label: '爱' },
     { key: '😂', label: '笑' },
@@ -35,22 +49,6 @@
     { key: '😭', label: '哭' },
     { key: '🍀', label: '运' },
   ];
-
-  $: if (memoId) {
-    const stored = localStorage.getItem(`memo-rx-${memoId}`);
-    if (stored) {
-      try {
-        const d = JSON.parse(stored);
-        reactions = d.reactions || {};
-        myReactions = d.my || [];
-      } catch {}
-    }
-  }
-
-  function saveReactions() {
-    if (!memoId) return;
-    localStorage.setItem(`memo-rx-${memoId}`, JSON.stringify({ reactions, myReactions }));
-  }
 
   function toggleReaction(type: string) {
     const had = myReactions.includes(type);
