@@ -54,10 +54,10 @@
     const had = myReactions.includes(type);
     if (had) {
       myReactions = myReactions.filter(r => r !== type);
-      reactions[type] = Math.max(0, (reactions[type] || 1) - 1);
+      reactions = { ...reactions, [type]: Math.max(0, (reactions[type] || 1) - 1) };
     } else {
       myReactions = [...myReactions, type];
-      reactions[type] = (reactions[type] || 0) + 1;
+      reactions = { ...reactions, [type]: (reactions[type] || 0) + 1 };
     }
     saveReactions();
   }
