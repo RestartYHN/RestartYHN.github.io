@@ -19,6 +19,7 @@
 
         overlayEl = document.createElement('div');
         overlayEl.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden';
+        overlayEl.style.touchAction = 'none';
         overlayEl.onclick = (e) => { if (e.target === overlayEl) previewImageStore.set(null); };
 
         const closeBtn = document.createElement('button');
