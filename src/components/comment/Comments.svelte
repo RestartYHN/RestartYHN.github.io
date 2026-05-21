@@ -19,7 +19,6 @@
 
         overlayEl = document.createElement('div');
         overlayEl.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden';
-        overlayEl.style.touchAction = 'none';
         overlayEl.onclick = (e) => { if (e.target === overlayEl) previewImageStore.set(null); };
 
         const closeBtn = document.createElement('button');
@@ -33,6 +32,12 @@
         zoomInBtn.textContent = '+';
         zoomInBtn.onclick = (e) => { e.stopPropagation(); scale = Math.min(5, scale + 0.5); updateTransform(); };
         overlayEl.appendChild(zoomInBtn);
+
+        const zoomOutBtn = document.createElement('button');
+        zoomOutBtn.className = 'absolute top-4 right-[7.5rem] z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer text-lg';
+        zoomOutBtn.textContent = '−';
+        zoomOutBtn.onclick = (e) => { e.stopPropagation(); scale = Math.max(0.5, scale - 0.5); updateTransform(); };
+        overlayEl.appendChild(zoomOutBtn);
 
         const prevBtn = document.createElement('button');
         prevBtn.className = 'absolute left-2 sm:left-4 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer shadow-md';
@@ -106,6 +111,27 @@
         });
 
         img.addEventListener('dblclick', () => { resetTransform(); });
+
+        let touchStartX = 0, touchStartY = 0, touchDragging = false, touchLastX = 0, touchLastY = 0;
+        img.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchLastX = touchStartX;
+            touchLastY = touchStartY;
+            touchDragging = true;
+          }
+        }, { passive: true });
+        img.addEventListener('touchmove', (e) => {
+          if (!touchDragging || e.touches.length !== 1) return;
+          e.preventDefault();
+          posX += e.touches[0].clientX - touchLastX;
+          posY += e.touches[0].clientY - touchLastY;
+          touchLastX = e.touches[0].clientX;
+          touchLastY = e.touches[0].clientY;
+          updateTransform();
+        }, { passive: false });
+        img.addEventListener('touchend', () => { touchDragging = false; });
 
         overlayEl.appendChild(img);
         document.body.appendChild(overlayEl);
