@@ -29,17 +29,10 @@
         overlayEl.appendChild(closeBtn);
 
         const zoomInBtn = document.createElement('button');
-        zoomInBtn.className = 'absolute bottom-20 right-4 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer text-xl';
+        zoomInBtn.className = 'absolute top-4 right-16 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer text-lg';
         zoomInBtn.textContent = '+';
         zoomInBtn.onclick = (e) => { e.stopPropagation(); scale = Math.min(5, scale + 0.5); updateTransform(); };
-
-        const zoomOutBtn = document.createElement('button');
-        zoomOutBtn.className = 'absolute bottom-20 right-16 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer text-xl';
-        zoomOutBtn.textContent = '−';
-        zoomOutBtn.onclick = (e) => { e.stopPropagation(); scale = Math.max(0.5, scale - 0.5); updateTransform(); };
-
         overlayEl.appendChild(zoomInBtn);
-        overlayEl.appendChild(zoomOutBtn);
 
         const prevBtn = document.createElement('button');
         prevBtn.className = 'absolute left-2 sm:left-4 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer shadow-md';
