@@ -42,11 +42,11 @@
         overlayEl.appendChild(zoomOutBtn);
 
         const prevBtn = document.createElement('button');
-        prevBtn.className = 'absolute left-4 sm:left-8 z-[100] w-12 h-12 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer hidden md:flex';
+        prevBtn.className = 'absolute left-2 sm:left-4 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer shadow-md';
         prevBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>';
 
         const nextBtn = document.createElement('button');
-        nextBtn.className = 'absolute right-4 sm:right-8 z-[100] w-12 h-12 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer hidden md:flex';
+        nextBtn.className = 'absolute right-2 sm:right-4 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer shadow-md';
         nextBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
 
         let scale = 1, posX = 0, posY = 0, dragging = false, lastX = 0, lastY = 0;
