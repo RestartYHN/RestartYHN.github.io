@@ -13,6 +13,7 @@
     const unsub = previewImageStore.subscribe(url => {
       if (url && !overlayEl) {
         if (url.includes('/emoji')) return;
+        document.documentElement.style.touchAction = 'none';
         const imgs = Array.from(document.querySelectorAll('.comment-content img')).filter((img: any) => !img.src.includes('/emoji')).map((img: any) => img.src);
         let currentIndex = imgs.indexOf(url);
         if(currentIndex === -1) currentIndex = 0;
@@ -146,6 +147,7 @@
         (overlayEl as any).__keyHandler = onKey;
       } else if (!url && overlayEl) {
         document.removeEventListener('keydown', (overlayEl as any).__keyHandler);
+        document.documentElement.style.touchAction = '';
         overlayEl.remove();
         overlayEl = null;
       }
