@@ -2,11 +2,7 @@
   import { onMount } from 'svelte';
   import i18nit from '../../i18n/translation.ts';
 
-  export let dateFormatted = "";
-  export let words = 0;
-  export let minutes = 0;
-  export let language: string = 'zh-cn';
-  export let memoId: string = '';
+  let { dateFormatted = "", words = 0, minutes = 0, language = 'zh-cn', memoId = '' } = $props();
 
   const t = i18nit(language);
 
