@@ -10,7 +10,7 @@
   let contentHeight = 0;
   const MAX_HEIGHT = 200;
 
-  $: needsCollapse = contentHeight > MAX_HEIGHT;
+  let needsCollapse = $derived(contentHeight > MAX_HEIGHT);
 
   function toggleExpand() {
     isExpanded = !isExpanded;
@@ -58,7 +58,7 @@
     saveReactions();
   }
 
-  $: hasAnyReaction = REACT_TYPES.some(rt => (reactions[rt.key] || 0) > 0);
+  let hasAnyReaction = $derived(REACT_TYPES.some(rt => (reactions[rt.key] || 0) > 0));
 </script>
 
 <div class="memo-card rounded-lg p-6 mb-6 shadow-sm border border-[var(--button-border-color)]" >
