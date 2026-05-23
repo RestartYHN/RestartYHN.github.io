@@ -20,9 +20,9 @@
     isExpanded = !isExpanded;
   }
 
-  let showReactions = false;
-  let reactions: Record<string, number> = {};
-  let myReactions: string[] = [];
+  let showReactions = $state(false);
+  let reactions = $state<Record<string, number>>({});
+  let myReactions = $state<string[]>([]);
 
   onMount(() => {
     if (memoId) {
