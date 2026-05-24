@@ -19,10 +19,6 @@
   let showReactions = $state(false);
   let reactions = $state<Record<string, number>>({});
   let myReactions = $state<string[]>([]);
-  let loaded = $state(false);
-
-  const API = 'https://comments.restartyhn.top';
-
   onMount(async () => {
     if (memoId) {
       try {
@@ -33,7 +29,6 @@
           myReactions = d.myReactions || [];
         }
       } catch {}
-      loaded = true;
     }
   });
 
