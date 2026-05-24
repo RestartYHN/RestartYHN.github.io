@@ -19,6 +19,7 @@
   let showReactions = $state(false);
   let reactions = $state<Record<string, number>>({});
   let myReactions = $state<string[]>([]);
+  let loaded = $state(false);
 
   onMount(() => {
     if (memoId && typeof localStorage !== 'undefined') {
@@ -30,11 +31,12 @@
           myReactions = d.my || [];
         } catch {}
       }
+      loaded = true;
     }
   });
 
   $effect(() => {
-    if (memoId && typeof localStorage !== 'undefined') {
+    if (loaded && memoId && typeof localStorage !== 'undefined') {
       localStorage.setItem(`memo-rx-${memoId}`, JSON.stringify({ reactions, myReactions }));
     }
   });
