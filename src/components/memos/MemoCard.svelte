@@ -21,7 +21,7 @@
   let myReactions = $state<string[]>([]);
 
   onMount(() => {
-    if (memoId) {
+    if (memoId && typeof localStorage !== 'undefined') {
       const stored = localStorage.getItem(`memo-rx-${memoId}`);
       if (stored) {
         try {
@@ -30,6 +30,12 @@
           myReactions = d.my || [];
         } catch {}
       }
+    }
+  });
+
+  $effect(() => {
+    if (memoId && typeof localStorage !== 'undefined') {
+      localStorage.setItem(`memo-rx-${memoId}`, JSON.stringify({ reactions, myReactions }));
     }
   });
 
@@ -55,7 +61,6 @@
       myReactions = [...myReactions, type];
       reactions = { ...reactions, [type]: (reactions[type] || 0) + 1 };
     }
-    saveReactions();
   }
 
   let hasAnyReaction = $derived(REACT_TYPES.some(rt => (reactions[rt.key] || 0) > 0));
