@@ -21,25 +21,50 @@
   let myReactions = $state<string[]>([]);
   let loaded = $state(false);
 
-  onMount(() => {
-    if (memoId && typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem(`memo-rx-${memoId}`);
-      if (stored) {
-        try {
-          const d = JSON.parse(stored);
+  const API = 'https://comments.restartyhn.top';
+
+  onMount(async () => {
+    if (memoId) {
+      try {
+        const res = await fetch(`${API}/api/memos/${memoId}/reactions`);
+        if (res.ok) {
+          const d = await res.json();
           reactions = d.reactions || {};
-          myReactions = d.my || [];
-        } catch {}
-      }
+          myReactions = d.myReactions || [];
+        }
+      } catch {}
       loaded = true;
     }
   });
 
-  $effect(() => {
-    if (loaded && memoId && typeof localStorage !== 'undefined') {
-      localStorage.setItem(`memo-rx-${memoId}`, JSON.stringify({ reactions, myReactions }));
+  async function toggleReaction(type: string) {
+    const had = myReactions.includes(type);
+    if (had) {
+      myReactions = myReactions.filter(r => r !== type);
+      reactions = { ...reactions, [type]: Math.max(0, (reactions[type] || 1) - 1) };
+    } else {
+      myReactions = [...myReactions, type];
+      reactions = { ...reactions, [type]: (reactions[type] || 0) + 1 };
     }
-  });
+    try {
+      await fetch(`${API}/api/memos/${memoId}/react`, {
+        method: had ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reaction_type: type })
+      });
+    } catch {}
+  }
+
+  async function clearReactions() {
+    reactions = {}; myReactions = [];
+    try {
+      await fetch(`${API}/api/memos/${memoId}/react`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reaction_type: 'all' })
+      });
+    } catch {}
+  }
 
   const REACT_TYPES = [
     { key: '❤️', label: '爱' },
@@ -102,7 +127,7 @@
       😊
     </button>
     {#if hasAnyReaction}
-      <button on:click={() => { reactions = {}; myReactions = []; }}
+      <button on:click={clearReactions}
         class="text-[10px] text-[var(--text-color-70)] hover:text-red-500 transition-colors flex-shrink-0"
         title="清除所有反应">
         ↺
