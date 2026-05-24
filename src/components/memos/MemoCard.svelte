@@ -74,17 +74,6 @@
     { key: '🍀', label: '运' },
   ];
 
-  function toggleReaction(type: string) {
-    const had = myReactions.includes(type);
-    if (had) {
-      myReactions = myReactions.filter(r => r !== type);
-      reactions = { ...reactions, [type]: Math.max(0, (reactions[type] || 1) - 1) };
-    } else {
-      myReactions = [...myReactions, type];
-      reactions = { ...reactions, [type]: (reactions[type] || 0) + 1 };
-    }
-  }
-
   let hasAnyReaction = $derived(REACT_TYPES.some(rt => (reactions[rt.key] || 0) > 0));
 </script>
 
