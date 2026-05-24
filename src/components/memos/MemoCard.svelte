@@ -19,6 +19,7 @@
   let showReactions = $state(false);
   let reactions = $state<Record<string, number>>({});
   let myReactions = $state<string[]>([]);
+  const API = 'https://comments.restartyhn.top';
   onMount(async () => {
     if (memoId) {
       try {
