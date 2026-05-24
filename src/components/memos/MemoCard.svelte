@@ -101,6 +101,13 @@
       title="表情">
       😊
     </button>
+    {#if hasAnyReaction}
+      <button on:click={() => { reactions = {}; myReactions = []; }}
+        class="text-[10px] text-[var(--text-color-70)] hover:text-red-500 transition-colors flex-shrink-0"
+        title="清除所有反应">
+        ↺
+      </button>
+    {/if}
     <div class="flex items-center gap-0.5 flex-wrap">
       {#each REACT_TYPES as rt}
         {@const cnt = reactions[rt.key] || 0}
