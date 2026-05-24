@@ -6,8 +6,8 @@
 
   const t = i18nit(language);
 
-  let isExpanded = false;
-  let contentHeight = 0;
+  let isExpanded = $state(false);
+  let contentHeight = $state(0);
   const MAX_HEIGHT = 200;
 
   let needsCollapse = $derived(contentHeight > MAX_HEIGHT);
