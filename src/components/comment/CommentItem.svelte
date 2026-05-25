@@ -290,26 +290,25 @@
 	}
 </script>
 
-<div id="comment-{c.id}" data-aos="fade-up" class="flex gap-2 md:gap-3 w-full max-w-full">
-
 {#if qaMode && depth === 0}
-  <div class="qa-card py-3 border-b border-[var(--button-border-color)] w-full">
-    <div class="flex gap-3">
-      <span class="font-bold text-[var(--link-color)] whitespace-nowrap flex-shrink-0">Q：</span>
-      <div class="text-[var(--text-color)] break-words w-full max-w-full comment-content">
-        {#if c.contentHtml}{@html applyMarkdownEnhancements(c.contentHtml)}{:else}{c.contentText}{/if}
-      </div>
+<div class="qa-card py-3 border-b border-[var(--button-border-color)] w-full">
+  <div class="flex gap-3">
+    <span class="font-bold text-[var(--link-color)] whitespace-nowrap flex-shrink-0">Q：</span>
+    <div class="text-[var(--text-color)] break-words w-full max-w-full comment-content">
+      {#if c.contentHtml}{@html applyMarkdownEnhancements(c.contentHtml)}{:else}{c.contentText}{/if}
     </div>
-    {#if c.replies?.length > 0}
-    <div class="flex gap-3 mt-2">
-      <span class="font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap flex-shrink-0">A：</span>
-      <div class="text-[var(--text-color)] break-words w-full max-w-full comment-content">
-        {#if c.replies[0].contentHtml}{@html applyMarkdownEnhancements(c.replies[0].contentHtml)}{:else}{c.replies[0].contentText}{/if}
-      </div>
-    </div>
-    {/if}
   </div>
+  {#if c.replies?.length > 0}
+  <div class="flex gap-3 mt-2">
+    <span class="font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap flex-shrink-0">A：</span>
+    <div class="text-[var(--text-color)] break-words w-full max-w-full comment-content">
+      {#if c.replies[0].contentHtml}{@html applyMarkdownEnhancements(c.replies[0].contentHtml)}{:else}{c.replies[0].contentText}{/if}
+    </div>
+  </div>
+  {/if}
+</div>
 {:else}
+<div id="comment-{c.id}" data-aos="fade-up" class="flex gap-2 md:gap-3 w-full max-w-full">
 	{#if c.url}
 	<a href={c.url} target="_blank" class="w-10 h-10 shrink-0">
 		<img src={avatarUrl} alt="avatar" class="w-10 h-10 rounded-full object-cover"/>
