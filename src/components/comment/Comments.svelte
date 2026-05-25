@@ -159,6 +159,7 @@
   export let language: string = 'zh-cn';
   export let postTitle: string;
   export let qaMode: boolean = false;
+  export let hideForm: boolean = false;
 
   const t = i18nit(language);
 
@@ -461,6 +462,7 @@
   <!-- <div class="my-6 border border-[var(--text-color)]/70"></div> -->
   <!-- 评论输入 -->
   <div data-aos="fade-up" class="mt-4">
+    {#if !hideForm}
     <form on:submit|preventDefault={() => submitComment()} class="space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="">
@@ -515,6 +517,7 @@
         </button>
       </div>
     </form>
+    {/if}
   </div>
 
   <!-- 评论区 -->
@@ -525,7 +528,7 @@
       <p data-aos="fade-up" class="text-red-500 text-center">{t('comments.loadFailed') || '加载失败：'}{error}</p>
     {:else}
       <h4 data-aos="fade-up" class="text-[var(--text-color)] text-base font-semibold mb-4 flex items-center gap-2">
-        {totalCount || comments.length} 条评论
+        {totalCount || comments.length} {qaMode ? '条Q&A' : '条评论'}
         <select bind:value={sortBy} on:change={() => { page = 1; loadComments(); }}
           class="ml-auto text-xs border border-[var(--button-border-color)] rounded px-2 py-1 bg-transparent text-[var(--text-color)]">
           <option value="time">按时间</option>
