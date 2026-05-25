@@ -158,6 +158,7 @@
   export let postSlug: string;
   export let language: string = 'zh-cn';
   export let postTitle: string;
+  export let qaMode: boolean = false;
 
   const t = i18nit(language);
 
@@ -534,7 +535,7 @@
 
       {#each comments.filter(c => c.pinned) as c}
         <div class="pinned-comment mb-4 border-l-[3px] border-[var(--link-color)] pl-3 bg-[var(--button-hover-color)]/50 rounded-r-lg">
-          <CommentItem {c} {postSlug} {author} {email} {url} {language}
+          <CommentItem {c} {postSlug} {author} {email} {url} {language} {qaMode}
             on:reply={(e) => setReplyingTo(e.detail)} 
             on:cancel={() => setReplyingTo(null)}
             on:submit={async (e) => { await submitComment(e.detail.parentId, e.detail); }}
@@ -545,7 +546,7 @@
 
       <div class="space-y-6">
         {#each comments.filter(c => !c.pinned) as c}
-          <CommentItem {c} {postSlug} {author} {email} {url} {language}
+          <CommentItem {c} {postSlug} {author} {email} {url} {language} {qaMode}
             on:reply={(e) => setReplyingTo(e.detail)} 
             on:cancel={() => setReplyingTo(null)}
             on:submit={async (e) => {
