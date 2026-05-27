@@ -523,7 +523,7 @@
   <!-- 评论区 -->
   <div class="" id="comments-content">
     {#if loading}
-      <p data-aos="fade-up" class="text-[var(--text-color)] text-center">{t('comments.loading') || '正在加载评论...'}</p>
+      <p data-aos="fade-up" class="text-[var(--text-color)] text-center">{qaMode ? '正在加载 Q&A...' : (t('comments.loading') || '正在加载评论...')}</p>
     {:else if error}
       <p data-aos="fade-up" class="text-red-500 text-center">{t('comments.loadFailed') || '加载失败：'}{error}</p>
     {:else}
