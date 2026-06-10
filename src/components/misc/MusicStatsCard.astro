@@ -13,7 +13,7 @@ const isEn = currentLang === 'en';
         {isEn ? 'Listening' : '听歌统计'}
       </h2>
       <div class="flex gap-2">
-        <a href={isEn ? '/music' : '/zh/music'} class="text-sm text-[var(--link-color)] hover:underline">
+        <a href={isEn ? '/en/music' : '/music'} class="text-sm text-[var(--link-color)] hover:underline">
           {isEn ? 'Music' : '音乐页'}
         </a>
       </div>
@@ -149,7 +149,7 @@ const isEn = currentLang === 'en';
                 }
               }, 100);
             }
-            window.location.href = isEn ? '/music' : '/zh/music';
+            window.location.href = isEn ? '/en/music' : '/music';
           };
         })(tracks[j]));
       }
