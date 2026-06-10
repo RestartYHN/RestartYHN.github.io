@@ -77,22 +77,22 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <ul id="music-playlist-list" class="music-playlist-list"></ul>
       </section>
 
-      <section class="music-panel music-podcast-section">
-        <div class="mb-3 flex items-end justify-between gap-3">
-          <h2 class="music-panel-title">{isEn ? 'Podcasts' : '播客'}</h2>
-          <span id="music-podcast-subtitle" class="music-panel-subtitle">{isEn ? 'Click a podcast to load episodes' : '点击播客以加载剧集'}</span>
-        </div>
-
-        <ul id="music-podcast-list" class="music-playlist-list"></ul>
-      </section>
-
-      <section class="music-panel music-recent-section">
-        <div class="mb-3 flex items-end justify-between gap-3">
-          <h2 class="music-panel-title">{isEn ? 'Recently Played' : '最近播放'}</h2>
-          <span id="music-recent-subtitle" class="music-panel-subtitle"></span>
-        </div>
-        <ul id="music-recent-list" class="music-track-list"></ul>
-      </section>
+      <div class="music-col-tight">
+        <section class="music-panel music-mini-section">
+          <div class="mb-3 flex items-end justify-between gap-3">
+            <h2 class="music-panel-title">{isEn ? 'Podcasts' : '播客'}</h2>
+            <span id="music-podcast-subtitle" class="music-panel-subtitle">{isEn ? 'Click to load' : '点击加载'}</span>
+          </div>
+          <ul id="music-podcast-list" class="music-playlist-list"></ul>
+        </section>
+        <section class="music-panel music-mini-section">
+          <div class="mb-3 flex items-end justify-between gap-3">
+            <h2 class="music-panel-title">{isEn ? 'Recent' : '最近播放'}</h2>
+            <span id="music-recent-subtitle" class="music-panel-subtitle"></span>
+          </div>
+          <ul id="music-recent-list" class="music-track-list"></ul>
+        </section>
+      </div>
 
       <section class="music-panel music-album-section">
         <div class="mb-3 flex items-end justify-between gap-3">
@@ -187,15 +187,17 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     grid-row: 3;
   }
 
-  .music-podcast-section {
+  .music-col-tight {
     grid-column: 1;
     grid-row: 3;
     align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .music-recent-section {
-    grid-column: 1;
-    grid-row: 4;
+  .music-mini-section {
+    flex-shrink: 0;
   }
 
   .music-tracks-section {
@@ -206,6 +208,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   @media (max-width: 1024px) {
     .music-playlist-section { grid-column: 1; grid-row: 3; }
     .music-tracks-section  { grid-column: 1; grid-row: 4; }
+    .music-col-tight       { grid-column: 1; grid-row: 5; }
+    .music-album-section   { grid-column: 1; grid-row: 6; }
   }
 
   .music-hero-bg {
