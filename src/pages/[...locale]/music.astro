@@ -2194,37 +2194,45 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       return;
     }
 
-    if (recentSubtitleEl) recentSubtitleEl.textContent = isEn ? 'latest' : '最近一首';
+    if (recentSubtitleEl) recentSubtitleEl.textContent = isEn ? 'recent' : '最近';
 
-    const latest = history[0];
-    try {
-      const track = await loadTrack(String(latest.id));
-      if (!track.audio) {
-        recentListEl.innerHTML = `<li class="music-empty">${isEn ? 'No playable track' : '无可播放歌曲'}</li>`;
-        return;
-      }
-      const timeStr = formatPlayedTime(Number(latest.playedAt) || 0);
-      const coverUrl = track.cover ? `background-image:url(${track.cover}?param=130y130)` : '';
-      recentListEl.innerHTML = `
-        <li class="card-music" data-id="${track.id}" style="margin:0;max-width:none;">
-          <div class="music-card">
-            <div class="music-cover-wrapper">
-              <div class="music-cover" style="${coverUrl}"></div>
-            </div>
-            <div class="music-info">
-              <div class="music-header">
-                <div class="music-title">${track.title || 'Unknown'}</div>
-                <div class="music-artist">${track.artist || 'Unknown Artist'}</div>
-                ${timeStr ? `<div class="music-track-played">${timeStr}</div>` : ''}
-              </div>
-            </div>
+    const limit = Math.min(3, history.length);
+    const recentTracks = [];
+    for (let i = 0; i < limit; i++) {
+      const item = history[i];
+      try {
+        const track = await loadTrack(String(item.id));
+        if (track.audio) {
+          recentTracks.push({ ...track, playedAt: Number(item.playedAt) || 0 });
+        }
+      } catch (e) {}
+    }
+
+    if (!recentTracks.length) {
+      recentListEl.innerHTML = `<li class="music-empty">${isEn ? 'No playable track' : '无可播放歌曲'}</li>`;
+      return;
+    }
+
+    recentListEl.innerHTML = recentTracks.map((t, i) => {
+      const timeStr = formatPlayedTime(t.playedAt);
+      return `
+        <li class="music-track-card" data-ri="${i}" data-id="${t.id}">
+          <div class="music-track-index">${String(i + 1).padStart(2, '0')}</div>
+          <div class="min-w-0 flex-1">
+            <p class="music-track-title truncate">${t.title || 'Unknown'}</p>
+            <p class="music-track-artist truncate">${t.artist || 'Unknown Artist'}</p>
+            ${timeStr ? `<p class="music-track-played">${timeStr}</p>` : ''}
           </div>
         </li>`;
+    }).join('');
 
-      recentListEl.querySelector('.card-music').addEventListener('click', async () => {
-        tracks = [track];
-        currentIndex = 0;
-        const current = await prepareTrackForPlayback(0);
+    recentListEl.querySelectorAll('.music-track-card').forEach((el) => {
+      el.addEventListener('click', async () => {
+        const ri = parseInt(el.getAttribute('data-ri') || '0', 10);
+        if (ri < 0 || ri >= recentTracks.length) return;
+        tracks = recentTracks;
+        currentIndex = ri;
+        const current = await prepareTrackForPlayback(currentIndex);
         if (!current) return;
         updateNowPlaying(current);
         renderTrackList();
@@ -2235,9 +2243,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           try { audio?.play(); } catch (e) {}
         }
       });
-    } catch (e) {
-      recentListEl.innerHTML = `<li class="music-empty">${isEn ? 'Failed to load' : '加载失败'}</li>`;
-    }
+    });
   }
 
   async function loadAlbums() {
