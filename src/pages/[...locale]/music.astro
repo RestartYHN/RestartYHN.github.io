@@ -45,6 +45,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     </div>
 
     <div class="music-main-grid">
+      <div class="music-search-wrap" id="music-search-wrap">
+        <input id="music-search-input" class="music-search-input" type="text" placeholder={isEn ? 'Filter playlist...' : '筛选歌单...'} autocomplete="off" />
+      </div>
       {/* Top Row: Album & Lyrics */}
       <section class="music-hero">
         <div class="music-hero-bg" id="music-hero-bg"></div>
@@ -61,10 +64,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       </section>
 
       <section class="music-lyrics-panel">
-        <div class="music-search-wrap" id="music-search-wrap">
-          <input id="music-search-input" class="music-search-input" type="text" placeholder={isEn ? 'Search songs...' : '搜索歌曲...'} autocomplete="off" />
-          <div id="music-search-results" class="music-search-results hidden"></div>
-        </div>
         <div class="lyrics-container" id="music-lyrics">
           <div class="lyrics-track" id="lyrics-track">
             <p class="lyrics-line lyrics-placeholder">{isEn ? 'Lyrics loading...' : '歌词加载中...'}</p>
@@ -334,59 +333,20 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .music-search-wrap {
-    position: relative;
-    margin-bottom: 0.5rem;
+    grid-column: 1 / -1;
+    margin-bottom: -0.5rem;
   }
   .music-search-input {
     width: 100%;
-    padding: 0.5rem 0.75rem;
+    padding: 0.4rem 0.6rem;
     border: 1px solid var(--button-border-color);
-    border-radius: 0.6rem;
+    border-radius: 0.5rem;
     background: color-mix(in oklab, var(--bg-color) 95%, transparent);
     color: var(--text-color);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     outline: none;
   }
-  .music-search-input:focus {
-    border-color: var(--link-color);
-  }
-  .music-search-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    max-height: 320px;
-    overflow-y: auto;
-    border: 1px solid var(--button-border-color);
-    border-radius: 0.75rem;
-    background: var(--bg-color);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-    padding: 0.3rem 0;
-  }
-  .music-search-results.hidden { display: none; }
-  .music-search-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 0.85rem;
-    cursor: pointer;
-    transition: background-color 0.15s;
-    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 50%, transparent);
-  }
-  .music-search-item:last-child { border-bottom: none; }
-  .music-search-item:hover { background: color-mix(in oklab, var(--button-hover-color) 80%, transparent); }
-  .music-search-cover {
-    width: 42px; height: 42px;
-    border-radius: 5px;
-    background-size: cover;
-    background-position: center;
-    background-color: var(--button-hover-color);
-    flex-shrink: 0;
-  }
-  .music-search-info { min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
-  .music-search-title { font-size: 0.88rem; font-weight: 600; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
-  .music-search-artist { font-size: 0.78rem; color: var(--text-color-70); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+  .music-search-input:focus { border-color: var(--link-color); }
 
   .lyrics-container {
     position: relative;
@@ -2232,49 +2192,50 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   function setupSearch() {
     const input = document.getElementById('music-search-input');
-    const results = document.getElementById('music-search-results');
-    if (!input || !results) return;
-
-    let timer;
+    if (!input) return;
     input.addEventListener('input', () => {
-      clearTimeout(timer);
-      const q = input.value.trim();
-      if (q.length < 2) { results.innerHTML = ''; results.classList.add('hidden'); return; }
-      timer = setTimeout(async () => {
-        try {
-          const res = await fetch(`${API_BASE}/api/music/search?q=${encodeURIComponent(q)}`, { referrerPolicy: 'no-referrer' });
-          const json = await res.json();
-          if (json.code !== 200 || !Array.isArray(json.data)) { results.classList.add('hidden'); return; }
-          const list = json.data.slice(0, 10);
-          results.innerHTML = list.map(t => `
-            <div class="music-search-item" data-id="${t.id}">
-              <div class="music-search-cover" style="background-image:url(${t.cover}?param=50y50)"></div>
-              <div class="music-search-info">
-                <div class="music-search-title">${t.title}</div>
-                <div class="music-search-artist">${t.artist}</div>
-              </div>
-            </div>
-          `).join('');
-          results.classList.remove('hidden');
-          results.querySelectorAll('.music-search-item').forEach(el => {
-            el.addEventListener('click', async () => {
-              const id = el.getAttribute('data-id');
-              if (!id) return;
-              const track = await loadTrack(id);
-              if (!track.audio) return;
-              tracks.push(track);
-              renderTrackList();
-              results.classList.add('hidden');
-              input.value = '';
-              showStatus(isEn ? `Added to queue: ${track.title}` : `已加入队列: ${track.title}`);
-              setTimeout(hideStatus, 2000);
-            });
-          });
-        } catch (e) {}
-      }, 300);
+      const q = input.value.trim().toLowerCase();
+      if (!q) { renderTrackList(); return; }
+      const filtered = tracks.filter(t => {
+        const title = (t.title || '').toLowerCase();
+        const artist = (t.artist || '').toLowerCase();
+        return title.includes(q) || artist.includes(q);
+      });
+      renderFilteredList(filtered);
     });
-    document.addEventListener('click', (e) => {
-      if (!input.contains(e.target) && !results.contains(e.target)) results.classList.add('hidden');
+  }
+
+  function renderFilteredList(filtered) {
+    if (!trackListEl) return;
+    if (!filtered.length) {
+      trackListEl.innerHTML = `<li class="music-empty">${isEn ? 'No matches' : '无匹配歌曲'}</li>`;
+      return;
+    }
+    trackListEl.innerHTML = filtered.map((track, idx) => {
+      const current = tracks.indexOf(track);
+      return `
+        <li class="music-track-card ${current === currentIndex ? 'active' : ''} ${track.unavailable ? 'unavailable' : ''}" data-fidx="${idx}">
+          <div class="music-track-index">${String(idx + 1).padStart(2, '0')}</div>
+          <div class="min-w-0 flex-1">
+            <p class="music-track-title truncate">${track.title || 'Unknown'}</p>
+            <p class="music-track-artist truncate">${track.artist || 'Unknown Artist'}</p>
+          </div>
+        </li>`;
+    }).join('');
+    trackListEl.querySelectorAll('.music-track-card').forEach((el) => {
+      el.addEventListener('click', async () => {
+        const fidx = parseInt(el.getAttribute('data-fidx') || '0', 10);
+        if (fidx < 0 || fidx >= filtered.length) return;
+        const target = filtered[fidx];
+        const realIdx = tracks.indexOf(target);
+        if (realIdx < 0) return;
+        currentIndex = realIdx;
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+      });
     });
   }
 
