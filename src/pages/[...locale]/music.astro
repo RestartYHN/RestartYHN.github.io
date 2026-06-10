@@ -60,11 +60,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         </div>
       </section>
 
-      <section class="music-panel music-lyrics-panel">
-        <h4 class="music-lyrics-title">{isEn ? 'Lyrics' : '歌词'}</h4>
-        <ul id="music-lyrics" class="music-lyrics">
-          <li>{isEn ? 'Lyrics loading...' : '歌词加载中...'}</li>
-        </ul>
+      <section class="music-lyrics-panel">
+        <div class="lyrics-container" id="music-lyrics">
+          <div class="lyrics-track" id="lyrics-track">
+            <p class="lyrics-line lyrics-placeholder">{isEn ? 'Lyrics loading...' : '歌词加载中...'}</p>
+          </div>
+        </div>
       </section>
 
       {/* Bottom Row: Playlists & Tracks */}
@@ -222,7 +223,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .music-now-card,
-  .music-lyrics-panel,
   .music-panel {
     border: 1px solid var(--button-border-color);
     border-radius: 0.95rem;
@@ -247,8 +247,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .music-artist,
-  .music-panel-subtitle,
-  .music-lyrics-title {
+  .music-panel-subtitle {
     color: var(--text-color-70);
   }
 
@@ -288,51 +287,95 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     color: var(--text-color);
   }
 
-  .music-lyrics {
-    list-style: none;
-    margin: 0;
+  .music-lyrics-panel {
+    position: relative;
+    height: 500px;
+    overflow: hidden;
+    border: none;
+    background: transparent;
+    border-radius: 0;
     padding: 0;
-    max-height: 500px;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scroll-behavior: smooth;
-    scroll-padding-block: 45%;
-    line-height: 1.9;
   }
 
-  @media (max-width: 768px) {
-    .music-lyrics {
-      scroll-padding-block: 45%;
+  @media (max-width: 1024px) {
+    .music-lyrics-panel {
+      height: 400px;
     }
   }
 
-  .music-lyrics li {
-    color: var(--text-color-70);
-    padding: 0.4rem 0;
-    transition: color 160ms ease;
+  @media (max-width: 768px) {
+    .music-lyrics-panel {
+      height: 350px;
+    }
   }
 
-  .music-lyrics li.active {
-    color: var(--text-color);
+  .lyrics-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0,0,0,0.3) 8%,
+        black 18%,
+        black 82%,
+        rgba(0,0,0,0.3) 92%,
+        transparent 100%);
+    mask-image: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0,0,0,0.3) 8%,
+        black 18%,
+        black 82%,
+        rgba(0,0,0,0.3) 92%,
+        transparent 100%);
+  }
+
+  .lyrics-track {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    will-change: transform;
+    transition: transform 0.12s ease-out;
+  }
+
+  .lyrics-line {
+    text-align: center;
+    padding: 0.45rem 1rem;
+    opacity: 0.25;
+    transition: opacity 0.35s ease, font-size 0.35s ease, color 0.35s ease;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  .lyrics-line.active {
+    opacity: 1;
+    font-size: 1.12rem;
     font-weight: 600;
   }
 
-  .music-lyrics-main {
-    line-height: 1.5;
+  .lyrics-line.near {
+    opacity: 0.55;
+    font-size: 0.96rem;
   }
 
-  .music-lyrics-trans {
-    margin-top: 0.15rem;
-    font-size: 0.86rem;
-    line-height: 1.45;
-    color: color-mix(in oklab, var(--text-color-70) 85%, transparent);
-  }
-
-  .music-lyrics li.active .music-lyrics-main {
+  .lyrics-main {
     color: var(--text-color);
   }
 
-  .music-lyrics li.active .music-lyrics-trans {
+  .lyrics-trans {
+    margin-top: 0.15rem;
+    font-size: 0.82em;
+    color: color-mix(in oklab, var(--text-color-70) 85%, transparent);
+  }
+
+  .lyrics-line.active .lyrics-main {
+    color: var(--text-color);
+  }
+
+  .lyrics-line.active .lyrics-trans {
     color: color-mix(in oklab, var(--text-color) 65%, transparent);
   }
 
@@ -927,6 +970,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let titleEl;
   let artistEl;
   let lyricsEl;
+  let lyricsTrack;
   let heroBg;
   let statusEl;
   let bottomCover;
@@ -954,6 +998,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     titleEl = document.getElementById("music-title");
     artistEl = document.getElementById("music-artist");
     lyricsEl = document.getElementById("music-lyrics");
+    lyricsTrack = document.getElementById("lyrics-track");
     heroBg = document.getElementById("music-hero-bg");
     statusEl = document.getElementById("music-status");
     bottomCover = document.getElementById("music-bottom-cover");
@@ -980,7 +1025,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let currentIndex = 0;
   let lyricLines = [];
   let activeLyricIndex = -1;
-  let lastLyricScrollAtMs = 0;
   let loadVersion = 0;
   let podcastLoadVersion = 0;
   let currentPlaylistId = "";
@@ -1356,24 +1400,23 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   function renderLyrics(lines) {
-    if (!lyricsEl) return;
+    if (!lyricsTrack) return;
     if (!lines.length) {
-      lyricsEl.innerHTML = `<li>${isEn ? "No lyric available" : "暂无歌词"}</li>`;
-      lyricsEl.scrollTop = 0;
+      lyricsTrack.innerHTML = `<p class="lyrics-line lyrics-placeholder">${isEn ? "No lyric available" : "暂无歌词"}</p>`;
+      lyricsTrack.style.transform = "translateY(0px)";
       return;
     }
-    lyricsEl.innerHTML = lines
+    lyricsTrack.innerHTML = lines
       .map(
         (line, i) => `
-          <li data-i="${i}">
-            <div class="music-lyrics-main">${line.text || "..."}</div>
-            ${line.translation ? `<div class="music-lyrics-trans">${line.translation}</div>` : ""}
-          </li>
+          <p class="lyrics-line" data-i="${i}">
+            <span class="lyrics-main">${line.text || "..."}</span>
+            ${line.translation ? `<br><span class="lyrics-trans">${line.translation}</span>` : ""}
+          </p>
         `,
       )
       .join("");
-    // Reset scroll position to top after rendering
-    lyricsEl.scrollTop = 0;
+    lyricsTrack.style.transform = "translateY(0px)";
   }
 
   function getActiveLyricIndex(currentTime) {
@@ -1398,44 +1441,27 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   function syncLyrics() {
-    if (!audio || !lyricsEl || !lyricLines.length) return;
+    if (!audio || !lyricsTrack || !lyricLines.length) return;
     const active = getActiveLyricIndex(audio.currentTime);
     if (active === activeLyricIndex) return;
 
     activeLyricIndex = active;
-    lyricsEl.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
-    const targetIdx = active < 0 ? 0 : active;
-    const activeLine = lyricsEl.querySelector(`li[data-i='${targetIdx}']`);
-    if (activeLine) {
-      if (active >= 0) activeLine.classList.add("active");
+    const lines = lyricsTrack.querySelectorAll(".lyrics-line");
 
-      const isMobile = window.matchMedia("(max-width: 768px)").matches;
-      const ACTIVE_LINE_VIEWPORT_RATIO = isMobile ? 0.72 : 0.62;
-      
-      // Use two lines before for scroll position to give a "look-ahead" effect
-      const scrollLineIndex = Math.max(0, active - 2);
-      const scrollLine = lyricsEl.querySelector(`li[data-i='${scrollLineIndex}']`) || activeLine;
-      const targetTop = scrollLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + scrollLine.clientHeight / 2;
+    lines.forEach((line, i) => {
+      line.classList.remove("active", "near");
+      if (i === active) line.classList.add("active");
+      else if (Math.abs(i - active) <= 2) line.classList.add("near");
+    });
 
-      if (isMobile) {
-        const nowMs = performance.now();
-        const MIN_SCROLL_INTERVAL_MS = 220;
-        if (nowMs - lastLyricScrollAtMs < MIN_SCROLL_INTERVAL_MS) {
-          return;
-        }
-        lastLyricScrollAtMs = nowMs;
-
-        const MAX_SCROLL_STEP_PX = 34;
-        const currentTop = lyricsEl.scrollTop;
-        const delta = targetTop - currentTop;
-        const clampedTop = Math.abs(delta) > MAX_SCROLL_STEP_PX
-          ? currentTop + Math.sign(delta) * MAX_SCROLL_STEP_PX
-          : targetTop;
-
-        lyricsEl.scrollTo({ top: Math.max(0, clampedTop), behavior: "auto" });
-      } else {
-        lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
-      }
+    if (active >= 0) {
+      const line = lines[active];
+      const container = lyricsTrack.parentElement;
+      if (!container) return;
+      const containerH = container.clientHeight;
+      const lineH = line.offsetHeight;
+      const y = -(line.offsetTop - containerH * 0.5 + lineH * 0.5);
+      lyricsTrack.style.transform = `translateY(${y}px)`;
     }
   }
 
@@ -1482,10 +1508,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     lyricLines = buildLyricLines(track.lyric, track.tlyric);
     activeLyricIndex = -1;
-    lastLyricScrollAtMs = 0;
     renderLyrics(lyricLines);
-    if (lyricsEl) {
-      lyricsEl.scrollTo({ top: 0, behavior: "auto" });
+    if (lyricsTrack) {
+      lyricsTrack.style.transform = "translateY(0px)";
     }
   }
 
