@@ -86,6 +86,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <ul id="music-podcast-list" class="music-playlist-list"></ul>
       </section>
 
+      <section class="music-panel music-recent-section">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <h2 class="music-panel-title">{isEn ? 'Recently Played' : '最近播放'}</h2>
+          <span id="music-recent-subtitle" class="music-panel-subtitle"></span>
+        </div>
+        <ul id="music-recent-list" class="music-track-list"></ul>
+      </section>
+
       <section class="music-panel music-tracks-section">
         <div class="mb-3 flex items-end justify-between gap-3">
           <h2 class="music-panel-title" id="music-list-title">{isEn ? 'Tracks' : '歌曲列表'}</h2>
@@ -990,6 +998,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let pauseIcon;
   let podcastTrackListEl;
   let podcastCardsEl;
+  let recentListEl;
+  let recentSubtitleEl;
 
   function queryPageEls() {
     audio = document.getElementById("music-audio");
@@ -1011,6 +1021,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     playlistSubtitleEl = document.getElementById("music-playlist-subtitle");
     podcastTrackListEl = document.getElementById('music-podcast-track-list');
     podcastCardsEl = document.getElementById('music-podcast-list');
+    recentListEl = document.getElementById('music-recent-list');
+    recentSubtitleEl = document.getElementById('music-recent-subtitle');
     btnMainPlay = document.getElementById("music-main-play");
     btnCardPlay = document.getElementById("music-play-toggle");
     btnPrev = document.getElementById("music-prev");
@@ -2117,6 +2129,66 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return false;
   }
 
+  async function loadRecentSongs() {
+    if (!recentListEl) return;
+    const history = Array.isArray(userData?.recentHistory) ? userData.recentHistory : [];
+    if (!history.length) {
+      recentListEl.innerHTML = `<li class="music-empty">${isEn ? 'No recent plays yet' : '暂无最近播放'}</li>`;
+      return;
+    }
+
+    if (recentSubtitleEl) recentSubtitleEl.textContent = `${history.length} ${isEn ? 'tracks' : '首'}`;
+
+    const version = ++loadVersion;
+    recentListEl.innerHTML = history.map(() => '<li class="music-track-card loading"><div class="music-track-index">...</div><div class="min-w-0 flex-1"><p class="music-track-title">Loading...</p></div></li>').join('');
+
+    const recentTracks = [];
+    for (let i = 0; i < history.length; i++) {
+      if (version !== loadVersion) return;
+      const item = history[i];
+      try {
+        const track = await loadTrack(String(item.id));
+        if (!track.audio) continue;
+        recentTracks.push({ ...track, playedAt: Number(item.playedAt) || 0, index: i });
+      } catch (e) { /* skip */ }
+    }
+
+    if (version !== loadVersion) return;
+    recentListEl.innerHTML = recentTracks.map((t, ri) => {
+      const timeStr = formatPlayedTime(t.playedAt);
+      return `
+        <li class="music-track-card" data-idx="${ri}" data-id="${t.id}">
+          <div class="music-track-index">${String(ri + 1).padStart(2, '0')}</div>
+          <div class="min-w-0 flex-1">
+            <p class="music-track-title truncate">${t.title || 'Unknown'}</p>
+            <p class="music-track-artist truncate">${t.artist || 'Unknown Artist'}</p>
+            ${timeStr ? `<p class="music-track-played">${timeStr}</p>` : ''}
+          </div>
+        </li>`;
+    }).join('');
+
+    recentListEl.querySelectorAll('.music-track-card').forEach((el) => {
+      el.addEventListener('click', async () => {
+        const id = String(el.getAttribute('data-id') || '');
+        if (!id) return;
+        const idx = recentTracks.findIndex(t => t.id === id);
+        if (idx < 0) return;
+        tracks = recentTracks;
+        currentIndex = idx;
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        syncToGlobalPlayer();
+        if (current.audio) {
+          hideStatus();
+          try { audio?.play(); } catch (e) {}
+        }
+      });
+    });
+  }
+
   // Podcast helpers (moved to top-level so init can call them)
   // Load all programs (episodes) from a podcast (radio) and treat each program's mainTrackId as a track
   async function loadPodcastPrograms(rid, options = {}) {
@@ -2584,6 +2656,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       showStatus(isEn ? "Restored login session from local storage." : "已从本地恢复登录会话。", "info");
     }
 
+    loadRecentSongs();
     renderPlaylistList();
 
     if (musicConfig.defaultPlaylistId) {
