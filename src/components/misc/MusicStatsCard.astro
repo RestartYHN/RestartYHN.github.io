@@ -7,7 +7,7 @@ const isEn = currentLang === 'en';
 ---
 
 <section class="mx-auto mt-8 mb-8 w-full max-w-[var(--page-width)]">
-  <div id="music-stats-card" class="rounded-2xl border border-[var(--button-border-color)] bg-[color-mix(in_oklab,var(--bg-color)_92%,transparent)] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] hidden">
+  <div id="music-stats-card" data-api={musicConfig.apiBase} class="rounded-2xl border border-[var(--button-border-color)] bg-[color-mix(in_oklab,var(--bg-color)_92%,transparent)] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] hidden">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-2xl font-bold text-[var(--text-color)]">
         {isEn ? 'Weekly Listening' : '听歌统计'}
@@ -32,12 +32,13 @@ const isEn = currentLang === 'en';
   </div>
 </section>
 
-<script define:vars="{{ API: musicConfig.apiBase }}">
+<script is:inline>
   (function () {
-    var base = API;
-    if (!base) return;
-
     var card = document.getElementById('music-stats-card');
+    if (!card) return;
+    var API = card.getAttribute('data-api');
+    if (!API) return;
+
     var list = document.getElementById('music-stats-list');
     var empty = document.getElementById('music-stats-empty');
     var isEn = document.documentElement.lang === 'en';
@@ -51,11 +52,11 @@ const isEn = currentLang === 'en';
 
     async function load() {
       try {
-        var res = await fetch(base + '/api/music/record', { referrerPolicy: 'no-referrer' });
+        var res = await fetch(API + '/api/music/record', { referrerPolicy: 'no-referrer' });
         var json = await res.json();
         if (json.code !== 200 || !Array.isArray(json.data && json.data.top) || !json.data.top.length) {
           if (empty) empty.classList.remove('hidden');
-          if (card) card.classList.remove('hidden');
+          card.classList.remove('hidden');
           return;
         }
         var d = json.data;
@@ -69,7 +70,7 @@ const isEn = currentLang === 'en';
         for (var i = 0; i < d.top.length; i++) {
           var t = d.top[i];
           html += '<a href="https://music.163.com/#/song?id=' + t.id + '" target="_blank" rel="noopener noreferrer"'
-            + ' class="flex items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-[var(--button-hover-color)] no-underline">'
+            + ' class="flex items-center gap-3 rounded-lg p-1.5 no-underline hover:bg-[var(--button-hover-color)] transition-colors">'
             + '<span class="w-5 text-center text-xs font-bold ' + (i < 3 ? 'text-[#d5a56a]' : 'text-[var(--text-color-70)]') + '">' + (i + 1) + '</span>'
             + '<div class="h-9 w-9 rounded-md bg-[var(--button-hover-color)] bg-cover bg-center flex-shrink-0" style="background-image:url(' + (t.cover ? t.cover + '?param=60y60' : '') + ')"></div>'
             + '<div class="min-w-0 flex-1">'
