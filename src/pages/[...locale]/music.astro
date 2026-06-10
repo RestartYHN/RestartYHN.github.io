@@ -1361,7 +1361,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
       // Remove all time tags to get the plain lyric text
       const plainText = line.replace(timeTagRe, "").trim();
-      if (/^(作[词曲]|编曲|混[音缩]|[词曲](\s*[:：])|Vocal\.|Chorus\.|Guitar|Bass|Drum|Key(board)?|Strings|Arrang|Compos|Lyric|Record|Mix|Master|Producer|Program)/i.test(plainText)) continue;
+      if (/^(作[词曲]|编曲|混[音缩]|[词曲](\s*[:：])|Vocal\.|Chorus\.|Guitar|Bass|Drum|Key(board)?|Strings|Arrang|Compos|Lyric|Record|Mix|Master|Producer|Program)/i.test(plainText)) return;
 
       tags.forEach((tag) => {
         const mm = Number(tag[1]);
