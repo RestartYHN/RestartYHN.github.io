@@ -44,10 +44,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       </div>
     </div>
 
-    <div class="music-main-grid">
+    <div class="mx-auto w-full max-w-[var(--page-width)]">
       <div class="music-search-wrap" id="music-search-wrap">
         <input id="music-search-input" class="music-search-input" type="text" placeholder={isEn ? 'Filter playlist...' : '筛选歌单...'} autocomplete="off" />
       </div>
+    </div>
+    <div class="music-main-grid">
       {/* Top Row: Album & Lyrics */}
       <section class="music-hero">
         <div class="music-hero-bg" id="music-hero-bg"></div>
@@ -333,8 +335,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .music-search-wrap {
-    grid-column: 1 / -1;
-    margin-bottom: -0.5rem;
+    margin-bottom: 0.5rem;
   }
   .music-search-input {
     width: 100%;
