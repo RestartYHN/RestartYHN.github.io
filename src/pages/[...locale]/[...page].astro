@@ -4,6 +4,7 @@ import Cover from '@components/Cover.astro';
 import FindMeCard from '@components/misc/FindMeCard.astro';
 import HomePostCards from '@components/misc/HomePostCards.astro';
 import FabMenu from '@components/control/FabMenu.astro';
+import MusicStatsCard from '@components/misc/MusicStatsCard.astro';
 
 import zhCN from '@i18n/language/zh-cn';
 import en from '@i18n/language/en';
@@ -50,5 +51,6 @@ const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
   />
   <FindMeCard />
   <HomePostCards />
+  <MusicStatsCard />
   <FabMenu showBackBottom={true} />
 </MainPageLayout>

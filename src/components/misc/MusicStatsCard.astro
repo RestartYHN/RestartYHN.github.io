@@ -1,0 +1,67 @@
+---
+import { musicConfig } from '@/data/music';
+import { i18n } from 'astro:config/client';
+
+const currentLang = Astro.currentLocale || i18n!.defaultLocale;
+const isEn = currentLang === 'en';
+const API_BASE = musicConfig.apiBase;
+---
+
+<section class="mx-auto mt-8 mb-8 w-full max-w-[var(--page-width)]">
+  <div id="music-stats-card" class="rounded-2xl border border-[var(--button-border-color)] bg-[color-mix(in_oklab,var(--bg-color)_92%,transparent)] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] hidden">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-2xl font-bold text-[var(--text-color)]">
+        {isEn ? 'Weekly Listening' : '本周听歌排行'}
+      </h2>
+      <a href={isEn ? '/music' : '/zh/music'} class="text-sm text-[var(--link-color)] hover:underline">
+        {isEn ? 'Full page' : '完整音乐页'}
+      </a>
+    </div>
+    <div id="music-stats-list" class="space-y-3"></div>
+    <p id="music-stats-empty" class="text-sm text-[var(--text-color-70)] hidden">
+      {isEn ? 'No data yet. Start listening on NetEase Cloud Music!' : '暂无数据，去网易云听歌吧！'}
+    </p>
+  </div>
+</section>
+
+<script>
+  const API = musicConfig.apiBase;
+  if (!API) return;
+
+  const card = document.getElementById('music-stats-card');
+  const list = document.getElementById('music-stats-list');
+  const empty = document.getElementById('music-stats-empty');
+  const isEn = document.documentElement.lang === 'en';
+
+  async function load() {
+    try {
+      const res = await fetch(`${API}/api/music/record`, { referrerPolicy: 'no-referrer' });
+      const json = await res.json();
+      if (json.code !== 200 || !Array.isArray(json.data?.top) || !json.data.top.length) {
+        empty.classList.remove('hidden');
+        card.classList.remove('hidden');
+        return;
+      }
+      const top = json.data.top.slice(0, 5);
+      const playsWord = isEn ? 'plays' : '次';
+      list.innerHTML = top.map((t, i) => `
+        <a href="https://music.163.com/#/song?id=${t.id}" target="_blank" rel="noopener noreferrer"
+           class="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-[var(--button-hover-color)] no-underline">
+          <span class="w-6 text-center text-sm font-bold ${i < 3 ? 'text-[#d5a56a]' : 'text-[var(--text-color-70)]'}">${i + 1}</span>
+          <div class="h-10 w-10 rounded-lg bg-[var(--button-hover-color)] bg-cover bg-center flex-shrink-0" style="background-image:url(${t.cover}?param=80y80)"></div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold text-[var(--text-color)] truncate">${t.title}</p>
+            <p class="text-xs text-[var(--text-color-70)] truncate">${t.artist}</p>
+          </div>
+          <span class="text-xs text-[var(--text-color-70)] flex-shrink-0">${t.playCount} ${playsWord}</span>
+        </a>
+      `).join('');
+      card.classList.remove('hidden');
+    } catch (e) {
+      console.debug('[music-stats]', e);
+    }
+  }
+
+  load();
+  document.addEventListener('astro:page-load', load);
+</script>
