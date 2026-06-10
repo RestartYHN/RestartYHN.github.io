@@ -1436,7 +1436,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         text: line.text,
         translation: matched,
       };
-    });
+    }).reduce((merged, cur) => {
+      if (merged.length > 0 && Math.abs(merged[merged.length - 1].time - cur.time) < 0.01) {
+        merged[merged.length - 1].translation = cur.text;
+      } else {
+        merged.push(cur);
+      }
+      return merged;
+    }, []);
   }
 
   function renderLyrics(lines) {
