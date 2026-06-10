@@ -2137,45 +2137,30 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       return;
     }
 
-    if (recentSubtitleEl) recentSubtitleEl.textContent = `${history.length} ${isEn ? 'tracks' : '首'}`;
+    if (recentSubtitleEl) recentSubtitleEl.textContent = isEn ? 'latest' : '最近一首';
 
-    const version = ++loadVersion;
-    recentListEl.innerHTML = history.map(() => '<li class="music-track-card loading"><div class="music-track-index">...</div><div class="min-w-0 flex-1"><p class="music-track-title">Loading...</p></div></li>').join('');
-
-    const recentTracks = [];
-    for (let i = 0; i < history.length; i++) {
-      if (version !== loadVersion) return;
-      const item = history[i];
-      try {
-        const track = await loadTrack(String(item.id));
-        if (!track.audio) continue;
-        recentTracks.push({ ...track, playedAt: Number(item.playedAt) || 0, index: i });
-      } catch (e) { /* skip */ }
-    }
-
-    if (version !== loadVersion) return;
-    recentListEl.innerHTML = recentTracks.map((t, ri) => {
-      const timeStr = formatPlayedTime(t.playedAt);
-      return `
-        <li class="music-track-card" data-idx="${ri}" data-id="${t.id}">
-          <div class="music-track-index">${String(ri + 1).padStart(2, '0')}</div>
+    const latest = history[0];
+    try {
+      const track = await loadTrack(String(latest.id));
+      if (!track.audio) {
+        recentListEl.innerHTML = `<li class="music-empty">${isEn ? 'No playable track' : '无可播放歌曲'}</li>`;
+        return;
+      }
+      const timeStr = formatPlayedTime(Number(latest.playedAt) || 0);
+      recentListEl.innerHTML = `
+        <li class="music-track-card" data-id="${track.id}">
+          <div class="music-track-index">▶</div>
           <div class="min-w-0 flex-1">
-            <p class="music-track-title truncate">${t.title || 'Unknown'}</p>
-            <p class="music-track-artist truncate">${t.artist || 'Unknown Artist'}</p>
+            <p class="music-track-title truncate">${track.title || 'Unknown'}</p>
+            <p class="music-track-artist truncate">${track.artist || 'Unknown Artist'}</p>
             ${timeStr ? `<p class="music-track-played">${timeStr}</p>` : ''}
           </div>
         </li>`;
-    }).join('');
 
-    recentListEl.querySelectorAll('.music-track-card').forEach((el) => {
-      el.addEventListener('click', async () => {
-        const id = String(el.getAttribute('data-id') || '');
-        if (!id) return;
-        const idx = recentTracks.findIndex(t => t.id === id);
-        if (idx < 0) return;
-        tracks = recentTracks;
-        currentIndex = idx;
-        const current = await prepareTrackForPlayback(currentIndex);
+      recentListEl.querySelector('.music-track-card').addEventListener('click', async () => {
+        tracks = [track];
+        currentIndex = 0;
+        const current = await prepareTrackForPlayback(0);
         if (!current) return;
         updateNowPlaying(current);
         renderTrackList();
@@ -2186,7 +2171,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           try { audio?.play(); } catch (e) {}
         }
       });
-    });
+    } catch (e) {
+      recentListEl.innerHTML = `<li class="music-empty">${isEn ? 'Failed to load' : '加载失败'}</li>`;
+    }
   }
 
   // Podcast helpers (moved to top-level so init can call them)
