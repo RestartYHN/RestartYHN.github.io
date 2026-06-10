@@ -338,6 +338,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         transparent 100%);
   }
 
+  .lyrics-container.is-static {
+    overflow-y: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+    scroll-behavior: smooth;
+  }
+
   .lyrics-track {
     position: absolute;
     width: 100%;
@@ -385,6 +392,18 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   .lyrics-line.active .lyrics-trans {
     color: color-mix(in oklab, var(--text-color) 65%, transparent);
+  }
+
+  .lyrics-static {
+    opacity: 0.85;
+    font-size: 0.95rem;
+    font-weight: normal;
+    cursor: default;
+    text-align: left;
+    padding: 0.3rem 0.5rem;
+  }
+  .lyrics-static .lyrics-main {
+    color: var(--text-color-70);
   }
 
   .music-track-list {
@@ -1374,7 +1393,15 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   function buildLyricLines(lyricText, translationText) {
     const parsedBase = parseLrc(lyricText);
     const base = parsedBase.lines;
-    if (!base.length) return [];
+    if (!base.length) {
+      const raw = String(lyricText || "").trim();
+      if (!raw) return [];
+      return raw.split("\n").map((t) => ({
+        time: Infinity,
+        text: t.trim() || " ",
+        translation: "",
+      }));
+    }
 
     const trans = parseLrc(translationText).lines;
     let transIdx = 0;
@@ -1418,10 +1445,19 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       lyricsTrack.style.transform = "translateY(0px)";
       return;
     }
+    const isStatic = lines.every((l) => l.time === Infinity);
+    const container = lyricsTrack.parentElement;
+    if (isStatic && container) {
+      container.classList.add("is-static");
+      lyricsTrack.style.position = "relative";
+    } else if (container) {
+      container.classList.remove("is-static");
+      lyricsTrack.style.position = "absolute";
+    }
     lyricsTrack.innerHTML = lines
       .map(
         (line, i) => `
-          <p class="lyrics-line" data-i="${i}">
+          <p class="lyrics-line ${isStatic ? 'lyrics-static' : ''}" data-i="${i}">
             <span class="lyrics-main">${line.text || "..."}</span>
             ${line.translation ? `<br><span class="lyrics-trans">${line.translation}</span>` : ""}
           </p>
