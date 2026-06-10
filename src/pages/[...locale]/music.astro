@@ -133,7 +133,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     display: grid;
     /* Fixed column widths: left (playlist/hero) and right (lyrics/tracks) */
     grid-template-columns: 360px 420px;
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto;
     gap: 1rem;
     margin-bottom: 1rem;
   }
@@ -178,8 +178,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .music-album-section {
-    grid-column: 2;
-    grid-row: 3;
+    grid-column: 1;
+    grid-row: 5;
   }
 
   .music-podcast-section {
@@ -199,10 +199,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   @media (max-width: 1024px) {
     .music-playlist-section { grid-column: 1; grid-row: 3; }
-    .music-album-section  { grid-column: 1; grid-row: 6; }
+    .music-album-section  { grid-column: 1; grid-row: 7; }
     .music-podcast-section { grid-column: 1; grid-row: 4; }
     .music-recent-section  { grid-column: 1; grid-row: 5; }
-    .music-tracks-section  { grid-column: 1; grid-row: 7; }
+    .music-tracks-section  { grid-column: 1; grid-row: 6; }
   }
 
   .music-hero-bg {
