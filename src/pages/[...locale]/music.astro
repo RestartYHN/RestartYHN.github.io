@@ -177,23 +177,19 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     grid-row: 2;
   }
 
+  .music-album-section {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
   .music-podcast-section {
     grid-column: 1;
     grid-row: 3;
   }
 
-  @media (max-width: 1024px) {
-    .music-playlist-section {
-      grid-column: 1;
-      grid-row: 3;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    .music-podcast-section {
-      grid-column: 1;
-      grid-row: 4;
-    }
+  .music-recent-section {
+    grid-column: 1;
+    grid-row: 4;
   }
 
   .music-tracks-section {
@@ -202,10 +198,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   @media (max-width: 1024px) {
-    .music-tracks-section {
-      grid-column: 1;
-      grid-row: 5;
-    }
+    .music-playlist-section { grid-column: 1; grid-row: 3; }
+    .music-album-section  { grid-column: 1; grid-row: 6; }
+    .music-podcast-section { grid-column: 1; grid-row: 4; }
+    .music-recent-section  { grid-column: 1; grid-row: 5; }
+    .music-tracks-section  { grid-column: 1; grid-row: 7; }
   }
 
   .music-hero-bg {
