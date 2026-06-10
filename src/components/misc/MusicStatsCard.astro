@@ -26,6 +26,11 @@ const isEn = currentLang === 'en';
       <div class="text-center"><div id="stat-today-dur" class="text-xl font-bold text-[var(--text-color)]">--</div><div class="text-xs text-[var(--text-color-70)]">{isEn ? 'Today' : '今日收听'}</div></div>
     </div>
 
+    <div id="music-recent-block" class="mb-5 pb-4 border-b border-[var(--button-border-color)] hidden">
+      <h3 class="text-sm font-semibold text-[var(--text-color-70)] mb-2">{isEn ? 'Recently Played' : '最近播放'}</h3>
+      <div id="music-recent-list" class="music-stats-scroll" style="max-height:250px"></div>
+    </div>
+
     <div class="flex items-center justify-between mb-3">
       <div class="flex gap-2 text-sm">
         <button id="st-btn-week" class="px-3 py-1 rounded-full border border-[var(--button-border-color)] font-semibold text-[var(--text-color)] bg-[var(--button-hover-color)]">{isEn ? 'Week' : '最近一周'}</button>
@@ -57,6 +62,8 @@ const isEn = currentLang === 'en';
 
     var list = document.getElementById('music-stats-list');
     var empty = document.getElementById('music-stats-empty');
+    var recentBlock = document.getElementById('music-recent-block');
+    var recentList = document.getElementById('music-recent-list');
     var btnWeek = document.getElementById('st-btn-week');
     var btnAll = document.getElementById('st-btn-all');
     var rankCount = document.getElementById('st-rank-count');
@@ -69,6 +76,18 @@ const isEn = currentLang === 'en';
       var h = Math.floor(ms / 3600000);
       var m = Math.floor((ms % 3600000) / 60000);
       return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+    }
+
+    function formatPlayedTime(ms) {
+      if (!ms) return '';
+      var diff = Date.now() - Number(ms);
+      if (diff <= 0) return isEn ? 'just now' : '刚刚';
+      var min = Math.floor(diff / 60000);
+      if (min < 60) return isEn ? min + 'm ago' : min + ' 分钟前';
+      var hour = Math.floor(min / 60);
+      if (hour < 24) return isEn ? hour + 'h ago' : hour + ' 小时前';
+      var day = Math.floor(hour / 24);
+      return isEn ? day + 'd ago' : day + ' 天前';
     }
 
     async function load(type) {
@@ -88,10 +107,65 @@ const isEn = currentLang === 'en';
 
         var ranked = (d.top || []).filter(function (t) { return t.playCount >= 4; });
         allData = ranked;
+        renderRecent(d.recent || []);
         renderList(ranked);
         card.classList.remove('hidden');
       } catch (e) {
         console.debug('[music-stats]', e);
+      }
+    }
+
+    function renderRecent(items) {
+      if (!recentBlock || !recentList) return;
+      if (!items.length) {
+        recentBlock.classList.add('hidden');
+        return;
+      }
+      recentBlock.classList.remove('hidden');
+
+      var html = '';
+      for (var i = 0; i < items.length; i++) {
+        var t = items[i];
+        var timeStr = formatPlayedTime(t.playedAt);
+        var coverStyle = t.cover ? 'background-image:url(' + t.cover + '?param=60y60)' : '';
+        html += '<div class="flex items-center gap-3 rounded-lg p-1.5 cursor-pointer hover:bg-[var(--button-hover-color)] transition-colors" data-id="' + t.id + '">'
+          + '<div class="h-9 w-9 rounded-md bg-[var(--button-hover-color)] bg-cover bg-center flex-shrink-0" style="' + coverStyle + '"></div>'
+          + '<div class="min-w-0 flex-1">'
+          + '<p class="text-xs font-semibold text-[var(--text-color)] truncate">' + esc(t.title) + '<span class="font-normal text-[var(--text-color-70)]"> — ' + esc(t.artist) + '</span></p>'
+          + '</div>'
+          + (timeStr ? '<span class="text-xs text-[var(--text-color-70)] flex-shrink-0">' + timeStr + '</span>' : '')
+          + '</div>';
+      }
+      recentList.innerHTML = html;
+
+      var items = recentList.querySelectorAll('[data-id]');
+      for (var j = 0; j < items.length; j++) {
+        items[j].addEventListener('click', (function (rec) {
+          return async function () {
+            var t = { id: rec.id, title: rec.title, artist: rec.artist, cover: rec.cover || '', audio: '', lyric: '', tlyric: '' };
+            try {
+              var fres = await fetch(API + '/api/music/track?id=' + rec.id, { referrerPolicy: 'no-referrer' });
+              var fj = await fres.json();
+              if (fj.code === 200 && fj.data) {
+                t.audio = fj.data.audio || '';
+                t.lyric = fj.data.lyric || '';
+                t.tlyric = fj.data.tlyric || '';
+              }
+            } catch (e) {}
+            var gc = window.__globalMusicBootstrapV1;
+            if (gc && typeof gc.syncState === 'function') {
+              gc.syncState({ tracks: [t], currentIndex: 0 });
+              setTimeout(function () {
+                var audio = document.getElementById('music-audio');
+                if (audio) {
+                  audio.removeAttribute('crossorigin');
+                  audio.crossOrigin = null;
+                  if (audio.paused) audio.play().catch(function(){});
+                }
+              }, 100);
+            }
+          };
+        })(items[j]));
       }
     }
 
