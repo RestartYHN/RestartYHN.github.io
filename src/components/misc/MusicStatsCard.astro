@@ -138,9 +138,9 @@ const isEn = currentLang === 'en';
       }
       recentList.innerHTML = html;
 
-      var items = recentList.querySelectorAll('[data-id]');
-      for (var j = 0; j < items.length; j++) {
-        items[j].addEventListener('click', (function (rec) {
+      var domEls = recentList.querySelectorAll('[data-id]');
+      for (var j = 0; j < domEls.length; j++) {
+        domEls[j].addEventListener('click', (function (rec) {
           return async function () {
             var t = { id: rec.id, title: rec.title, artist: rec.artist, cover: rec.cover || '', audio: '', lyric: '', tlyric: '' };
             try {
