@@ -2600,7 +2600,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     // Try to restore from global player first (for page re-entry)
     const hasGlobalState = restoreFromGlobalPlayer();
     if (hasGlobalState) {
-      renderPlaylistList();
       renderTrackList();
       if (tracks[currentIndex]) {
         const hydrated = await prepareTrackForPlayback(currentIndex);
@@ -2610,45 +2609,17 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       }
       updatePlayerPosition();
       updatePlaylistCount();
-      showStatus(isEn ? "Restored playlist from global player." : "已从全局播放器恢复歌单。");
-      return;
     }
 
     const hasTokenData = await restoreUserDataByToken();
     if (!hasTokenData) {
-      const hasCookieData = await loadCookieProfileIfConfigured();
-      if (hasCookieData) {
-        showStatus(
-          isEn
-            ? "Loaded private profile songs from backend cookie mode (no QR)."
-            : "已从后端 Cookie 模式加载私有歌曲（免扫码）。",
-        );
-      } else {
-        const hasPublicData = await loadPublicProfileIfConfigured();
-        if (hasPublicData) {
-          showStatus(
-            isEn
-              ? USE_DIRECT_NETEASE_API
-                ? "Loaded public profile songs from direct NetEase API mode."
-                : "Loaded public profile songs without QR login."
-              : USE_DIRECT_NETEASE_API
-                ? "已通过直连网易云 API 模式加载公开资料歌曲。"
-                : "已加载公开资料歌曲（免扫码模式）。",
-          );
-        } else {
-          showStatus(
-            isEn
-              ? USE_DIRECT_NETEASE_API
-                ? "No public profile data. Check PUBLIC_NETEASE_API and neteaseUserId."
-                : "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
-              : USE_DIRECT_NETEASE_API
-                ? "未读取到公开资料数据，请检查 PUBLIC_NETEASE_API 与 neteaseUserId。"
-                : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。",
-          );
-        }
-      }
-    } else {
-      showStatus(isEn ? "Restored login session from local storage." : "已从本地恢复登录会话。", "info");
+      await loadCookieProfileIfConfigured();
+    }
+
+    if (hasGlobalState) {
+      loadRecentSongs();
+      renderPlaylistList();
+      return;
     }
 
     loadRecentSongs();
