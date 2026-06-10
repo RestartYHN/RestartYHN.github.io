@@ -1837,12 +1837,15 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         const keepTitle = track.title && track.title !== `Song ${track.id}` && track.title !== 'Unknown';
         const keepArtist = track.artist && track.artist !== 'Unknown Artist' && track.artist !== 'Unknown';
         const keepCover = Boolean(track.cover);
+        const keepLyric = Boolean(track.lyric);
         return {
           ...track,
           ...fresh,
           title: keepTitle ? track.title : fresh.title,
           artist: keepArtist ? track.artist : fresh.artist,
           cover: keepCover ? track.cover : fresh.cover,
+          lyric: keepLyric ? track.lyric : fresh.lyric,
+          tlyric: keepLyric ? track.tlyric : fresh.tlyric,
           unavailable: !fresh.audio,
         };
       }
