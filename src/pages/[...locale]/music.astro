@@ -381,9 +381,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .lyrics-trans {
-    margin-top: 0.15rem;
-    font-size: 0.82em;
-    color: color-mix(in oklab, var(--text-color-70) 85%, transparent);
+    margin-top: 0.1rem;
+    font-size: 0.78em;
+    color: color-mix(in oklab, var(--text-color-70) 70%, transparent);
   }
 
   .lyrics-line.active .lyrics-main {
@@ -1361,7 +1361,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
       // Remove all time tags to get the plain lyric text
       const plainText = line.replace(timeTagRe, "").trim();
-      if (/^(作[词曲]|编曲|混[音缩]|[词曲](\s*[:：])|Vocal\.|Chorus\.|Guitar|Bass|Drum|Key(board)?|Strings|Arrang|Compos|Lyric|Record|Mix|Master|Producer|Program)/i.test(plainText)) return;
+
+      const isMeta = /^(作[词曲]|编曲|混[音缩]|[词曲](\s*[:：])|Vocal\.|Chorus\.|Guitar|Bass|Drum|Key(board)?|Strings|Arrang|Compos|Lyric|Record|Mix|Master|Producer|Program)/i.test(plainText);
 
       tags.forEach((tag) => {
         const mm = Number(tag[1]);
@@ -1383,6 +1384,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         lines.push({
           time: Math.max(0, t),
           text: plainText,
+          meta: isMeta,
         });
       });
     });
@@ -1408,7 +1410,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     let transIdx = 0;
     const TOLERANCE_SEC = 0.45;
 
+    const seenMeta = new Set();
     return base.map((line) => {
+      if (line.meta) {
+        if (seenMeta.has(line.text)) return null;
+        seenMeta.add(line.text);
+      }
       let matched = "";
 
       while (transIdx + 1 < trans.length && trans[transIdx + 1].time <= line.time) {
@@ -1436,7 +1443,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         text: line.text,
         translation: matched,
       };
-    }).reduce((merged, cur) => {
+    }).filter(Boolean).reduce((merged, cur) => {
       if (merged.length > 0 && Math.abs(merged[merged.length - 1].time - cur.time) < 0.01) {
         merged[merged.length - 1].translation = cur.text;
       } else {
