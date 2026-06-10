@@ -2274,11 +2274,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             const pTitle = p?.name || p?.title;
             const pArtist = p?.dj?.nickname || p?.radio?.name;
             const pCover = p?.coverUrl || p?.radio?.picUrl;
+            const pDesc = p?.description;
             tracks.push({
               ...track,
               title: pTitle || track.title,
               artist: pArtist || track.artist,
-              cover: pCover || track.cover || ''
+              cover: pCover || track.cover || '',
+              lyric: track.lyric || pDesc || ''
             });
           } catch (e) {
             console.warn('[music] load podcast track failed', id, e);
