@@ -1999,7 +1999,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         }
       }
 
-      tracks = tracks.filter((t) => !t.unavailable);
+      tracks = tracks.filter((t) => t.audio);
 
       if (version !== loadVersion) {
         resetLoadingFeedback();
