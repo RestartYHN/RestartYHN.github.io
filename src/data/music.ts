@@ -43,7 +43,7 @@ export const musicConfig: MusicConfig = {
 
   // If true, frontend will call backend /api/music/cookie-user first.
   // Backend must set NETEASE_MUSIC_COOKIE in .env.
-  preferCookieProfile: false,
+  preferCookieProfile: true,
 
   // Optional: fill your NetEase user id later.
   neteaseUserId: "2112672342",
