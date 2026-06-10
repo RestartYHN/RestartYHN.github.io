@@ -1551,9 +1551,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
         } else if (current?.id) {
           showStatus(
-            isEn
-              ? "No playable URL for this track in direct mode."
-              : "直连模式下该歌曲暂无可用播放链接。",
+            USE_DIRECT_NETEASE_API
+              ? (isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。")
+              : (isEn ? "No playable URL for this track." : "该歌曲暂无可用播放链接。"),
             "error"
           );
         } else {
@@ -1975,7 +1975,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             return;
           }
           const track = await loadTrack(id);
-          tracks.push(track);
+          if (track.audio) tracks.push(track);
         }
 
         // Render tracks after each batch (show progressive loading)
@@ -1998,8 +1998,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           }
         }
       }
-
-      tracks = tracks.filter((t) => t.audio);
 
       if (version !== loadVersion) {
         resetLoadingFeedback();
