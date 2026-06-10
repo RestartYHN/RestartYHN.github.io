@@ -143,13 +143,13 @@ const isEn = currentLang === 'en';
               gc.syncState({ tracks: all, currentIndex: idx });
               setTimeout(function () {
                 var audio = document.getElementById('music-audio');
-                if (audio && audio.paused) {
+                if (audio) {
                   audio.removeAttribute('crossorigin');
                   audio.crossOrigin = null;
+                  if (audio.paused) audio.play().catch(function(){});
                 }
               }, 100);
             }
-            window.location.href = isEn ? '/en/music' : '/music';
           };
         })(tracks[j]));
       }
