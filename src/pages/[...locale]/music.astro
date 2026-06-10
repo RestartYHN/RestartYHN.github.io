@@ -1793,7 +1793,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   async function hydrateTrack(track) {
-    if (!track?.id || !isPlaceholderTrack(track)) return track;
+    const needsHydrate = isPlaceholderTrack(track) || (!track.lyric && !track.audio);
+    if (!track?.id || !needsHydrate) return track;
     try {
       const fresh = await loadTrack(track.id);
       if (fresh && fresh.id) {

@@ -82,7 +82,9 @@ export function MusicCardComponent(properties, children) {
                                         id: "${songId}",
                                         title: track.title || "未知曲目",
                                         artist: artistName,
-                                        cover: track.cover ? (track.cover + "?param=130y130") : "",
+                                        cover: track.cover || "",
+                                        lyric: track.lyric || "",
+                                        tlyric: track.tlyric || "",
                                         audio: track.audio || "https://music.163.com/song/media/outer/url?id=${songId}.mp3"
                                     };
 
