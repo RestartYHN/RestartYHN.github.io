@@ -122,25 +122,34 @@ const isEn = currentLang === 'en';
 
       var items = list.querySelectorAll('[data-id]');
       for (var j = 0; j < items.length; j++) {
-        items[j].addEventListener('click', (function (trk) {
-          return function () {
+        items[j].addEventListener('click', (function (trk, idx) {
+          return async function () {
+            var t = { id: trk.id, title: trk.title, artist: trk.artist, cover: trk.cover || '', audio: '', lyric: '', tlyric: '' };
+            try {
+              var fres = await fetch(API + '/api/music/track?id=' + trk.id, { referrerPolicy: 'no-referrer' });
+              var fj = await fres.json();
+              if (fj.code === 200 && fj.data) {
+                t.audio = fj.data.audio || '';
+                t.lyric = fj.data.lyric || '';
+                t.tlyric = fj.data.tlyric || '';
+              }
+            } catch (e) {}
+
             var all = [];
+            var foundIdx = 0;
             for (var k = 0; k < tracks.length; k++) {
-              all.push({
-                id: tracks[k].id,
-                title: tracks[k].title,
-                artist: tracks[k].artist,
-                cover: tracks[k].cover || '',
-                audio: '',
-                lyric: '',
-                tlyric: ''
-              });
+              var x = { id: tracks[k].id, title: tracks[k].title, artist: tracks[k].artist, cover: tracks[k].cover || '', audio: '', lyric: '', tlyric: '' };
+              if (tracks[k].id === trk.id) {
+                x.audio = t.audio;
+                x.lyric = t.lyric;
+                x.tlyric = t.tlyric;
+                foundIdx = k;
+              }
+              all.push(x);
             }
-            var idx = all.findIndex(function (x) { return x.id === trk.id; });
-            if (idx < 0) idx = 0;
             var gc = window.__globalMusicBootstrapV1;
             if (gc && typeof gc.syncState === 'function') {
-              gc.syncState({ tracks: all, currentIndex: idx });
+              gc.syncState({ tracks: all, currentIndex: foundIdx });
               setTimeout(function () {
                 var audio = document.getElementById('music-audio');
                 if (audio) {
@@ -151,7 +160,7 @@ const isEn = currentLang === 'en';
               }, 100);
             }
           };
-        })(tracks[j]));
+        })(tracks[j], j));
       }
     }
 
