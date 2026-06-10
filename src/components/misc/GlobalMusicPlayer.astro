@@ -512,6 +512,7 @@ import { musicConfig } from '@/data/music';
       if (!options) return;
       if (Array.isArray(options.tracks)) {
         state.tracks = options.tracks;
+        state.loaded = true;
       }
       if (Number.isFinite(options.currentIndex)) {
         state.currentIndex = options.currentIndex;
