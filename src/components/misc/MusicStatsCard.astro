@@ -10,27 +10,43 @@ const isEn = currentLang === 'en';
   <div id="music-stats-card" data-api={musicConfig.apiBase} class="rounded-2xl border border-[var(--button-border-color)] bg-[color-mix(in_oklab,var(--bg-color)_92%,transparent)] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] hidden">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-2xl font-bold text-[var(--text-color)]">
-        {isEn ? 'Weekly Listening' : '听歌统计'}
+        {isEn ? 'Listening' : '听歌统计'}
       </h2>
-      <a href={isEn ? '/music' : '/zh/music'} class="text-sm text-[var(--link-color)] hover:underline">
-        {isEn ? 'Full page' : '完整音乐页'}
-      </a>
+      <div class="flex gap-2">
+        <a href={isEn ? '/music' : '/zh/music'} class="text-sm text-[var(--link-color)] hover:underline">
+          {isEn ? 'Music' : '音乐页'}
+        </a>
+      </div>
     </div>
 
     <div id="music-stats-summary" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5 pb-4 border-b border-[var(--button-border-color)]">
-      <div class="text-center"><div id="stat-week-duration" class="text-xl font-bold text-[var(--text-color)]">--</div><div class="text-xs text-[var(--text-color-70)]">{isEn ? 'Week' : '本周时长'}</div></div>
+      <div class="text-center"><div id="stat-week-duration" class="text-xl font-bold text-[var(--text-color)]">--</div><div class="text-xs text-[var(--text-color-70)]">{isEn ? 'Week' : '最近一周'}</div></div>
       <div class="text-center"><div id="stat-days" class="text-xl font-bold text-[var(--text-color)]">--</div><div class="text-xs text-[var(--text-color-70)]">{isEn ? 'Days' : '听歌天数'}</div></div>
-      <div class="text-center"><div id="stat-today-count" class="text-xl font-bold text-[var(--text-color)]">--</div><div class="text-xs text-[var(--text-color-70)]">{isEn ? 'Today songs' : '今日歌曲'}</div></div>
+      <div class="text-center"><div id="stat-today-count" class="text-xl font-bold text-[var(--text-color)]">--</div><div class="text-xs text-[var(--text-color-70)]">{isEn ? 'Songs' : '今日歌曲'}</div></div>
       <div class="text-center"><div id="stat-today-dur" class="text-xl font-bold text-[var(--text-color)]">--</div><div class="text-xs text-[var(--text-color-70)]">{isEn ? 'Today' : '今日收听'}</div></div>
     </div>
 
-    <h3 class="text-sm font-semibold text-[var(--text-color-70)] mb-3">{isEn ? 'Top 10 this week' : '本周 Top 10'}</h3>
-    <div id="music-stats-list" class="space-y-2"></div>
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex gap-2 text-sm">
+        <button id="st-btn-week" class="px-3 py-1 rounded-full border border-[var(--button-border-color)] font-semibold text-[var(--text-color)] bg-[var(--button-hover-color)]">{isEn ? 'Week' : '最近一周'}</button>
+        <button id="st-btn-all" class="px-3 py-1 rounded-full border border-[var(--button-border-color)] text-[var(--text-color-70)]">{isEn ? 'All time' : '所有时间'}</button>
+      </div>
+      <span id="st-rank-count" class="text-xs text-[var(--text-color-70)]"></span>
+    </div>
+    <div id="music-stats-list" class="music-stats-scroll"></div>
     <p id="music-stats-empty" class="text-sm text-[var(--text-color-70)] hidden">
       {isEn ? 'No data yet.' : '暂无数据，去网易云听歌吧！'}
     </p>
   </div>
 </section>
+
+<style>
+  .music-stats-scroll {
+    max-height: 360px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+</style>
 
 <script is:inline>
   (function () {
@@ -41,7 +57,12 @@ const isEn = currentLang === 'en';
 
     var list = document.getElementById('music-stats-list');
     var empty = document.getElementById('music-stats-empty');
+    var btnWeek = document.getElementById('st-btn-week');
+    var btnAll = document.getElementById('st-btn-all');
+    var rankCount = document.getElementById('st-rank-count');
     var isEn = document.documentElement.lang === 'en';
+    var currentType = '1';
+    var allData = [];
 
     function fmtDuration(ms) {
       if (!ms) return '--';
@@ -50,11 +71,11 @@ const isEn = currentLang === 'en';
       return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
     }
 
-    async function load() {
+    async function load(type) {
       try {
-        var res = await fetch(API + '/api/music/record', { referrerPolicy: 'no-referrer' });
+        var res = await fetch(API + '/api/music/record?type=' + type, { referrerPolicy: 'no-referrer' });
         var json = await res.json();
-        if (json.code !== 200 || !Array.isArray(json.data && json.data.top) || !json.data.top.length) {
+        if (json.code !== 200 || !json.data) {
           if (empty) empty.classList.remove('hidden');
           card.classList.remove('hidden');
           return;
@@ -65,24 +86,72 @@ const isEn = currentLang === 'en';
         setText('stat-today-count', String(d.todaySongs));
         setText('stat-today-dur', fmtDuration(d.todayDurationMs));
 
-        var playsWord = isEn ? 'plays' : '\u6b21';
-        var html = '';
-        for (var i = 0; i < d.top.length; i++) {
-          var t = d.top[i];
-          html += '<a href="https://music.163.com/#/song?id=' + t.id + '" target="_blank" rel="noopener noreferrer"'
-            + ' class="flex items-center gap-3 rounded-lg p-1.5 no-underline hover:bg-[var(--button-hover-color)] transition-colors">'
-            + '<span class="w-5 text-center text-xs font-bold ' + (i < 3 ? 'text-[#d5a56a]' : 'text-[var(--text-color-70)]') + '">' + (i + 1) + '</span>'
-            + '<div class="h-9 w-9 rounded-md bg-[var(--button-hover-color)] bg-cover bg-center flex-shrink-0" style="background-image:url(' + (t.cover ? t.cover + '?param=60y60' : '') + ')"></div>'
-            + '<div class="min-w-0 flex-1">'
-            + '<p class="text-xs font-semibold text-[var(--text-color)] truncate">' + esc(t.title) + '</p>'
-            + '</div>'
-            + '<span class="text-xs text-[var(--text-color-70)] flex-shrink-0">' + t.playCount + playsWord + '</span>'
-            + '</a>';
-        }
-        list.innerHTML = html;
+        var ranked = (d.top || []).filter(function (t) { return t.playCount >= 4; });
+        allData = ranked;
+        renderList(ranked);
         card.classList.remove('hidden');
       } catch (e) {
         console.debug('[music-stats]', e);
+      }
+    }
+
+    function renderList(tracks) {
+      if (!tracks.length) {
+        empty.classList.remove('hidden');
+        list.innerHTML = '';
+        if (rankCount) rankCount.textContent = '';
+        return;
+      }
+      empty.classList.add('hidden');
+      if (rankCount) rankCount.textContent = tracks.length + ' ' + (isEn ? 'songs' : '首');
+
+      var playsWord = isEn ? 'plays' : '次';
+      var html = '';
+      for (var i = 0; i < tracks.length; i++) {
+        var t = tracks[i];
+        html += '<div class="flex items-center gap-3 rounded-lg p-1.5 cursor-pointer hover:bg-[var(--button-hover-color)] transition-colors" data-id="' + t.id + '">'
+          + '<span class="w-5 text-center text-xs font-bold ' + (i < 3 ? 'text-[#d5a56a]' : 'text-[var(--text-color-70)]') + '">' + (i + 1) + '</span>'
+          + '<div class="h-9 w-9 rounded-md bg-[var(--button-hover-color)] bg-cover bg-center flex-shrink-0" style="background-image:url(' + (t.cover ? t.cover + '?param=60y60' : '') + ')"></div>'
+          + '<div class="min-w-0 flex-1">'
+          + '<p class="text-xs font-semibold text-[var(--text-color)] truncate">' + esc(t.title) + '</p>'
+          + '</div>'
+          + '<span class="text-xs text-[var(--text-color-70)] flex-shrink-0">' + t.playCount + playsWord + '</span>'
+          + '</div>';
+      }
+      list.innerHTML = html;
+
+      var items = list.querySelectorAll('[data-id]');
+      for (var j = 0; j < items.length; j++) {
+        items[j].addEventListener('click', (function (trk) {
+          return function () {
+            var all = [];
+            for (var k = 0; k < tracks.length; k++) {
+              all.push({
+                id: tracks[k].id,
+                title: tracks[k].title,
+                artist: tracks[k].artist,
+                cover: tracks[k].cover || '',
+                audio: '',
+                lyric: '',
+                tlyric: ''
+              });
+            }
+            var idx = all.findIndex(function (x) { return x.id === trk.id; });
+            if (idx < 0) idx = 0;
+            var gc = window.__globalMusicBootstrapV1;
+            if (gc && typeof gc.syncState === 'function') {
+              gc.syncState({ tracks: all, currentIndex: idx });
+              setTimeout(function () {
+                var audio = document.getElementById('music-audio');
+                if (audio && audio.paused) {
+                  audio.removeAttribute('crossorigin');
+                  audio.crossOrigin = null;
+                }
+              }, 100);
+            }
+            window.location.href = isEn ? '/music' : '/zh/music';
+          };
+        })(tracks[j]));
       }
     }
 
@@ -97,7 +166,26 @@ const isEn = currentLang === 'en';
       return d.innerHTML;
     }
 
-    load();
-    document.addEventListener('astro:page-load', load);
+    load('1');
+
+    if (btnWeek) btnWeek.addEventListener('click', function () {
+      if (currentType === '1') return;
+      currentType = '1';
+      btnWeek.className = btnWeek.className.replace('text-[var(--text-color-70)]', 'text-[var(--text-color)]').replace('bg-transparent', 'bg-[var(--button-hover-color)]');
+      if (!btnWeek.className.includes('bg-[')) btnWeek.className += ' bg-[var(--button-hover-color)] font-semibold';
+      btnAll.className = btnAll.className.replace('text-[var(--text-color)] font-semibold', 'text-[var(--text-color-70)]').replace('bg-[var(--button-hover-color)]', '');
+      load('1');
+    });
+
+    if (btnAll) btnAll.addEventListener('click', function () {
+      if (currentType === '0') return;
+      currentType = '0';
+      btnAll.className = btnAll.className.replace('text-[var(--text-color-70)]', 'text-[var(--text-color)] font-semibold').replace('bg-transparent', 'bg-[var(--button-hover-color)]');
+      if (!btnAll.className.includes('bg-[')) btnAll.className += ' bg-[var(--button-hover-color)] font-semibold';
+      btnWeek.className = btnWeek.className.replace('text-[var(--text-color)] font-semibold', 'text-[var(--text-color-70)]').replace('bg-[var(--button-hover-color)]', '');
+      load('0');
+    });
+
+    document.addEventListener('astro:page-load', function () { load(currentType); });
   })();
 </script>
