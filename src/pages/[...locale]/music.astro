@@ -77,6 +77,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <ul id="music-playlist-list" class="music-playlist-list"></ul>
       </section>
 
+      <section class="music-panel music-album-section">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <h2 class="music-panel-title">{isEn ? 'Albums' : '收藏专辑'}</h2>
+          <span id="music-album-subtitle" class="music-panel-subtitle">{isEn ? 'Click to load' : '点击加载'}</span>
+        </div>
+        <ul id="music-album-list" class="music-playlist-list"></ul>
+      </section>
+
       <section class="music-panel music-podcast-section">
         <div class="mb-3 flex items-end justify-between gap-3">
           <h2 class="music-panel-title">{isEn ? 'Podcasts' : '播客'}</h2>
@@ -1019,6 +1027,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let podcastCardsEl;
   let recentListEl;
   let recentSubtitleEl;
+  let albumListEl;
+  let albumSubtitleEl;
 
   function queryPageEls() {
     audio = document.getElementById("music-audio");
@@ -1042,6 +1052,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     podcastCardsEl = document.getElementById('music-podcast-list');
     recentListEl = document.getElementById('music-recent-list');
     recentSubtitleEl = document.getElementById('music-recent-subtitle');
+    albumListEl = document.getElementById('music-album-list');
+    albumSubtitleEl = document.getElementById('music-album-subtitle');
     btnMainPlay = document.getElementById("music-main-play");
     btnCardPlay = document.getElementById("music-play-toggle");
     btnPrev = document.getElementById("music-prev");
@@ -2224,6 +2236,65 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
+  async function loadAlbums() {
+    if (!albumListEl) return;
+    try {
+      const result = await getJson(`${API_BASE}/api/music/albums`);
+      if (result?.code !== 200 || !Array.isArray(result.data)) {
+        albumListEl.innerHTML = `<li class="music-empty">${isEn ? 'Failed to load' : '加载失败'}</li>`;
+        return;
+      }
+      const albums = result.data;
+      if (albumSubtitleEl) albumSubtitleEl.textContent = `${albums.length} ${isEn ? 'albums' : '张'}`;
+      albumListEl.innerHTML = albums.map((a, idx) => `
+        <li class="music-playlist-card" data-album-id="${a.id}">
+          <div class="music-playlist-index">${String(idx + 1).padStart(2, '0')}</div>
+          <div class="min-w-0 flex-1">
+            <p class="music-playlist-name truncate">${a.name}</p>
+            <p class="music-playlist-meta">${a.artist} · ${a.size} ${isEn ? 'tracks' : '首'}</p>
+          </div>
+        </li>
+      `).join('');
+      albumListEl.querySelectorAll('.music-playlist-card').forEach((el) => {
+        el.addEventListener('click', async () => {
+          const albumId = String(el.getAttribute('data-album-id') || '');
+          if (!albumId) return;
+          showStatus(isEn ? 'Loading album...' : '正在加载专辑...');
+          try {
+            const r = await getJson(`${API_BASE}/api/music/album?id=${albumId}`);
+            if (r?.code !== 200 || !Array.isArray(r.data?.tracks)) {
+              showStatus(isEn ? 'Failed to load album.' : '专辑加载失败。', 'error');
+              return;
+            }
+            const ids = r.data.tracks.map((t) => t.id).filter(Boolean);
+            const version = ++loadVersion;
+            tracks = [];
+            for (const id of ids) {
+              if (version !== loadVersion) return;
+              const track = await loadTrack(id);
+              if (track.audio) tracks.push(track);
+            }
+            if (!tracks.length) {
+              renderTrackList();
+              showStatus(isEn ? 'Album is empty.' : '专辑为空。', 'error');
+              return;
+            }
+            currentIndex = 0;
+            updateNowPlaying(tracks[currentIndex], { preserveActivePlayback: false });
+            updatePlayerPosition();
+            renderTrackList();
+            hideStatus();
+            bootstrapGlobalPlayer();
+          } catch (e) {
+            showStatus(isEn ? 'Failed to load album.' : '专辑加载失败。', 'error');
+          }
+        });
+      });
+    } catch (e) {
+      albumListEl.innerHTML = `<li class="music-empty">${isEn ? 'Failed to load' : '加载失败'}</li>`;
+    }
+  }
+
   // Podcast helpers (moved to top-level so init can call them)
   // Load all programs (episodes) from a podcast (radio) and treat each program's mainTrackId as a track
   async function loadPodcastPrograms(rid, options = {}) {
@@ -2662,11 +2733,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     if (hasGlobalState) {
       loadRecentSongs();
+      loadAlbums();
       renderPlaylistList();
       return;
     }
 
     loadRecentSongs();
+    loadAlbums();
     renderPlaylistList();
 
     if (musicConfig.defaultPlaylistId) {
