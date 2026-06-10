@@ -94,13 +94,22 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <ul id="music-podcast-list" class="music-playlist-list"></ul>
       </section>
 
-      <section class="music-panel music-recent-section">
-        <div class="mb-3 flex items-end justify-between gap-3">
-          <h2 class="music-panel-title">{isEn ? 'Recently Played' : '最近播放'}</h2>
-          <span id="music-recent-subtitle" class="music-panel-subtitle"></span>
-        </div>
-        <ul id="music-recent-list" class="music-track-list"></ul>
-      </section>
+      <div class="music-row-cards">
+        <section class="music-panel music-col-card">
+          <div class="mb-3 flex items-end justify-between gap-3">
+            <h2 class="music-panel-title">{isEn ? 'Podcasts' : '播客'}</h2>
+            <span id="music-podcast-subtitle" class="music-panel-subtitle">{isEn ? 'Click to load' : '点击加载'}</span>
+          </div>
+          <ul id="music-podcast-list" class="music-playlist-list"></ul>
+        </section>
+        <section class="music-panel music-col-card">
+          <div class="mb-3 flex items-end justify-between gap-3">
+            <h2 class="music-panel-title">{isEn ? 'Recent' : '最近播放'}</h2>
+            <span id="music-recent-subtitle" class="music-panel-subtitle"></span>
+          </div>
+          <ul id="music-recent-list" class="music-track-list"></ul>
+        </section>
+      </div>
 
       <section class="music-panel music-tracks-section">
         <div class="mb-3 flex items-end justify-between gap-3">
@@ -177,9 +186,21 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     grid-row: 2;
   }
 
-  .music-podcast-section {
+  .music-album-section {
     grid-column: 1;
     grid-row: 3;
+  }
+
+  .music-row-cards {
+    grid-column: 1;
+    grid-row: 4;
+    display: flex;
+    gap: 1rem;
+  }
+
+  .music-col-card {
+    flex: 1;
+    min-width: 0;
   }
 
   @media (max-width: 1024px) {
@@ -187,12 +208,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       grid-column: 1;
       grid-row: 3;
     }
-  }
-
-  @media (max-width: 1024px) {
-    .music-podcast-section {
+    .music-album-section {
       grid-column: 1;
       grid-row: 4;
+    }
+    .music-row-cards {
+      grid-column: 1;
+      grid-row: 5;
+      flex-direction: column;
     }
   }
 
@@ -204,7 +227,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   @media (max-width: 1024px) {
     .music-tracks-section {
       grid-column: 1;
-      grid-row: 5;
+      grid-row: 6;
     }
   }
 
