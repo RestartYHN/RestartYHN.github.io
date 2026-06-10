@@ -1645,6 +1645,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         return null;
       }
 
+      if (!data?.audio) {
+        localStorage.removeItem(`${trackCacheKey}:${id}`);
+        return null;
+      }
+
       return data;
     } catch {
       return null;
