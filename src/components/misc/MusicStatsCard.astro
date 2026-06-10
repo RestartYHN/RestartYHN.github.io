@@ -32,55 +32,71 @@ const isEn = currentLang === 'en';
   </div>
 </section>
 
-<script>
-  const API = musicConfig.apiBase;
-  if (!API) return;
+<script define:vars="{{ API: musicConfig.apiBase }}">
+  (function () {
+    var base = API;
+    if (!base) return;
 
-  const card = document.getElementById('music-stats-card');
-  const list = document.getElementById('music-stats-list');
-  const empty = document.getElementById('music-stats-empty');
-  const isEn = document.documentElement.lang === 'en';
+    var card = document.getElementById('music-stats-card');
+    var list = document.getElementById('music-stats-list');
+    var empty = document.getElementById('music-stats-empty');
+    var isEn = document.documentElement.lang === 'en';
 
-  function fmtDuration(ms) {
-    if (!ms) return '--';
-    const h = Math.floor(ms / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  }
-
-  async function load() {
-    try {
-      const res = await fetch(`${API}/api/music/record`, { referrerPolicy: 'no-referrer' });
-      const json = await res.json();
-      if (json.code !== 200 || !Array.isArray(json.data?.top) || !json.data.top.length) {
-        empty.classList.remove('hidden');
-        card.classList.remove('hidden');
-        return;
-      }
-      const d = json.data;
-      document.getElementById('stat-week-duration').textContent = fmtDuration(d.weekDurationMs);
-      document.getElementById('stat-days').textContent = d.listeningDays;
-      document.getElementById('stat-today-count').textContent = d.todaySongs;
-      document.getElementById('stat-today-dur').textContent = fmtDuration(d.todayDurationMs);
-
-      const playsWord = isEn ? 'plays' : '次';
-      list.innerHTML = d.top.map((t, i) => `
-        <a href="https://music.163.com/#/song?id=${t.id}" target="_blank" rel="noopener noreferrer"
-           class="flex items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-[var(--button-hover-color)] no-underline">
-          <span class="w-5 text-center text-xs font-bold ${i < 3 ? 'text-[#d5a56a]' : 'text-[var(--text-color-70)]'}">${i + 1}</span>
-          <div class="h-9 w-9 rounded-md bg-[var(--button-hover-color)] bg-cover bg-center flex-shrink-0" style="background-image:url(${t.cover}?param=60y60)"></div>
-          <div class="min-w-0 flex-1">
-            <p class="text-xs font-semibold text-[var(--text-color)] truncate">${t.title}</p>
-          </div>
-          <span class="text-xs text-[var(--text-color-70)] flex-shrink-0">${t.playCount}${playsWord}</span>
-        </a>
-      `).join('');
-      card.classList.remove('hidden');
-    } catch (e) {
-      console.debug('[music-stats]', e);
+    function fmtDuration(ms) {
+      if (!ms) return '--';
+      var h = Math.floor(ms / 3600000);
+      var m = Math.floor((ms % 3600000) / 60000);
+      return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
     }
-  }
 
-  load();
-  document.addEventListener('astro:page-load', load);
+    async function load() {
+      try {
+        var res = await fetch(base + '/api/music/record', { referrerPolicy: 'no-referrer' });
+        var json = await res.json();
+        if (json.code !== 200 || !Array.isArray(json.data && json.data.top) || !json.data.top.length) {
+          if (empty) empty.classList.remove('hidden');
+          if (card) card.classList.remove('hidden');
+          return;
+        }
+        var d = json.data;
+        setText('stat-week-duration', fmtDuration(d.weekDurationMs));
+        setText('stat-days', String(d.listeningDays));
+        setText('stat-today-count', String(d.todaySongs));
+        setText('stat-today-dur', fmtDuration(d.todayDurationMs));
+
+        var playsWord = isEn ? 'plays' : '\u6b21';
+        var html = '';
+        for (var i = 0; i < d.top.length; i++) {
+          var t = d.top[i];
+          html += '<a href="https://music.163.com/#/song?id=' + t.id + '" target="_blank" rel="noopener noreferrer"'
+            + ' class="flex items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-[var(--button-hover-color)] no-underline">'
+            + '<span class="w-5 text-center text-xs font-bold ' + (i < 3 ? 'text-[#d5a56a]' : 'text-[var(--text-color-70)]') + '">' + (i + 1) + '</span>'
+            + '<div class="h-9 w-9 rounded-md bg-[var(--button-hover-color)] bg-cover bg-center flex-shrink-0" style="background-image:url(' + (t.cover ? t.cover + '?param=60y60' : '') + ')"></div>'
+            + '<div class="min-w-0 flex-1">'
+            + '<p class="text-xs font-semibold text-[var(--text-color)] truncate">' + esc(t.title) + '</p>'
+            + '</div>'
+            + '<span class="text-xs text-[var(--text-color-70)] flex-shrink-0">' + t.playCount + playsWord + '</span>'
+            + '</a>';
+        }
+        list.innerHTML = html;
+        card.classList.remove('hidden');
+      } catch (e) {
+        console.debug('[music-stats]', e);
+      }
+    }
+
+    function setText(id, val) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = val;
+    }
+
+    function esc(s) {
+      var d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    load();
+    document.addEventListener('astro:page-load', load);
+  })();
 </script>
