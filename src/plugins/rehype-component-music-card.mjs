@@ -39,28 +39,27 @@ export function MusicCardComponent(properties, children) {
                 // 幂等性检查：如果卡片不存在，或已经标记为加载完成，则不再执行
                 if (!card || card.dataset.loaded === "true") return;
 
-                const apiBase = (window.__MUSIC_API__ && window.__MUSIC_API__.neteaseApiBase) || (window.__MUSIC_API__ && window.__MUSIC_API__.apiBase) || '';
+                const apiBase = (window.__MUSIC_API__ && window.__MUSIC_API__.apiBase) || '';
 
-                // 调用 api-enhanced 标准接口获取歌曲详细信息
-                fetch(apiBase + '/song/detail?ids=${songId}', { referrerPolicy: "no-referrer" })
+                fetch(apiBase + '/api/music/track?id=${songId}', { referrerPolicy: "no-referrer" })
                     .then(response => response.json())
-                    .then(data => {
-                        if (data && data.code === 200 && data.songs && data.songs.length > 0) {
-                            const track = data.songs[0];
+                    .then(result => {
+                        if (result && result.code === 200 && result.data) {
+                            const track = result.data;
                             
                             // 更新标题
                             const titleEl = document.getElementById('${cardUuid}-title');
-                            if (titleEl) titleEl.innerText = track.name || "未知曲目";
-                            
+                            if (titleEl) titleEl.innerText = track.title || "未知曲目";
+
                             // 更新艺术家 (多名歌手需要合并)
                             const artistEl = document.getElementById('${cardUuid}-artist');
-                            const artistName = Array.isArray(track.ar) ? track.ar.map(a => a.name).join(', ') : '未知艺术家';
+                            const artistName = track.artist || '未知艺术家';
                             if (artistEl) artistEl.innerText = artistName;
-                            
+
                             // 更新封面 (直接通过 api 返回的数据取出，不再需要请求另一次)
                             const coverEl = document.getElementById('${cardUuid}-cover');
-                            if (coverEl && track.al && track.al.picUrl) {
-                                coverEl.style.backgroundImage = 'url(' + track.al.picUrl + '?param=130y130)'; // 附加缩放参数节省流量
+                            if (coverEl && track.cover) {
+                                coverEl.style.backgroundImage = 'url(' + track.cover + '?param=130y130)'; // 附加缩放参数节省流量
                                 coverEl.style.backgroundColor = 'transparent';
                             }
 
@@ -81,11 +80,10 @@ export function MusicCardComponent(properties, children) {
                                     
                                     const newTrack = {
                                         id: "${songId}",
-                                        title: track.name || "未知曲目",
+                                        title: track.title || "未知曲目",
                                         artist: artistName,
-                                        cover: track.al && track.al.picUrl ? (track.al.picUrl + "?param=130y130") : "",
-                                        // 采用网易云官方外链接口，无需强制查 API
-                                        audio: "https://music.163.com/song/media/outer/url?id=${songId}.mp3"
+                                        cover: track.cover ? (track.cover + "?param=130y130") : "",
+                                        audio: track.audio || "https://music.163.com/song/media/outer/url?id=${songId}.mp3"
                                     };
 
                                     if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
