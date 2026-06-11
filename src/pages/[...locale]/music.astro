@@ -1650,7 +1650,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       }
     }
 
-    console.log('[updateNowPlaying] lyric length:', (track.lyric || '').length, 'tlyric:', (track.tlyric || '').length);
     lyricLines = buildLyricLines(track.lyric, track.tlyric);
     activeLyricIndex = -1;
     renderLyrics(lyricLines);
@@ -2528,15 +2527,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             const pArtist = p?.dj?.nickname || p?.radio?.name;
             const pCover = p?.coverUrl || p?.radio?.picUrl;
           const pDesc = p?.description;
-          console.log('[podcast] desc:', (pDesc||'').slice(0,30), 'track.lyric:', (track.lyric||'').length);
-          const finalTrack = {
+          tracks.push({
             ...track,
             title: pTitle || track.title,
             artist: pArtist || track.artist,
             cover: pCover || track.cover || '',
             lyric: pDesc || track.lyric || ''
-          };
-          console.log('[podcast] finalTrack.lyric:', (finalTrack.lyric||'').length);
+          });
         if (currentIndex === 0) updateNowPlaying(tracks[0], { preserveActivePlayback });
         renderTrackList();
       }).catch(() => {});
