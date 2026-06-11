@@ -338,7 +338,40 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   .music-search-wrap {
     position: relative;
     margin-bottom: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  :global(.music-search-results) {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--button-border-color);
+    border-radius: 0.6rem;
+    background: var(--bg-color);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    padding: 0.25rem 0;
+  }
+  :global(.music-search-results.hidden) { display: none; }
+  :global(.music-search-result-item) {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
+    transition: background-color 0.12s;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
   .music-search-input {
     width: 100%;
