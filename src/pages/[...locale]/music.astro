@@ -134,6 +134,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   <FabMenu showBackBottom={true} />
 </MainPageLayout>
 
+<style is:global>
+  .music-track-title,
+  .music-track-artist,
+  .music-playlist-name,
+  .music-search-results .truncate {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+</style>
 <style>
   .music-main-grid {
     display: grid;
