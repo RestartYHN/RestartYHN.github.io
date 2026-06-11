@@ -217,7 +217,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   @media (max-width: 1024px) {
-    .music-main-grid {
+  .music-main-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -1082,6 +1082,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
 <script define:vars={{ musicConfig, isEn }}>
   const API_BASE = musicConfig.apiBase;
+  function cut(s, n) { n = n || 12; return (s || '').length > n ? (s || '').slice(0, n) + '...' : (s || ''); }
   const NETEASE_API_BASE = musicConfig.neteaseApiBase || "";
   const NETEASE_REAL_IP = musicConfig.neteaseRealIp || "";
   const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
@@ -1272,8 +1273,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           <li class="music-playlist-modal-item ${idx === currentIndex ? "active" : ""}" data-idx="${idx}">
             <div class="music-playlist-modal-item-index">${idx === currentIndex ? "▶" : String(idx + 1).padStart(2, "0")}</div>
             <div class="music-playlist-modal-item-info">
-              <div class="music-playlist-modal-item-title">${track.title || "Unknown"}</div>
-              <div class="music-playlist-modal-item-artist">${track.artist || "Unknown Artist"}</div>
+              <div class="music-playlist-modal-item-title">${cut(track.title)}</div>
+              <div class="music-playlist-modal-item-artist">${cut(track.artist, 15)}</div>
             </div>
           </li>
         `
@@ -1676,8 +1677,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           <li class="music-track-card ${idx === currentIndex ? "active" : ""} ${track.unavailable ? "unavailable" : ""}" data-idx="${idx}">
             <div class="music-track-index">${String(idx + 1).padStart(2, "0")}</div>
             <div class="min-w-0 flex-1">
-              <p class="music-track-title truncate">${track.title || "Unknown"}</p>
-              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}</p>
+              <p class="music-track-title truncate">${cut(track.title)}</p>
+              <p class="music-track-artist truncate">${cut(track.artist, 15)}</p>
             </div>
           </li>
         `,
@@ -2276,8 +2277,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           dataset = j.data;
           results.innerHTML = dataset.map((t, i) => '<div class="sr-item" data-idx="' + i + '" data-id="' + t.id + '">'
             + '<img class="sr-cover" src="' + (t.cover || '') + '?param=40y40" referrerpolicy="no-referrer" alt="" />'
-            + '<div class="sr-text"><div class="sr-title text-cut">' + escH(t.title) + '</div>'
-            + '<div class="sr-artist text-cut">' + escH(t.artist) + '</div></div></div>').join('');
+            + '<div class="sr-text"><div class="sr-title text-cut">' + escH(cut(t.title, 15)) + '</div>'
+            + '<div class="sr-artist text-cut">' + escH(cut(t.artist, 15)) + '</div></div></div>').join('');
           results.classList.remove('hidden');
           results.querySelectorAll('.sr-item').forEach(el => {
             el.addEventListener('click', () => selectResult(parseInt(el.getAttribute('data-idx') || '0', 10)));
@@ -2358,8 +2359,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <li class="music-track-card" data-ri="${i}" data-id="${t.id}">
           <div class="music-track-index">${String(i + 1).padStart(2, '0')}</div>
           <div class="min-w-0 flex-1">
-            <p class="music-track-title truncate">${t.title || 'Unknown'}</p>
-            <p class="music-track-artist truncate">${t.artist || 'Unknown Artist'}</p>
+            <p class="music-track-title truncate">${cut(t.title)}</p>
+            <p class="music-track-artist truncate">${cut(t.artist, 15)}</p>
             ${timeStr ? `<p class="music-track-played">${timeStr}</p>` : ''}
           </div>
         </li>`;
