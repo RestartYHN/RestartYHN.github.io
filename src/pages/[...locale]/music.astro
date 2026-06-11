@@ -25,8 +25,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     <Cover
       title={isEn ? 'Music' : '音乐'}
       subTitle={isEn
-        ? 'NetEase Cloud web player (web recommended): if the default track does not play, the media file may not have been retrieved — try clicking another track and playback should start on subsequent attempts. Choose any playlist and start listening; stay on this page to view synchronized lyrics. A global player is enabled, so opening sibling pages will not interrupt the current playlist. Note: only public playlist data is used; VIP/paid tracks may not play in full.'
-        : '网易云网页播放（推荐使用网页版）：若默认歌曲点击后无法播放，说明未读取到媒体文件，请尝试点击其他歌曲，后续播放流程会恢复。你可以选择任意公开歌单开始收听，并在该页面欣赏同步歌词。页面已内置全局播放器，打开同级页面不会中断当前歌单播放。注意：仅读取公开歌单信息，VIP/付费曲目可能无法播放完整。'
+        ? 'A NetEase Cloud web player with synced lyrics. Browse all your playlists — public, private, and liked songs. The global player keeps music going even when you switch pages. VIP tracks require an active membership on your account.'
+        : '基于网易云账号的在线音乐播放器。支持同步歌词，可访问公开歌单、私密歌单与我喜欢的音乐。内置全局播放器，切换页面不会中断播放。VIP 歌曲需账号持有相应权益。'
       }
     />
 
@@ -42,6 +42,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         </div>
         <ul id="music-playlist-modal-list" class="music-playlist-modal-list"></ul>
       </div>
+    </div>
+
+    <div class="music-search-bar">
+      <input id="music-search-input" type="text" placeholder={isEn ? 'Search and add to queue...' : '搜索歌曲加入队列...'} autocomplete="off" />
+      <div id="music-search-results" class="hidden"></div>
     </div>
 
     <div class="music-main-grid">
@@ -60,11 +65,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         </div>
       </section>
 
-      <section class="music-panel music-lyrics-panel">
-        <h4 class="music-lyrics-title">{isEn ? 'Lyrics' : '歌词'}</h4>
-        <ul id="music-lyrics" class="music-lyrics">
-          <li>{isEn ? 'Lyrics loading...' : '歌词加载中...'}</li>
-        </ul>
+      <section class="music-lyrics-panel">
+        <div class="lyrics-container" id="music-lyrics">
+          <div class="lyrics-track" id="lyrics-track">
+            <p class="lyrics-line lyrics-placeholder">{isEn ? 'Lyrics loading...' : '歌词加载中...'}</p>
+          </div>
+        </div>
       </section>
 
       {/* Bottom Row: Playlists & Tracks */}
@@ -76,13 +82,29 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <ul id="music-playlist-list" class="music-playlist-list"></ul>
       </section>
 
-      <section class="music-panel music-podcast-section">
-        <div class="mb-3 flex items-end justify-between gap-3">
-          <h2 class="music-panel-title">{isEn ? 'Podcasts' : '播客'}</h2>
-          <span id="music-podcast-subtitle" class="music-panel-subtitle">{isEn ? 'Click a podcast to load episodes' : '点击播客以加载剧集'}</span>
-        </div>
+      <div class="music-col-tight">
+        <section class="music-panel music-mini-section">
+          <div class="mb-3 flex items-end justify-between gap-3">
+            <h2 class="music-panel-title">{isEn ? 'Podcasts' : '播客'}</h2>
+            <span id="music-podcast-subtitle" class="music-panel-subtitle">{isEn ? 'Click to load' : '点击加载'}</span>
+          </div>
+          <ul id="music-podcast-list" class="music-playlist-list"></ul>
+        </section>
+        <section class="music-panel music-mini-section">
+          <div class="mb-3 flex items-end justify-between gap-3">
+            <h2 class="music-panel-title">{isEn ? 'Recent' : '最近播放'}</h2>
+            <span id="music-recent-subtitle" class="music-panel-subtitle"></span>
+          </div>
+          <ul id="music-recent-list" class="music-track-list"></ul>
+        </section>
+      </div>
 
-        <ul id="music-podcast-list" class="music-playlist-list"></ul>
+      <section class="music-panel music-album-section">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <h2 class="music-panel-title">{isEn ? 'Albums' : '收藏专辑'}</h2>
+          <span id="music-album-subtitle" class="music-panel-subtitle">{isEn ? 'Click to load' : '点击加载'}</span>
+        </div>
+        <ul id="music-album-list" class="music-playlist-list"></ul>
       </section>
 
       <section class="music-panel music-tracks-section">
@@ -112,11 +134,82 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 </MainPageLayout>
 
 <style>
+  .text-cut {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 100%;
+  }
+
+  .music-search-bar {
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+  .music-search-bar input {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--button-border-color);
+    border-radius: 0.5rem;
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+    color: var(--text-color);
+    font-size: 0.85rem;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .music-search-bar input:focus { border-color: var(--link-color); }
+  .music-search-bar > div {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    z-index: 20;
+    max-height: 300px;
+    overflow: hidden auto;
+    border: 1px solid var(--button-border-color);
+    border-radius: 0.6rem;
+    background: var(--bg-color);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+  }
+  .music-search-bar > div.hidden { display: none; }
+  .sr-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
+    transition: background-color 0.12s;
+  }
+  .sr-item:last-child { border-bottom: none; }
+  .sr-item:hover { background: var(--button-hover-color); }
+  .sr-item.active { background: var(--button-hover-color); border-left: 3px solid var(--link-color); }
+  .sr-cover { width: 36px; height: 36px; border-radius: 4px; background-color: var(--button-hover-color); flex-shrink: 0; object-fit: cover; }
+  .sr-text { min-width: 0; flex: 1; overflow: hidden; }
+  .sr-title { font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
+  .sr-artist { font-size: 0.78rem; color: var(--text-color-70); }
+
   .music-main-grid {
     display: grid;
     /* Fixed column widths: left (playlist/hero) and right (lyrics/tracks) */
     grid-template-columns: 360px 420px;
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 1024px) {
+  .text-cut, .truncate, .music-track-title, .music-track-artist, .music-playlist-name {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block;
+    max-width: 100%;
+  }
+
+  .music-main-grid {
+    display: grid;
+    grid-template-columns: 360px 420px;
+    grid-template-rows: auto auto auto auto auto auto;
     gap: 1rem;
     margin-bottom: 1rem;
   }
@@ -160,23 +253,27 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     grid-row: 2;
   }
 
-  .music-podcast-section {
+  .music-playlist-section {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .music-album-section {
     grid-column: 1;
     grid-row: 3;
   }
 
-  @media (max-width: 1024px) {
-    .music-playlist-section {
-      grid-column: 1;
-      grid-row: 3;
-    }
+  .music-col-tight {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  @media (max-width: 1024px) {
-    .music-podcast-section {
-      grid-column: 1;
-      grid-row: 4;
-    }
+  .music-mini-section {
+    flex-shrink: 0;
   }
 
   .music-tracks-section {
@@ -185,10 +282,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   @media (max-width: 1024px) {
-    .music-tracks-section {
-      grid-column: 1;
-      grid-row: 5;
-    }
+    .music-playlist-section { grid-column: 1; grid-row: 3; }
+    .music-tracks-section  { grid-column: 1; grid-row: 4; }
+    .music-col-tight       { grid-column: 1; grid-row: 5; }
+    .music-album-section   { grid-column: 1; grid-row: 6; }
   }
 
   .music-hero-bg {
@@ -222,7 +319,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .music-now-card,
-  .music-lyrics-panel,
   .music-panel {
     border: 1px solid var(--button-border-color);
     border-radius: 0.95rem;
@@ -247,8 +343,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .music-artist,
-  .music-panel-subtitle,
-  .music-lyrics-title {
+  .music-panel-subtitle {
     color: var(--text-color-70);
   }
 
@@ -288,52 +383,115 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     color: var(--text-color);
   }
 
-  .music-lyrics {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    max-height: 500px;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scroll-behavior: smooth;
-    scroll-padding-block: 45%;
-    line-height: 1.9;
+  .music-lyrics-panel {
+    position: relative;
+    height: 500px;
+    overflow: hidden;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    padding: 0.5rem 1rem;
   }
 
-  @media (max-width: 768px) {
-    .music-lyrics {
-      scroll-padding-block: 45%;
+  @media (max-width: 1024px) {
+    .music-lyrics-panel {
+      height: 400px;
     }
   }
 
-  .music-lyrics li {
-    color: var(--text-color-70);
-    padding: 0.4rem 0;
-    transition: color 160ms ease;
+  @media (max-width: 768px) {
+    .music-lyrics-panel {
+      height: 350px;
+    }
   }
 
-  .music-lyrics li.active {
-    color: var(--text-color);
+  .lyrics-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0,0,0,0.3) 8%,
+        black 18%,
+        black 82%,
+        rgba(0,0,0,0.3) 92%,
+        transparent 100%);
+    mask-image: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0,0,0,0.3) 8%,
+        black 18%,
+        black 82%,
+        rgba(0,0,0,0.3) 92%,
+        transparent 100%);
+  }
+
+  .lyrics-container.is-static {
+    overflow-y: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+    scroll-behavior: smooth;
+  }
+
+  .lyrics-track {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    will-change: transform;
+    transition: transform 0.12s ease-out;
+  }
+
+  .lyrics-line {
+    text-align: center;
+    padding: 0.45rem 1rem;
+    opacity: 0.25;
+    transition: opacity 0.35s ease, font-size 0.35s ease, color 0.35s ease;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+
+  .lyrics-line.active {
+    opacity: 1;
+    font-size: 1.12rem;
     font-weight: 600;
   }
 
-  .music-lyrics-main {
-    line-height: 1.5;
+  .lyrics-line.near {
+    opacity: 0.55;
+    font-size: 0.96rem;
   }
 
-  .music-lyrics-trans {
-    margin-top: 0.15rem;
-    font-size: 0.86rem;
-    line-height: 1.45;
-    color: color-mix(in oklab, var(--text-color-70) 85%, transparent);
-  }
-
-  .music-lyrics li.active .music-lyrics-main {
+  .lyrics-main {
     color: var(--text-color);
   }
 
-  .music-lyrics li.active .music-lyrics-trans {
+  .lyrics-trans {
+    margin-top: 0.15rem;
+    font-size: 0.86rem;
+    color: color-mix(in oklab, var(--text-color-70) 85%, transparent);
+  }
+
+  .lyrics-line.active .lyrics-main {
+    color: var(--text-color);
+  }
+
+  .lyrics-line.active .lyrics-trans {
     color: color-mix(in oklab, var(--text-color) 65%, transparent);
+  }
+
+  .lyrics-static {
+    opacity: 0.85;
+    font-size: 0.95rem;
+    font-weight: normal;
+    cursor: default;
+    text-align: left;
+    padding: 0.3rem 0.5rem;
+  }
+  .lyrics-static .lyrics-main {
+    color: var(--text-color-70);
   }
 
   .music-track-list {
@@ -927,6 +1085,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let titleEl;
   let artistEl;
   let lyricsEl;
+  let lyricsTrack;
   let heroBg;
   let statusEl;
   let bottomCover;
@@ -946,6 +1105,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let pauseIcon;
   let podcastTrackListEl;
   let podcastCardsEl;
+  let recentListEl;
+  let recentSubtitleEl;
+  let albumListEl;
+  let albumSubtitleEl;
 
   function queryPageEls() {
     audio = document.getElementById("music-audio");
@@ -954,6 +1117,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     titleEl = document.getElementById("music-title");
     artistEl = document.getElementById("music-artist");
     lyricsEl = document.getElementById("music-lyrics");
+    lyricsTrack = document.getElementById("lyrics-track");
     heroBg = document.getElementById("music-hero-bg");
     statusEl = document.getElementById("music-status");
     bottomCover = document.getElementById("music-bottom-cover");
@@ -966,6 +1130,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     playlistSubtitleEl = document.getElementById("music-playlist-subtitle");
     podcastTrackListEl = document.getElementById('music-podcast-track-list');
     podcastCardsEl = document.getElementById('music-podcast-list');
+    recentListEl = document.getElementById('music-recent-list');
+    recentSubtitleEl = document.getElementById('music-recent-subtitle');
+    albumListEl = document.getElementById('music-album-list');
+    albumSubtitleEl = document.getElementById('music-album-subtitle');
     btnMainPlay = document.getElementById("music-main-play");
     btnCardPlay = document.getElementById("music-play-toggle");
     btnPrev = document.getElementById("music-prev");
@@ -980,7 +1148,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   let currentIndex = 0;
   let lyricLines = [];
   let activeLyricIndex = -1;
-  let lastLyricScrollAtMs = 0;
   let loadVersion = 0;
   let podcastLoadVersion = 0;
   let currentPlaylistId = "";
@@ -1286,6 +1453,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
       // Remove all time tags to get the plain lyric text
       const plainText = line.replace(timeTagRe, "").trim();
+      if (/^(作[词曲]|编曲|混[音缩]|[词曲](\s*[:：])|Vocal\.|Chorus\.|Guitar|Bass|Drum|Key(board)?|Strings|Arrang|Compos|Lyric|Record|Mix|Master|Producer|Program)/i.test(plainText)) return;
 
       tags.forEach((tag) => {
         const mm = Number(tag[1]);
@@ -1318,7 +1486,15 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   function buildLyricLines(lyricText, translationText) {
     const parsedBase = parseLrc(lyricText);
     const base = parsedBase.lines;
-    if (!base.length) return [];
+    if (!base.length) {
+      const raw = String(lyricText || "").trim();
+      if (!raw) return [];
+      return raw.split("\n").map((t) => ({
+        time: Infinity,
+        text: t.trim() || " ",
+        translation: "",
+      }));
+    }
 
     const trans = parseLrc(translationText).lines;
     let transIdx = 0;
@@ -1356,24 +1532,32 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   function renderLyrics(lines) {
-    if (!lyricsEl) return;
+    if (!lyricsTrack) return;
     if (!lines.length) {
-      lyricsEl.innerHTML = `<li>${isEn ? "No lyric available" : "暂无歌词"}</li>`;
-      lyricsEl.scrollTop = 0;
+      lyricsTrack.innerHTML = `<p class="lyrics-line lyrics-placeholder">${isEn ? "No lyric available" : "暂无歌词"}</p>`;
+      lyricsTrack.style.transform = "translateY(0px)";
       return;
     }
-    lyricsEl.innerHTML = lines
+    const isStatic = lines.every((l) => l.time === Infinity);
+    const container = lyricsTrack.parentElement;
+    if (isStatic && container) {
+      container.classList.add("is-static");
+      lyricsTrack.style.position = "relative";
+    } else if (container) {
+      container.classList.remove("is-static");
+      lyricsTrack.style.position = "absolute";
+    }
+    lyricsTrack.innerHTML = lines
       .map(
         (line, i) => `
-          <li data-i="${i}">
-            <div class="music-lyrics-main">${line.text || "..."}</div>
-            ${line.translation ? `<div class="music-lyrics-trans">${line.translation}</div>` : ""}
-          </li>
+          <p class="lyrics-line ${isStatic ? 'lyrics-static' : ''}" data-i="${i}">
+            <span class="lyrics-main">${line.text || "..."}</span>
+            ${line.translation ? `<br><span class="lyrics-trans">${line.translation}</span>` : ""}
+          </p>
         `,
       )
       .join("");
-    // Reset scroll position to top after rendering
-    lyricsEl.scrollTop = 0;
+    lyricsTrack.style.transform = "translateY(0px)";
   }
 
   function getActiveLyricIndex(currentTime) {
@@ -1398,44 +1582,27 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   function syncLyrics() {
-    if (!audio || !lyricsEl || !lyricLines.length) return;
+    if (!audio || !lyricsTrack || !lyricLines.length) return;
     const active = getActiveLyricIndex(audio.currentTime);
     if (active === activeLyricIndex) return;
 
     activeLyricIndex = active;
-    lyricsEl.querySelectorAll("li").forEach((li) => li.classList.remove("active"));
-    const targetIdx = active < 0 ? 0 : active;
-    const activeLine = lyricsEl.querySelector(`li[data-i='${targetIdx}']`);
-    if (activeLine) {
-      if (active >= 0) activeLine.classList.add("active");
+    const lines = lyricsTrack.querySelectorAll(".lyrics-line");
 
-      const isMobile = window.matchMedia("(max-width: 768px)").matches;
-      const ACTIVE_LINE_VIEWPORT_RATIO = isMobile ? 0.72 : 0.62;
-      
-      // Use two lines before for scroll position to give a "look-ahead" effect
-      const scrollLineIndex = Math.max(0, active - 2);
-      const scrollLine = lyricsEl.querySelector(`li[data-i='${scrollLineIndex}']`) || activeLine;
-      const targetTop = scrollLine.offsetTop - lyricsEl.clientHeight * ACTIVE_LINE_VIEWPORT_RATIO + scrollLine.clientHeight / 2;
+    lines.forEach((line, i) => {
+      line.classList.remove("active", "near");
+      if (i === active) line.classList.add("active");
+      else if (Math.abs(i - active) <= 2) line.classList.add("near");
+    });
 
-      if (isMobile) {
-        const nowMs = performance.now();
-        const MIN_SCROLL_INTERVAL_MS = 220;
-        if (nowMs - lastLyricScrollAtMs < MIN_SCROLL_INTERVAL_MS) {
-          return;
-        }
-        lastLyricScrollAtMs = nowMs;
-
-        const MAX_SCROLL_STEP_PX = 34;
-        const currentTop = lyricsEl.scrollTop;
-        const delta = targetTop - currentTop;
-        const clampedTop = Math.abs(delta) > MAX_SCROLL_STEP_PX
-          ? currentTop + Math.sign(delta) * MAX_SCROLL_STEP_PX
-          : targetTop;
-
-        lyricsEl.scrollTo({ top: Math.max(0, clampedTop), behavior: "auto" });
-      } else {
-        lyricsEl.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
-      }
+    if (active >= 0) {
+      const line = lines[active];
+      const container = lyricsTrack.parentElement;
+      if (!container) return;
+      const containerH = container.clientHeight;
+      const lineH = line.offsetHeight;
+      const y = -(line.offsetTop - containerH * 0.5 + lineH * 0.5);
+      lyricsTrack.style.transform = `translateY(${y}px)`;
     }
   }
 
@@ -1482,10 +1649,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     lyricLines = buildLyricLines(track.lyric, track.tlyric);
     activeLyricIndex = -1;
-    lastLyricScrollAtMs = 0;
     renderLyrics(lyricLines);
-    if (lyricsEl) {
-      lyricsEl.scrollTo({ top: 0, behavior: "auto" });
+    if (lyricsTrack) {
+      lyricsTrack.style.transform = "translateY(0px)";
     }
   }
 
@@ -1526,9 +1692,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e));
         } else if (current?.id) {
           showStatus(
-            isEn
-              ? "No playable URL for this track in direct mode."
-              : "直连模式下该歌曲暂无可用播放链接。",
+            USE_DIRECT_NETEASE_API
+              ? (isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。")
+              : (isEn ? "No playable URL for this track." : "该歌曲暂无可用播放链接。"),
             "error"
           );
         } else {
@@ -1616,6 +1782,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       const isPlaceholderTitle = title === `Song ${id}` || title === "Unknown";
       const isPlaceholderArtist = artist === "Unknown Artist" || artist === "Unknown";
       if (isPlaceholderTitle || isPlaceholderArtist) {
+        localStorage.removeItem(`${trackCacheKey}:${id}`);
+        return null;
+      }
+
+      if (!data?.audio) {
         localStorage.removeItem(`${trackCacheKey}:${id}`);
         return null;
       }
@@ -1751,19 +1922,23 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   async function hydrateTrack(track) {
-    if (!track?.id || !isPlaceholderTrack(track)) return track;
+    const needsHydrate = isPlaceholderTrack(track) || (!track.lyric && !track.audio);
+    if (!track?.id || !needsHydrate) return track;
     try {
       const fresh = await loadTrack(track.id);
       if (fresh && fresh.id) {
         const keepTitle = track.title && track.title !== `Song ${track.id}` && track.title !== 'Unknown';
         const keepArtist = track.artist && track.artist !== 'Unknown Artist' && track.artist !== 'Unknown';
         const keepCover = Boolean(track.cover);
+        const keepLyric = Boolean(track.lyric);
         return {
           ...track,
           ...fresh,
           title: keepTitle ? track.title : fresh.title,
           artist: keepArtist ? track.artist : fresh.artist,
           cover: keepCover ? track.cover : fresh.cover,
+          lyric: keepLyric ? track.lyric : fresh.lyric,
+          tlyric: keepLyric ? track.tlyric : fresh.tlyric,
           unavailable: !fresh.audio,
         };
       }
@@ -1950,7 +2125,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             return;
           }
           const track = await loadTrack(id);
-          tracks.push(track);
+          if (track.audio) tracks.push(track);
         }
 
         // Render tracks after each batch (show progressive loading)
@@ -2072,6 +2247,61 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
+  function setupSearch() {
+    const input = document.getElementById('music-search-input');
+    const results = document.getElementById('music-search-results');
+    if (!input || !results) return;
+    let timer, sel = -1, dataset = [];
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      sel = -1;
+      const q = input.value.trim();
+      if (q.length < 2) { results.classList.add('hidden'); return; }
+      timer = setTimeout(async () => {
+        try {
+          const r = await fetch(`${API_BASE}/api/music/search?q=${encodeURIComponent(q)}`, { referrerPolicy: 'no-referrer' });
+          const j = await r.json();
+          if (j.code !== 200 || !Array.isArray(j.data) || !j.data.length) {
+            results.innerHTML = '<div class="sr-item" style="cursor:default"><span class="sr-artist">' + (isEn ? 'No results' : '无结果') + '</span></div>';
+            results.classList.remove('hidden'); dataset = []; return;
+          }
+          dataset = j.data;
+          results.innerHTML = dataset.map((t, i) => '<div class="sr-item" data-idx="' + i + '" data-id="' + t.id + '">'
+            + '<img class="sr-cover" src="' + (t.cover || '') + '?param=40y40" referrerpolicy="no-referrer" alt="" />'
+            + '<div class="sr-text"><div class="sr-title text-cut">' + escH(t.title) + '</div>'
+            + '<div class="sr-artist text-cut">' + escH(t.artist) + '</div></div></div>').join('');
+          results.classList.remove('hidden');
+          results.querySelectorAll('.sr-item').forEach(el => {
+            el.addEventListener('click', () => selectResult(parseInt(el.getAttribute('data-idx') || '0', 10)));
+          });
+        } catch (e) {}
+      }, 300);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (!dataset.length || results.classList.contains('hidden')) return;
+      const items = results.querySelectorAll('.sr-item');
+      if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(sel + 1, dataset.length - 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(sel - 1, 0); }
+      else if (e.key === 'Enter' && sel >= 0) { e.preventDefault(); selectResult(sel); return; }
+      items.forEach((el, i) => el.classList.toggle('active', i === sel));
+      if (items[sel]) items[sel].scrollIntoView({ block: 'nearest' });
+    });
+    async function selectResult(idx) {
+      const t = dataset[idx]; if (!t) return;
+      const loaded = await loadTrack(t.id);
+      if (!loaded.audio) return;
+      tracks.push(loaded); currentIndex = tracks.length - 1;
+      renderTrackList(); updatePlayerPosition();
+      results.classList.add('hidden'); input.value = ''; dataset = []; sel = -1;
+      showStatus(isEn ? 'Queued: ' + loaded.title : '已加入: ' + loaded.title);
+      setTimeout(hideStatus, 2000);
+    }
+    document.addEventListener('click', (e) => {
+      if (!input.contains(e.target) && !results.contains(e.target)) results.classList.add('hidden');
+    });
+    function escH(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  }
+
   async function loadCookieProfileIfConfigured() {
     if (USE_DIRECT_NETEASE_API) return false;
     if (!musicConfig.preferCookieProfile) return false;
@@ -2085,6 +2315,125 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       console.warn("[music] load cookie profile failed", error);
     }
     return false;
+  }
+
+  async function loadRecentSongs() {
+    if (!recentListEl) return;
+    const history = Array.isArray(userData?.recentHistory) ? userData.recentHistory : [];
+    if (!history.length) {
+      recentListEl.innerHTML = `<li class="music-empty">${isEn ? 'No recent plays yet' : '暂无最近播放'}</li>`;
+      return;
+    }
+
+    if (recentSubtitleEl) recentSubtitleEl.textContent = isEn ? 'recent' : '最近';
+
+    const limit = Math.min(3, history.length);
+    const recentTracks = [];
+    for (let i = 0; i < limit; i++) {
+      const item = history[i];
+      try {
+        const track = await loadTrack(String(item.id));
+        if (track.audio) {
+          recentTracks.push({ ...track, playedAt: Number(item.playedAt) || 0 });
+        }
+      } catch (e) {}
+    }
+
+    if (!recentTracks.length) {
+      recentListEl.innerHTML = `<li class="music-empty">${isEn ? 'No playable track' : '无可播放歌曲'}</li>`;
+      return;
+    }
+
+    recentListEl.innerHTML = recentTracks.map((t, i) => {
+      const timeStr = formatPlayedTime(t.playedAt);
+      return `
+        <li class="music-track-card" data-ri="${i}" data-id="${t.id}">
+          <div class="music-track-index">${String(i + 1).padStart(2, '0')}</div>
+          <div class="min-w-0 flex-1">
+            <p class="music-track-title truncate">${t.title || 'Unknown'}</p>
+            <p class="music-track-artist truncate">${t.artist || 'Unknown Artist'}</p>
+            ${timeStr ? `<p class="music-track-played">${timeStr}</p>` : ''}
+          </div>
+        </li>`;
+    }).join('');
+
+    recentListEl.querySelectorAll('.music-track-card').forEach((el) => {
+      el.addEventListener('click', async () => {
+        const ri = parseInt(el.getAttribute('data-ri') || '0', 10);
+        if (ri < 0 || ri >= recentTracks.length) return;
+        tracks = recentTracks;
+        currentIndex = ri;
+        const current = await prepareTrackForPlayback(currentIndex);
+        if (!current) return;
+        updateNowPlaying(current);
+        renderTrackList();
+        updatePlayerPosition();
+        syncToGlobalPlayer();
+        if (current.audio) {
+          hideStatus();
+          try { audio?.play(); } catch (e) {}
+        }
+      });
+    });
+  }
+
+  async function loadAlbums() {
+    if (!albumListEl) return;
+    try {
+      const result = await getJson(`${API_BASE}/api/music/albums`);
+      if (result?.code !== 200 || !Array.isArray(result.data)) {
+        albumListEl.innerHTML = `<li class="music-empty">${isEn ? 'Failed to load' : '加载失败'}</li>`;
+        return;
+      }
+      const albums = result.data;
+      if (albumSubtitleEl) albumSubtitleEl.textContent = `${albums.length} ${isEn ? 'albums' : '张'}`;
+      albumListEl.innerHTML = albums.map((a, idx) => `
+        <li class="music-playlist-card" data-album-id="${a.id}">
+          <div class="music-playlist-index">${String(idx + 1).padStart(2, '0')}</div>
+          <div class="min-w-0 flex-1">
+            <p class="music-playlist-name truncate">${a.name}</p>
+            <p class="music-playlist-meta">${a.artist} · ${a.size} ${isEn ? 'tracks' : '首'}</p>
+          </div>
+        </li>
+      `).join('');
+      albumListEl.querySelectorAll('.music-playlist-card').forEach((el) => {
+        el.addEventListener('click', async () => {
+          const albumId = String(el.getAttribute('data-album-id') || '');
+          if (!albumId) return;
+          showStatus(isEn ? 'Loading album...' : '正在加载专辑...');
+          try {
+            const r = await getJson(`${API_BASE}/api/music/album?id=${albumId}`);
+            if (r?.code !== 200 || !Array.isArray(r.data?.tracks)) {
+              showStatus(isEn ? 'Failed to load album.' : '专辑加载失败。', 'error');
+              return;
+            }
+            const ids = r.data.tracks.map((t) => t.id).filter(Boolean);
+            const version = ++loadVersion;
+            tracks = [];
+            for (const id of ids) {
+              if (version !== loadVersion) return;
+              const track = await loadTrack(id);
+              if (track.audio) tracks.push(track);
+            }
+            if (!tracks.length) {
+              renderTrackList();
+              showStatus(isEn ? 'Album is empty.' : '专辑为空。', 'error');
+              return;
+            }
+            currentIndex = 0;
+            updateNowPlaying(tracks[currentIndex], { preserveActivePlayback: false });
+            updatePlayerPosition();
+            renderTrackList();
+            hideStatus();
+            bootstrapGlobalPlayer();
+          } catch (e) {
+            showStatus(isEn ? 'Failed to load album.' : '专辑加载失败。', 'error');
+          }
+        });
+      });
+    } catch (e) {
+      albumListEl.innerHTML = `<li class="music-empty">${isEn ? 'Failed to load' : '加载失败'}</li>`;
+    }
   }
 
   // Podcast helpers (moved to top-level so init can call them)
@@ -2141,11 +2490,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             const pTitle = p?.name || p?.title;
             const pArtist = p?.dj?.nickname || p?.radio?.name;
             const pCover = p?.coverUrl || p?.radio?.picUrl;
+            const pDesc = p?.description;
             tracks.push({
               ...track,
               title: pTitle || track.title,
               artist: pArtist || track.artist,
-              cover: pCover || track.cover || ''
+              cover: pCover || track.cover || '',
+              lyric: track.lyric || pDesc || ''
             });
           } catch (e) {
             console.warn('[music] load podcast track failed', id, e);
@@ -2251,11 +2602,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           const pTitle = p?.name || p?.title;
           const pArtist = p?.dj?.nickname || p?.radio?.name;
           const pCover = p?.coverUrl || p?.radio?.picUrl;
+          const pDesc = p?.description;
           const finalTrack = {
             ...track,
             title: pTitle || track.title,
             artist: pArtist || track.artist,
-            cover: pCover || track.cover || ''
+            cover: pCover || track.cover || '',
+            lyric: track.lyric || pDesc || ''
           };
 
           // Replace current playlist with single episode and play directly
@@ -2450,6 +2803,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
     // Warmup API in parallel (don't await)
     warmupNeteaseApi();
+    setupSearch();
 
     // Auto-load multiple fixed podcasts and render as a simple podcast title list
     (async () => {
@@ -2503,7 +2857,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     // Try to restore from global player first (for page re-entry)
     const hasGlobalState = restoreFromGlobalPlayer();
     if (hasGlobalState) {
-      renderPlaylistList();
       renderTrackList();
       if (tracks[currentIndex]) {
         const hydrated = await prepareTrackForPlayback(currentIndex);
@@ -2513,47 +2866,22 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       }
       updatePlayerPosition();
       updatePlaylistCount();
-      showStatus(isEn ? "Restored playlist from global player." : "已从全局播放器恢复歌单。");
-      return;
     }
 
     const hasTokenData = await restoreUserDataByToken();
     if (!hasTokenData) {
-      const hasCookieData = await loadCookieProfileIfConfigured();
-      if (hasCookieData) {
-        showStatus(
-          isEn
-            ? "Loaded private profile songs from backend cookie mode (no QR)."
-            : "已从后端 Cookie 模式加载私有歌曲（免扫码）。",
-        );
-      } else {
-        const hasPublicData = await loadPublicProfileIfConfigured();
-        if (hasPublicData) {
-          showStatus(
-            isEn
-              ? USE_DIRECT_NETEASE_API
-                ? "Loaded public profile songs from direct NetEase API mode."
-                : "Loaded public profile songs without QR login."
-              : USE_DIRECT_NETEASE_API
-                ? "已通过直连网易云 API 模式加载公开资料歌曲。"
-                : "已加载公开资料歌曲（免扫码模式）。",
-          );
-        } else {
-          showStatus(
-            isEn
-              ? USE_DIRECT_NETEASE_API
-                ? "No public profile data. Check PUBLIC_NETEASE_API and neteaseUserId."
-                : "No account data yet. Set cookie mode for private no-login data, or set neteaseUserId for public profile songs."
-              : USE_DIRECT_NETEASE_API
-                ? "未读取到公开资料数据，请检查 PUBLIC_NETEASE_API 与 neteaseUserId。"
-                : "当前未读取到账户数据。可配置 Cookie 私有免登录数据，或配置 neteaseUserId 公开资料歌曲。",
-          );
-        }
-      }
-    } else {
-      showStatus(isEn ? "Restored login session from local storage." : "已从本地恢复登录会话。", "info");
+      await loadCookieProfileIfConfigured();
     }
 
+    if (hasGlobalState) {
+      loadRecentSongs();
+      loadAlbums();
+      renderPlaylistList();
+      return;
+    }
+
+    loadRecentSongs();
+    loadAlbums();
     renderPlaylistList();
 
     if (musicConfig.defaultPlaylistId) {
