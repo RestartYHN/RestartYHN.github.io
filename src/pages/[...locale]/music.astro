@@ -145,7 +145,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   @media (max-width: 1024px) {
-  .music-main-grid {
+    .music-main-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -2386,8 +2386,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <li class="music-track-card" data-ri="${i}" data-id="${t.id}">
           <div class="music-track-index">${String(i + 1).padStart(2, '0')}</div>
           <div class="min-w-0 flex-1">
-            <p class="music-track-title truncate">${cut(t.title)}</p>
-            <p class="music-track-artist truncate">${cut(t.artist, 16)}</p>
+            <p class="music-track-title truncate">${t.title || 'Unknown'}</p>
+            <p class="music-track-artist truncate">${t.artist || 'Unknown Artist'}</p>
             ${timeStr ? `<p class="music-track-played">${timeStr}</p>` : ''}
           </div>
         </li>`;
@@ -2427,8 +2427,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <li class="music-playlist-card" data-album-id="${a.id}">
           <div class="music-playlist-index">${String(idx + 1).padStart(2, '0')}</div>
           <div class="min-w-0 flex-1">
-            <p class="music-playlist-name truncate">${cut(a.name, 14)}</p>
-            <p class="music-playlist-meta">${cut(a.artist, 16)} · ${a.size} ${isEn ? 'tracks' : '首'}</p>
+            <p class="music-playlist-name truncate">${a.name}</p>
+            <p class="music-playlist-meta">${a.artist} · ${a.size} ${isEn ? 'tracks' : '首'}</p>
           </div>
         </li>
       `).join('');
@@ -2526,14 +2526,51 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             const pTitle = p?.name || p?.title;
             const pArtist = p?.dj?.nickname || p?.radio?.name;
             const pCover = p?.coverUrl || p?.radio?.picUrl;
-          const pDesc = p?.description;
-          tracks.push({
-            ...track,
-            title: pTitle || track.title,
-            artist: pArtist || track.artist,
-            cover: pCover || track.cover || '',
-            lyric: pDesc || track.lyric || ''
-          });
+            const pDesc = p?.description;
+            tracks.push({
+              ...track,
+              title: pTitle || track.title,
+              artist: pArtist || track.artist,
+              cover: pCover || track.cover || '',
+              lyric: pDesc || track.lyric || ''
+            });
+          } catch (e) {
+            console.warn('[music] load podcast track failed', id, e);
+          }
+        }
+      }
+
+      if (!tracks.length) {
+        renderTrackList();
+        showStatus(isEn ? 'Podcast has no playable episodes.' : '播客暂无可播放剧集。', 'error');
+        return;
+      }
+
+      currentIndex = 0;
+      updateNowPlaying(tracks[currentIndex], { preserveActivePlayback });
+      updatePlayerPosition();
+      renderTrackList();
+      hideStatus();
+      if (playlistSubtitleEl) playlistSubtitleEl.textContent = isEn ? `Loaded ${tracks.length} episodes` : `已加载 ${tracks.length} 集`;
+
+      // Bootstrap global player with loaded tracks
+      bootstrapGlobalPlayer();
+
+      // Warm first track in background
+      loadTrack(tracks[0].id).then((firstTrack) => {
+        if (version !== loadVersion || !firstTrack) return;
+        const keepTitle = tracks[0].title && tracks[0].title !== `Song ${tracks[0].id}` && tracks[0].title !== 'Unknown';
+        const keepArtist = tracks[0].artist && tracks[0].artist !== 'Unknown Artist' && tracks[0].artist !== 'Unknown';
+        const keepCover = Boolean(tracks[0].cover);
+        
+        tracks[0] = { 
+          ...tracks[0], 
+          ...firstTrack, 
+          title: keepTitle ? tracks[0].title : firstTrack.title,
+          artist: keepArtist ? tracks[0].artist : firstTrack.artist,
+          cover: keepCover ? tracks[0].cover : firstTrack.cover,
+          unavailable: !firstTrack.audio 
+        };
         if (currentIndex === 0) updateNowPlaying(tracks[0], { preserveActivePlayback });
         renderTrackList();
       }).catch(() => {});
@@ -2607,7 +2644,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             title: pTitle || track.title,
             artist: pArtist || track.artist,
             cover: pCover || track.cover || '',
-            lyric: pDesc || track.lyric || ''
+            lyric: track.lyric || pDesc || ''
           };
 
           // Replace current playlist with single episode and play directly
