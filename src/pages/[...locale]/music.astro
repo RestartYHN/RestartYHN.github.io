@@ -134,17 +134,24 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 </MainPageLayout>
 
 <style>
-  .text-cut {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .text-cut, .truncate, .music-track-title, .music-track-artist, .music-playlist-name {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
     display: block;
     max-width: 100%;
   }
 
-  .music-search-bar {
-    position: relative;
-    margin-bottom: 0.5rem;
+  @media (max-width: 1024px) {
+  .music-main-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .music-hero, .music-lyrics-panel, .music-panel {
+    overflow-x: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .music-search-bar input {
     width: 100%;
@@ -195,37 +202,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     grid-template-rows: auto auto auto auto auto auto;
     gap: 1rem;
     margin-bottom: 1rem;
-  }
-
-  @media (max-width: 1024px) {
-  .text-cut, .truncate, .music-track-title, .music-track-artist, .music-playlist-name {
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    display: block;
-    max-width: 100%;
-  }
-
-  .music-main-grid {
-    display: grid;
-    grid-template-columns: 360px 420px;
-    grid-template-rows: auto auto auto auto auto auto;
-    gap: 1rem;
-    margin-bottom: 1rem;
     overflow: hidden;
     max-width: 100%;
-  }
-
-  @media (max-width: 1024px) {
-  .music-main-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .music-hero, .music-lyrics-panel, .music-panel {
-    overflow-x: hidden;
-    max-width: 100%;
-    box-sizing: border-box;
   }
 
   .music-hero {
