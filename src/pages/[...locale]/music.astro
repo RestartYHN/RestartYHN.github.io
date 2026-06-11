@@ -1060,7 +1060,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
 <script define:vars={{ musicConfig, isEn }}>
   const API_BASE = musicConfig.apiBase;
-  function cut(s, n) { n = n || 18; return (s || '').length > n ? (s || '').slice(0, n) + '…' : (s || ''); }
+  function cut(s, n) { return s || ''; }
   const NETEASE_API_BASE = musicConfig.neteaseApiBase || "";
   const NETEASE_REAL_IP = musicConfig.neteaseRealIp || "";
   const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
