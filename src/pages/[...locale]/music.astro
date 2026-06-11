@@ -384,10 +384,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   .music-search-result-cover {
     width: 32px; height: 32px;
     border-radius: 4px;
-    background-size: cover;
-    background-position: center;
     background-color: var(--button-hover-color);
     flex-shrink: 0;
+    object-fit: cover;
   }
   .music-search-result-text {
     min-width: 0;
@@ -2274,7 +2273,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           currentDataset = json.data;
           results.innerHTML = currentDataset.map((t, i) => `
             <div class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
-              <div class="music-search-result-cover" style="background-image:url(${t.cover}?param=40y40)"></div>
+              <img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" loading="lazy" />
               <div class="music-search-result-text">
                 <div class="music-search-result-title">${escHtml(t.title)}</div>
                 <div class="music-search-result-artist">${escHtml(t.artist)}</div>
