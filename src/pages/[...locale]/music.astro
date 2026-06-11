@@ -2644,7 +2644,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             title: pTitle || track.title,
             artist: pArtist || track.artist,
             cover: pCover || track.cover || '',
-            lyric: track.lyric || pDesc || ''
+            lyric: pDesc || track.lyric || ''
           };
 
           // Replace current playlist with single episode and play directly
