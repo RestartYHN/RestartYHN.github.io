@@ -2562,13 +2562,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         const keepTitle = tracks[0].title && tracks[0].title !== `Song ${tracks[0].id}` && tracks[0].title !== 'Unknown';
         const keepArtist = tracks[0].artist && tracks[0].artist !== 'Unknown Artist' && tracks[0].artist !== 'Unknown';
         const keepCover = Boolean(tracks[0].cover);
-        
+        const keepLyric = Boolean(tracks[0].lyric);
+
         tracks[0] = { 
           ...tracks[0], 
           ...firstTrack, 
           title: keepTitle ? tracks[0].title : firstTrack.title,
           artist: keepArtist ? tracks[0].artist : firstTrack.artist,
           cover: keepCover ? tracks[0].cover : firstTrack.cover,
+          lyric: keepLyric ? tracks[0].lyric : firstTrack.lyric,
+          tlyric: keepLyric ? tracks[0].tlyric : firstTrack.tlyric,
           unavailable: !firstTrack.audio 
         };
         if (currentIndex === 0) updateNowPlaying(tracks[0], { preserveActivePlayback });
