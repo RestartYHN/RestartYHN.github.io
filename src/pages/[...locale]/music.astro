@@ -1076,6 +1076,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
 <script define:vars={{ musicConfig, isEn }}>
   const API_BASE = musicConfig.apiBase;
+  function cut(s, n) { n = n || 12; var str = String(s || ''), w = 0, i = 0; for (i = 0; i < str.length; i++) { var c = str.charCodeAt(i); w += (c >= 0x2E80 && c <= 0x9FFF) || (c >= 0xAC00 && c <= 0xD7AF) || (c >= 0x3040 && c <= 0x30FF) || (c >= 0xFF00 && c <= 0xFFEF) || (c >= 0x4E00 && c <= 0xA000) ? 1 : 0.5; if (w > n) break; } return i < str.length ? str.slice(0, i) + '\u2026' : str; }
   const NETEASE_API_BASE = musicConfig.neteaseApiBase || "";
   const NETEASE_REAL_IP = musicConfig.neteaseRealIp || "";
   const USE_DIRECT_NETEASE_API = Boolean(musicConfig.preferDirectNeteaseApi && NETEASE_API_BASE);
@@ -1266,8 +1267,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           <li class="music-playlist-modal-item ${idx === currentIndex ? "active" : ""}" data-idx="${idx}">
             <div class="music-playlist-modal-item-index">${idx === currentIndex ? "▶" : String(idx + 1).padStart(2, "0")}</div>
             <div class="music-playlist-modal-item-info">
-              <div class="music-playlist-modal-item-title">${track.title || "Unknown"}</div>
-              <div class="music-playlist-modal-item-artist">${track.artist || "Unknown Artist"}</div>
+              <div class="music-playlist-modal-item-title">${cut(track.title)}</div>
+              <div class="music-playlist-modal-item-artist">${cut(track.artist, 16)}</div>
             </div>
           </li>
         `
@@ -1670,8 +1671,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           <li class="music-track-card ${idx === currentIndex ? "active" : ""} ${track.unavailable ? "unavailable" : ""}" data-idx="${idx}">
             <div class="music-track-index">${String(idx + 1).padStart(2, "0")}</div>
             <div class="min-w-0 flex-1">
-              <p class="music-track-title truncate">${track.title || "Unknown"}</p>
-              <p class="music-track-artist truncate">${track.artist || "Unknown Artist"}</p>
+              <p class="music-track-title truncate">${cut(track.title)}</p>
+              <p class="music-track-artist truncate">${cut(track.artist, 16)}</p>
             </div>
           </li>
         `,
@@ -1968,7 +1969,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           <li class="music-playlist-card ${String(pl.id) === String(currentPlaylistId) ? "active" : ""}" data-playlist-id="${pl.id}">
             <div class="music-playlist-index">${String(idx + 1).padStart(2, "0")}</div>
             <div class="min-w-0 flex-1">
-              <p class="music-playlist-name truncate">${pl.name || (isEn ? "Playlist" : "歌单")}</p>
+              <p class="music-playlist-name truncate">${cut(pl.name, 14)}</p>
               <p class="music-playlist-meta">${pl.songCount || 0} ${isEn ? "songs" : "首歌"}</p>
             </div>
           </li>
