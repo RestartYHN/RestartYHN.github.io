@@ -369,10 +369,18 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.45rem 0.7rem;
+    padding: 0.6rem 0.75rem;
     cursor: pointer;
+    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
+    transition: background-color 0.12s;
   }
-  .music-search-result-item:hover { background: var(--button-hover-color); }
+  .music-search-result-item:last-child { border-bottom: none; }
+  .music-search-result-item:hover,
+  .music-search-result-item:focus-visible { background: var(--button-hover-color); }
+  .music-search-result-item.active {
+    background: var(--button-hover-color);
+    border-left: 3px solid var(--link-color);
+  }
   .music-search-result-cover {
     width: 32px; height: 32px;
     border-radius: 4px;
@@ -2247,9 +2255,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     const input = document.getElementById('music-search-input');
     const results = document.getElementById('music-search-results');
     if (!input || !results) return;
-    let timer;
+    let timer, selectedIdx = -1, currentDataset = [];
     input.addEventListener('input', () => {
       clearTimeout(timer);
+      selectedIdx = -1;
       const q = input.value.trim();
       if (q.length < 2) { results.classList.add('hidden'); return; }
       timer = setTimeout(async () => {
@@ -2259,10 +2268,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           if (json.code !== 200 || !Array.isArray(json.data) || !json.data.length) {
             results.innerHTML = `<div class="music-search-result-item" style="cursor:default"><span class="music-search-result-artist">${isEn ? 'No results' : '无结果'}</span></div>`;
             results.classList.remove('hidden');
+            currentDataset = [];
             return;
           }
-          results.innerHTML = json.data.map(t => `
-            <div class="music-search-result-item" data-id="${t.id}">
+          currentDataset = json.data;
+          results.innerHTML = currentDataset.map((t, i) => `
+            <div class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
               <div class="music-search-result-cover" style="background-image:url(${t.cover}?param=40y40)"></div>
               <div class="music-search-result-text">
                 <div class="music-search-result-title">${escHtml(t.title)}</div>
@@ -2272,24 +2283,51 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           `).join('');
           results.classList.remove('hidden');
           results.querySelectorAll('.music-search-result-item').forEach(el => {
-            if (!el.getAttribute('data-id')) return;
-            el.addEventListener('click', async () => {
-              const id = el.getAttribute('data-id');
-              const track = await loadTrack(id);
-              if (!track.audio) return;
-              tracks.push(track);
-              currentIndex = tracks.length - 1;
-              renderTrackList();
-              updatePlayerPosition();
-              results.classList.add('hidden');
-              input.value = '';
-              showStatus(isEn ? `Queued: ${track.title}` : `已加入: ${track.title}`);
-              setTimeout(hideStatus, 2000);
-            });
+            el.addEventListener('click', () => selectResult(parseInt(el.getAttribute('data-idx') || '0', 10)));
           });
         } catch (e) {}
       }, 300);
     });
+
+    input.addEventListener('keydown', (e) => {
+      if (!currentDataset.length || results.classList.contains('hidden')) return;
+      const items = results.querySelectorAll('.music-search-result-item');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIdx = Math.min(selectedIdx + 1, currentDataset.length - 1);
+        highlightItem(items, selectedIdx);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIdx = Math.max(selectedIdx - 1, 0);
+        highlightItem(items, selectedIdx);
+      } else if (e.key === 'Enter' && selectedIdx >= 0) {
+        e.preventDefault();
+        selectResult(selectedIdx);
+      }
+    });
+
+    function highlightItem(items, idx) {
+      items.forEach((el, i) => el.classList.toggle('active', i === idx));
+      if (items[idx]) items[idx].scrollIntoView({ block: 'nearest' });
+    }
+
+    async function selectResult(idx) {
+      const track = currentDataset[idx];
+      if (!track) return;
+      const loaded = await loadTrack(track.id);
+      if (!loaded.audio) return;
+      tracks.push(loaded);
+      currentIndex = tracks.length - 1;
+      renderTrackList();
+      updatePlayerPosition();
+      results.classList.add('hidden');
+      input.value = '';
+      currentDataset = [];
+      selectedIdx = -1;
+      showStatus(isEn ? `Queued: ${loaded.title}` : `已加入: ${loaded.title}`);
+      setTimeout(hideStatus, 2000);
+    }
+
     document.addEventListener('click', (e) => {
       if (!input.contains(e.target) && !results.contains(e.target)) results.classList.add('hidden');
     });
