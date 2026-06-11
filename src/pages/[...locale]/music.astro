@@ -167,6 +167,55 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     box-sizing: border-box;
   }
   .music-search-bar input:focus { border-color: var(--link-color); }
+  :global(.music-search-results) {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    z-index: 20;
+    max-height: 300px;
+    overflow: hidden auto;
+    border: 1px solid var(--button-border-color);
+    border-radius: 0.6rem;
+    background: var(--bg-color);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+  }
+  :global(.music-search-results.hidden) { display: none; }
+  :global(.music-search-item) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    cursor: pointer;
+    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
+    transition: background-color 0.12s;
+  }
+  :global(.music-search-item:last-child) { border-bottom: none; }
+  :global(.music-search-item:hover) { background: color-mix(in oklab, var(--button-hover-color) 80%, transparent); }
+  :global(.music-search-item.active) { background: var(--button-hover-color); border-left: 3px solid var(--link-color); }
+  :global(.music-search-cover) {
+    width: 36px; height: 36px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--button-hover-color);
+    flex-shrink: 0;
+  }
+  :global(.music-search-info) { min-width: 0; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 2px; }
+  :global(.music-search-title) { font-size: 0.85rem; font-weight: 600; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  :global(.music-search-artist) { font-size: 0.78rem; color: var(--text-color-70); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+  .music-main-grid {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--button-border-color);
+    border-radius: 0.5rem;
+    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
+    color: var(--text-color);
+    font-size: 0.85rem;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .music-search-bar input:focus { border-color: var(--link-color); }
   .music-search-bar > div {
     position: absolute;
     top: calc(100% + 4px);
@@ -2250,16 +2299,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           const r = await fetch(`${API_BASE}/api/music/search?q=${encodeURIComponent(q)}`, { referrerPolicy: 'no-referrer' });
           const j = await r.json();
           if (j.code !== 200 || !Array.isArray(j.data) || !j.data.length) {
-            results.innerHTML = '<div class="sr-item" style="cursor:default"><span class="sr-artist">' + (isEn ? 'No results' : '无结果') + '</span></div>';
+            results.innerHTML = '<div class="music-search-item" style="cursor:default"><span class="music-search-artist">' + (isEn ? 'No results' : '无结果') + '</span></div>';
             results.classList.remove('hidden'); dataset = []; return;
           }
           dataset = j.data;
-          results.innerHTML = dataset.map((t, i) => '<div class="sr-item" data-idx="' + i + '" data-id="' + t.id + '">'
-            + '<img class="sr-cover" src="' + (t.cover || '') + '?param=40y40" referrerpolicy="no-referrer" alt="" />'
-            + '<div class="sr-text"><div class="sr-title text-cut">' + escH(cut(t.title, 15)) + '</div>'
-            + '<div class="sr-artist text-cut">' + escH(cut(t.artist, 15)) + '</div></div></div>').join('');
+          results.innerHTML = dataset.map((t, i) => '<div class="music-search-item" data-idx="' + i + '" data-id="' + t.id + '">'
+            + '<div class="music-search-cover" style="background-image:url(' + (t.cover || '') + '?param=40y40)"></div>'
+            + '<div class="music-search-info"><div class="music-search-title">' + escH(t.title) + '</div>'
+            + '<div class="music-search-artist">' + escH(t.artist) + '</div></div></div>').join('');
           results.classList.remove('hidden');
-          results.querySelectorAll('.sr-item').forEach(el => {
+          results.querySelectorAll('.music-search-item').forEach(el => {
             el.addEventListener('click', () => selectResult(parseInt(el.getAttribute('data-idx') || '0', 10)));
           });
         } catch (e) {}
