@@ -368,10 +368,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     cursor: pointer;
     border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
     transition: background-color 0.12s;
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
   }
   .music-search-input {
     width: 100%;
@@ -434,16 +430,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     flex-direction: column;
     gap: 1px;
   }
-  :global(.music-search-result-text) {
-    min-width: 0;
-    overflow: hidden;
-    max-width: calc(100% - 46px);
-  }
-  :global(.music-search-result-text > *) {
-    margin-bottom: 1px;
-  }
-  :global(.music-search-result-text > *:last-child) {
-    margin-bottom: 0;
+  :global(.music-search-result-cover) {
+    width: 36px; height: 36px;
+    border-radius: 4px;
+    background-color: var(--button-hover-color);
+    flex-shrink: 0;
+    object-fit: cover;
   }
 
   .lyrics-container {
@@ -2312,9 +2304,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           results.innerHTML = currentDataset.map((t, i) => `
             <div class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
               <img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" />
-              <div class="music-search-result-text">
-                <div style="font-size:0.85rem;font-weight:600;color:var(--text-color);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${escHtml(t.title)}</div>
-                <div style="font-size:0.78rem;color:var(--text-color-70);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${escHtml(t.artist)}</div>
+              <div class="min-w-0 flex-1">
+                <p class="truncate" style="font-size:0.85rem;font-weight:600;color:var(--text-color)">${escHtml(t.title)}</p>
+                <p class="truncate" style="font-size:0.78rem;color:var(--text-color-70)">${escHtml(t.artist)}</p>
               </div>
             </div>
           `).join('');
