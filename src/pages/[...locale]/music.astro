@@ -2944,6 +2944,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   // Initialize now and on Astro partial navigation
   initMusicPage();
+  window.addEventListener('music-track-change', async (e) => {
+    const idx = e.detail?.index;
+    if (idx == null || idx >= tracks.length) return;
+    currentIndex = idx;
+    const current = await prepareTrackForPlayback(idx);
+    if (!current) return;
+    updateNowPlaying(current);
+    renderTrackList();
+    updatePlayerPosition();
+  });
   document.addEventListener('astro:after-swap', initMusicPage);
   document.addEventListener('astro:page-load', initMusicPage);
 </script>

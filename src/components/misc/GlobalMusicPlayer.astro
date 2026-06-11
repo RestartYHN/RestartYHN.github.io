@@ -612,6 +612,7 @@ import { musicConfig } from '@/data/music';
           state.currentIndex = idx;
           await playCurrent();
           renderPlaylistModal();
+          window.dispatchEvent(new CustomEvent('music-track-change', { detail: { index: idx } }));
         });
       });
 
