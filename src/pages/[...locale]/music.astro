@@ -145,7 +145,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   @media (max-width: 1024px) {
-    .music-main-grid {
+  .music-main-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -2817,6 +2817,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   async function initMusicPage() {
     queryPageEls();
+
+    const gpBtn = document.getElementById('music-playlist-btn');
+    if (gpBtn) gpBtn.style.display = 'none';
 
     if (!/\/music\/?$/i.test(window.location.pathname)) {
       musicUnbind();
