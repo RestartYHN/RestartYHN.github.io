@@ -381,62 +381,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     box-sizing: border-box;
   }
   .music-search-input:focus { border-color: var(--link-color); }
-  :global(.music-search-results) {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    z-index: 20;
-    max-height: 300px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    border: 1px solid var(--button-border-color);
-    border-radius: 0.6rem;
-    background: var(--bg-color);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
-    padding: 0.25rem 0;
-  }
-  :global(.music-search-results.hidden) { display: none; }
-  :global(.music-search-result-item) {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.6rem 0.75rem;
-    cursor: pointer;
-    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
-    transition: background-color 0.12s;
-    box-sizing: border-box;
-    min-width: 0;
-    width: 100%;
-  }
-  :global(.music-search-result-item:last-child) { border-bottom: none; }
-  :global(.music-search-result-item:hover) { background: var(--button-hover-color); }
-  :global(.music-search-result-item.active) {
-    background: var(--button-hover-color);
-    border-left: 3px solid var(--link-color);
-  }
-  :global(.music-search-result-cover) {
-    width: 36px; height: 36px;
-    border-radius: 4px;
-    background-color: var(--button-hover-color);
-    flex-shrink: 0;
-    object-fit: cover;
-  }
-  :global(.music-search-result-text) {
-    min-width: 0;
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-  :global(.music-search-result-cover) {
-    width: 36px; height: 36px;
-    border-radius: 4px;
-    background-color: var(--button-hover-color);
-    flex-shrink: 0;
-    object-fit: cover;
-  }
+  .music-search-input:focus { border-color: var(--link-color); }
 
   .lyrics-container {
     position: relative;
