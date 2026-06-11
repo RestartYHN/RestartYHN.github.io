@@ -2273,7 +2273,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           currentDataset = json.data;
           results.innerHTML = currentDataset.map((t, i) => `
             <div class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
-              <img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" loading="lazy" />
+              <img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" />
               <div class="music-search-result-text">
                 <div class="music-search-result-title">${escHtml(t.title)}</div>
                 <div class="music-search-result-artist">${escHtml(t.artist)}</div>
