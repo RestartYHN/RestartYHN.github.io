@@ -845,6 +845,13 @@ import { musicConfig } from '@/data/music';
       }
     }
 
+    function bindPlaylistOnly() {
+      const { btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
+      if (btnPlaylist) btnPlaylist.addEventListener('click', openPlaylistModal);
+      if (playlistModalBackdrop) playlistModalBackdrop.addEventListener('click', closePlaylistModal);
+      if (playlistModalClose) playlistModalClose.addEventListener('click', closePlaylistModal);
+    }
+
     function unbind() {
       if (!state.bound || !state.els) return;
       const { audio, btnMainPlay, btnPrev, btnNext, progressEl, btnModeToggle, btnPlaylist, playlistModalBackdrop, playlistModalClose } = state.els;
@@ -868,6 +875,7 @@ import { musicConfig } from '@/data/music';
       state.els = getEls();
       if (isMusicPagePath()) {
         unbind();
+        bindPlaylistOnly();
         return;
       }
       unbind();
