@@ -2280,8 +2280,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             <div class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
               <img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" />
               <div class="music-search-result-text">
-                <div class="truncate" style="font-size:0.85rem;font-weight:600;color:var(--text-color)">${escHtml(t.title)}</div>
-                <div class="truncate" style="font-size:0.78rem;color:var(--text-color-70)">${escHtml(t.artist)}</div>
+                <div style="font-size:0.85rem;font-weight:600;color:var(--text-color);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${escHtml(t.title)}</div>
+                <div style="font-size:0.78rem;color:var(--text-color-70);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${escHtml(t.artist)}</div>
               </div>
             </div>
           `).join('');
