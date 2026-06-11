@@ -44,12 +44,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       </div>
     </div>
 
-    <div class="mx-auto w-full max-w-[var(--page-width)]">
-      <div class="music-search-wrap" id="music-search-wrap">
-        <input id="music-search-input" class="music-search-input" type="text" placeholder={isEn ? 'Search and add to queue...' : '搜索歌曲加入队列...'} autocomplete="off" />
-        <div id="music-search-results" class="music-search-results hidden"></div>
-      </div>
-    </div>
     <div class="music-main-grid">
       {/* Top Row: Album & Lyrics */}
       <section class="music-hero">
@@ -134,16 +128,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   <FabMenu showBackBottom={true} />
 </MainPageLayout>
 
-<style is:global>
-  .music-track-title,
-  .music-track-artist,
-  .music-playlist-name,
-  .music-search-results .truncate {
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-</style>
 <style>
   .music-main-grid {
     display: grid;
@@ -344,64 +328,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       height: 350px;
     }
   }
-
-  .music-search-wrap {
-    position: relative;
-    margin-bottom: 0.5rem;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  :global(.music-search-results) {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    z-index: 20;
-    max-height: 300px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    border: 1px solid var(--button-border-color);
-    border-radius: 0.6rem;
-    background: var(--bg-color);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
-    padding: 0.25rem 0;
-  }
-  :global(.music-search-results.hidden) { display: none; }
-  :global(.music-search-table) {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-  }
-  :global(.music-search-result-item) {
-    cursor: pointer;
-    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
-    transition: background-color 0.12s;
-  }
-  :global(.music-search-result-item td) {
-    padding: 0;
-    vertical-align: middle;
-  }
-  :global(.music-search-result-item td:first-child) {
-    padding: 0.6rem 0 0.6rem 0.75rem;
-  }
-  :global(.music-search-result-item td:last-child) {
-    padding: 0.6rem 0.75rem 0.6rem 0;
-  }
-  .music-search-input {
-    width: 100%;
-    padding: 0.35rem 0.6rem;
-    border: 1px solid var(--button-border-color);
-    border-radius: 0.5rem;
-    background: color-mix(in oklab, var(--bg-color) 95%, transparent);
-    color: var(--text-color);
-    font-size: 0.85rem;
-    outline: none;
-    box-sizing: border-box;
-  }
-  .music-search-input:focus { border-color: var(--link-color); }
-  .music-search-input:focus { border-color: var(--link-color); }
 
   .lyrics-container {
     position: relative;
@@ -2245,91 +2171,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
-  function setupSearch() {
-    const input = document.getElementById('music-search-input');
-    const results = document.getElementById('music-search-results');
-    if (!input || !results) return;
-    let timer, selectedIdx = -1, currentDataset = [];
-    input.addEventListener('input', () => {
-      clearTimeout(timer);
-      selectedIdx = -1;
-      const q = input.value.trim();
-      if (q.length < 2) { results.classList.add('hidden'); return; }
-      timer = setTimeout(async () => {
-        try {
-          const res = await fetch(`${API_BASE}/api/music/search?q=${encodeURIComponent(q)}`, { referrerPolicy: 'no-referrer' });
-          const json = await res.json();
-          if (json.code !== 200 || !Array.isArray(json.data) || !json.data.length) {
-            results.innerHTML = `<div class="music-search-result-item" style="cursor:default"><span class="music-search-result-artist">${isEn ? 'No results' : '无结果'}</span></div>`;
-            results.classList.remove('hidden');
-            currentDataset = [];
-            return;
-          }
-          currentDataset = json.data;
-          results.innerHTML = `<table class="music-search-table"><tbody>${currentDataset.map((t, i) => `
-            <tr class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
-              <td class="music-search-cover-cell"><img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" /></td>
-              <td class="min-w-0" style="width:100%"><p class="truncate" style="font-size:0.85rem;font-weight:600;color:var(--text-color);margin:0">${escHtml(t.title)}</p><p class="truncate" style="font-size:0.78rem;color:var(--text-color-70);margin:0">${escHtml(t.artist)}</p></td>
-            </tr>
-          `).join('')}</tbody></table>`;
-          results.classList.remove('hidden');
-          results.querySelectorAll('.music-search-result-item').forEach(el => {
-            el.addEventListener('click', () => selectResult(parseInt(el.getAttribute('data-idx') || '0', 10)));
-          });
-        } catch (e) {}
-      }, 300);
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if (!currentDataset.length || results.classList.contains('hidden')) return;
-      const items = results.querySelectorAll('.music-search-result-item');
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        selectedIdx = Math.min(selectedIdx + 1, currentDataset.length - 1);
-        highlightItem(items, selectedIdx);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        selectedIdx = Math.max(selectedIdx - 1, 0);
-        highlightItem(items, selectedIdx);
-      } else if (e.key === 'Enter' && selectedIdx >= 0) {
-        e.preventDefault();
-        selectResult(selectedIdx);
-      }
-    });
-
-    function highlightItem(items, idx) {
-      items.forEach((el, i) => el.classList.toggle('active', i === idx));
-      if (items[idx]) items[idx].scrollIntoView({ block: 'nearest' });
-    }
-
-    async function selectResult(idx) {
-      const track = currentDataset[idx];
-      if (!track) return;
-      const loaded = await loadTrack(track.id);
-      if (!loaded.audio) return;
-      tracks.push(loaded);
-      currentIndex = tracks.length - 1;
-      renderTrackList();
-      updatePlayerPosition();
-      results.classList.add('hidden');
-      input.value = '';
-      currentDataset = [];
-      selectedIdx = -1;
-      showStatus(isEn ? `Queued: ${loaded.title}` : `已加入: ${loaded.title}`);
-      setTimeout(hideStatus, 2000);
-    }
-
-    document.addEventListener('click', (e) => {
-      if (!input.contains(e.target) && !results.contains(e.target)) results.classList.add('hidden');
-    });
-  }
-
-  function escHtml(s) {
-    const d = document.createElement('div');
-    d.textContent = s || '';
-    return d.innerHTML;
-  }
-
   async function loadCookieProfileIfConfigured() {
     if (USE_DIRECT_NETEASE_API) return false;
     if (!musicConfig.preferCookieProfile) return false;
@@ -2831,7 +2672,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
     // Warmup API in parallel (don't await)
     warmupNeteaseApi();
-    setupSearch();
 
     // Auto-load multiple fixed podcasts and render as a simple podcast title list
     (async () => {
