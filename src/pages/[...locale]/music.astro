@@ -401,16 +401,17 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     flex-direction: column;
     gap: 1px;
   }
-  :global(.music-search-result-title) {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-color);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  :global(.music-search-result-text) {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    line-height: 1.3;
   }
-  :global(.music-search-result-artist) {
-    font-size: 0.78rem;
-    color: var(--text-color-70);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  :global(.music-search-result-text > *) {
+    margin-bottom: 1px;
+  }
+  :global(.music-search-result-text > *:last-child) {
+    margin-bottom: 0;
   }
 
   .lyrics-container {
@@ -2280,8 +2281,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             <div class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
               <img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" />
               <div class="music-search-result-text">
-                <div class="music-search-result-title">${escHtml(t.title)}</div>
-                <div class="music-search-result-artist">${escHtml(t.artist)}</div>
+                <div class="truncate" style="font-size:0.85rem;font-weight:600;color:var(--text-color)">${escHtml(t.title)}</div>
+                <div class="truncate" style="font-size:0.78rem;color:var(--text-color-70)">${escHtml(t.artist)}</div>
               </div>
             </div>
           `).join('');
