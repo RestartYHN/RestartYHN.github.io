@@ -2818,9 +2818,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   async function initMusicPage() {
     queryPageEls();
 
-    const gpBtn = document.getElementById('music-playlist-btn');
-    if (gpBtn) gpBtn.style.display = 'none';
-
     if (!/\/music\/?$/i.test(window.location.pathname)) {
       musicUnbind();
       return;
