@@ -2386,8 +2386,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <li class="music-track-card" data-ri="${i}" data-id="${t.id}">
           <div class="music-track-index">${String(i + 1).padStart(2, '0')}</div>
           <div class="min-w-0 flex-1">
-            <p class="music-track-title truncate">${t.title || 'Unknown'}</p>
-            <p class="music-track-artist truncate">${t.artist || 'Unknown Artist'}</p>
+            <p class="music-track-title truncate">${cut(t.title)}</p>
+            <p class="music-track-artist truncate">${cut(t.artist, 16)}</p>
             ${timeStr ? `<p class="music-track-played">${timeStr}</p>` : ''}
           </div>
         </li>`;
@@ -2427,8 +2427,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         <li class="music-playlist-card" data-album-id="${a.id}">
           <div class="music-playlist-index">${String(idx + 1).padStart(2, '0')}</div>
           <div class="min-w-0 flex-1">
-            <p class="music-playlist-name truncate">${a.name}</p>
-            <p class="music-playlist-meta">${a.artist} · ${a.size} ${isEn ? 'tracks' : '首'}</p>
+            <p class="music-playlist-name truncate">${cut(a.name, 14)}</p>
+            <p class="music-playlist-meta">${cut(a.artist, 16)} · ${a.size} ${isEn ? 'tracks' : '首'}</p>
           </div>
         </li>
       `).join('');
