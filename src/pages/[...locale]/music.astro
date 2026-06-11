@@ -359,14 +359,25 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     padding: 0.25rem 0;
   }
   :global(.music-search-results.hidden) { display: none; }
+  :global(.music-search-table) {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
   :global(.music-search-result-item) {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.6rem 0.75rem;
     cursor: pointer;
     border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
     transition: background-color 0.12s;
+  }
+  :global(.music-search-result-item td) {
+    padding: 0;
+    vertical-align: middle;
+  }
+  :global(.music-search-result-item td:first-child) {
+    padding: 0.6rem 0 0.6rem 0.75rem;
+  }
+  :global(.music-search-result-item td:last-child) {
+    padding: 0.6rem 0.75rem 0.6rem 0;
   }
   .music-search-input {
     width: 100%;
@@ -2245,15 +2256,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             return;
           }
           currentDataset = json.data;
-          results.innerHTML = currentDataset.map((t, i) => `
-            <div class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
-              <img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" />
-              <div class="min-w-0 flex-1">
-                <p class="truncate" style="font-size:0.85rem;font-weight:600;color:var(--text-color)">${escHtml(t.title)}</p>
-                <p class="truncate" style="font-size:0.78rem;color:var(--text-color-70)">${escHtml(t.artist)}</p>
-              </div>
-            </div>
-          `).join('');
+          results.innerHTML = `<table class="music-search-table"><tbody>${currentDataset.map((t, i) => `
+            <tr class="music-search-result-item" data-idx="${i}" data-id="${t.id}">
+              <td class="music-search-cover-cell"><img class="music-search-result-cover" src="${t.cover}?param=40y40" referrerpolicy="no-referrer" alt="" /></td>
+              <td class="min-w-0" style="width:100%"><p class="truncate" style="font-size:0.85rem;font-weight:600;color:var(--text-color);margin:0">${escHtml(t.title)}</p><p class="truncate" style="font-size:0.78rem;color:var(--text-color-70);margin:0">${escHtml(t.artist)}</p></td>
+            </tr>
+          `).join('')}</tbody></table>`;
           results.classList.remove('hidden');
           results.querySelectorAll('.music-search-result-item').forEach(el => {
             el.addEventListener('click', () => selectResult(parseInt(el.getAttribute('data-idx') || '0', 10)));
