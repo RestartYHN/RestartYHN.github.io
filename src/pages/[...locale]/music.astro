@@ -2526,7 +2526,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             const pTitle = p?.name || p?.title;
             const pArtist = p?.dj?.nickname || p?.radio?.name;
             const pCover = p?.coverUrl || p?.radio?.picUrl;
-            const pDesc = p?.description;
+          const pDesc = p?.description;
+          console.log('[podcast debug]', p?.name, 'desc length:', (pDesc || '').length, 'track lyric:', (track.lyric || '').length);
             tracks.push({
               ...track,
               title: pTitle || track.title,
