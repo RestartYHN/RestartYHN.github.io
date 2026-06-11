@@ -212,12 +212,20 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     grid-template-rows: auto auto auto auto auto auto;
     gap: 1rem;
     margin-bottom: 1rem;
+    overflow: hidden;
+    max-width: 100%;
   }
 
   @media (max-width: 1024px) {
     .music-main-grid {
       grid-template-columns: 1fr;
     }
+  }
+
+  .music-hero, .music-lyrics-panel, .music-panel {
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .music-hero {
