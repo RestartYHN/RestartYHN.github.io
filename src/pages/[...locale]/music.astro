@@ -338,6 +338,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   .music-search-wrap {
     position: relative;
     margin-bottom: 0.5rem;
+    max-width: 100%;
   }
   .music-search-input {
     width: 100%;
@@ -348,6 +349,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     color: var(--text-color);
     font-size: 0.85rem;
     outline: none;
+    box-sizing: border-box;
   }
   .music-search-input:focus { border-color: var(--link-color); }
   :global(.music-search-results) {
