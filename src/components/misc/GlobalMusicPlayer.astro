@@ -800,7 +800,7 @@ import { musicConfig } from '@/data/music';
       marqueeObserver = new ResizeObserver(function() {
         els.forEach(function(el) { checkMarquee(el); });
       });
-      els.forEach(function(el) { marqueeObserver.observe(el); });
+      els.forEach(function(el) { marqueeObserver.observe(el); checkMarquee(el); });
     }
 
     function checkMarquee(el) {
