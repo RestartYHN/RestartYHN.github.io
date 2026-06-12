@@ -1636,13 +1636,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       if (span) {
         bottomTitle._marqueeText = text;
         span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
-        requestAnimationFrame(function() {
-          requestAnimationFrame(function() {
-            var overflow = bottomTitle.scrollWidth - bottomTitle.clientWidth;
-            if (overflow > 4) bottomTitle.classList.add('scroll');
-            else { bottomTitle.classList.remove('scroll'); span.textContent = text; }
-          });
-        });
+        setTimeout(function() {
+          var overflow = bottomTitle.scrollWidth - bottomTitle.clientWidth;
+          if (overflow > 4) bottomTitle.classList.add('scroll');
+          else { bottomTitle.classList.remove('scroll'); span.textContent = text; }
+        }, 50);
       } else bottomTitle.textContent = text;
     }
     if (bottomArtist) {
