@@ -811,14 +811,19 @@ import { musicConfig } from '@/data/music';
         if (!marqueeTimers[key]) {
           var span = el.querySelector('span');
           if (!span) return;
-          var pos = 0, dir = -1;
+          var pos = 0;
           marqueeTimers[key] = setInterval(function() {
-            pos += dir;
-            if (pos <= -overflow) { dir = 1; }
-            else if (pos >= 0) { dir = -1; }
+            pos -= 1;
+            if (pos <= -overflow - 40) pos = 0;
             span.style.transform = 'translateX(' + pos + 'px)';
-          }, 30);
+          }, 20);
         }
+      } else {
+        if (marqueeTimers[key]) { clearInterval(marqueeTimers[key]); delete marqueeTimers[key]; }
+        var span = el.querySelector('span');
+        if (span) span.style.transform = '';
+      }
+    }
       } else {
         if (marqueeTimers[key]) { clearInterval(marqueeTimers[key]); delete marqueeTimers[key]; }
         var span = el.querySelector('span');
