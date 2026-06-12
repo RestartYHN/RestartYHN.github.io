@@ -811,18 +811,16 @@ import { musicConfig } from '@/data/music';
       if (bottomCover) bottomCover.style.backgroundImage = track?.cover ? `url(${track.cover})` : '';
 
       function checkMarquee(el) {
-        requestAnimationFrame(function() {
-          requestAnimationFrame(function() {
-            var overflow = el.scrollWidth - el.clientWidth;
-            if (overflow > 4) {
-              el.classList.add('scroll');
-            } else {
-              el.classList.remove('scroll');
-              var span = el.querySelector('span');
-              if (span && el._marqueeText) span.textContent = el._marqueeText;
-            }
-          });
-        });
+        setTimeout(function() {
+          var overflow = el.scrollWidth - el.clientWidth;
+          if (overflow > 4) {
+            el.classList.add('scroll');
+          } else {
+            el.classList.remove('scroll');
+            var span = el.querySelector('span');
+            if (span && el._marqueeText) span.textContent = el._marqueeText;
+          }
+        }, 50);
       }
       if (!audio) return;
 
