@@ -802,7 +802,7 @@ import { musicConfig } from '@/data/music';
         syncMarquee();
       });
       marqueeEls.forEach(function(el) { marqueeObserver.observe(el); });
-      syncMarquee();
+      setTimeout(function() { syncMarquee(); }, 100);
     }
 
     function syncMarquee() {
