@@ -797,31 +797,34 @@ import { musicConfig } from '@/data/music';
       if (bottomTitle) {
         var text = track?.title || '-';
         var span = bottomTitle.querySelector('span');
-        if (span) span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
         bottomTitle._marqueeText = text;
-        checkMarquee(bottomTitle);
+        if (span) span.textContent = text;
+        setTimeout(function() {
+          var overflow = bottomTitle.scrollWidth - bottomTitle.clientWidth;
+          if (overflow > 4 && span) {
+            span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
+            bottomTitle.classList.add('scroll');
+          } else {
+            bottomTitle.classList.remove('scroll');
+          }
+        }, 50);
       }
       if (bottomArtist) {
         var text = track?.artist || '-';
         var span = bottomArtist.querySelector('span');
-        if (span) span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
         bottomArtist._marqueeText = text;
-        checkMarquee(bottomArtist);
-      }
-      if (bottomCover) bottomCover.style.backgroundImage = track?.cover ? `url(${track.cover})` : '';
-
-      function checkMarquee(el) {
+        if (span) span.textContent = text;
         setTimeout(function() {
-          var overflow = el.scrollWidth - el.clientWidth;
-          if (overflow > 4) {
-            el.classList.add('scroll');
+          var overflow = bottomArtist.scrollWidth - bottomArtist.clientWidth;
+          if (overflow > 4 && span) {
+            span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
+            bottomArtist.classList.add('scroll');
           } else {
-            el.classList.remove('scroll');
-            var span = el.querySelector('span');
-            if (span && el._marqueeText) span.textContent = el._marqueeText;
+            bottomArtist.classList.remove('scroll');
           }
         }, 50);
       }
+      if (bottomCover) bottomCover.style.backgroundImage = track?.cover ? `url(${track.cover})` : '';
       if (!audio) return;
 
       if (track?.audio) {
