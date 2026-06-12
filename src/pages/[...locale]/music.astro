@@ -2852,10 +2852,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   async function initMusicPage() {
     queryPageEls();
-    var mbp = document.getElementById('music-bottom-player');
-    if (mbp) mbp.style.display = '';
 
     if (!/\/music\/?$/i.test(window.location.pathname)) {
+      musicUnbind();
+      return;
+    }
+    var mbp = document.getElementById('music-bottom-player');
+    if (mbp) mbp.style.display = '';
       musicUnbind();
       return;
     }
