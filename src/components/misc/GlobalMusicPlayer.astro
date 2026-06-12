@@ -811,8 +811,9 @@ import { musicConfig } from '@/data/music';
         el._overflow = el.scrollWidth - el.clientWidth;
         if (el._overflow > 2) anyOverflow = true;
       });
-      if (anyOverflow && !marqueeTimer) {
-        marqueeEls.forEach(function(el) { el._pos = 0; el._dir = -1; });
+      if (anyOverflow) {
+        if (marqueeTimer) { clearInterval(marqueeTimer); marqueeTimer = null; }
+        marqueeEls.forEach(function(el) { el._pos = 0; el._dir = -1; el._pause = 0; });
         marqueeTimer = setInterval(function() {
           var dir = marqueeEls[0]._dir || -1;
           var allAtLimit = true;
@@ -835,8 +836,8 @@ import { musicConfig } from '@/data/music';
             if (span) span.style.transform = 'translateX(' + el._pos + 'px)';
           });
         }, 20);
-      } else if (!anyOverflow && marqueeTimer) {
-        clearInterval(marqueeTimer); marqueeTimer = null;
+      } else {
+        if (marqueeTimer) { clearInterval(marqueeTimer); marqueeTimer = null; }
         marqueeEls.forEach(function(el) {
           var span = el.querySelector('span');
           if (span) span.style.transform = '';
