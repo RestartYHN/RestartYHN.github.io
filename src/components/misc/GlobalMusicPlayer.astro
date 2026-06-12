@@ -9,8 +9,8 @@ import { musicConfig } from '@/data/music';
   <div class="music-bottom-player" id="music-bottom-player">
     <div class="music-bottom-cover" id="music-bottom-cover"></div>
     <div class="min-w-0 flex-1">
-      <p id="music-bottom-title" class="truncate font-semibold text-[var(--text-color)]">-</p>
-      <p id="music-bottom-artist" class="truncate text-sm text-[var(--text-color-70)]">-</p>
+      <p id="music-bottom-title" class="font-semibold text-[var(--text-color)] marquee-wrap"><span>-</span></p>
+      <p id="music-bottom-artist" class="text-sm text-[var(--text-color-70)] marquee-wrap"><span>-</span></p>
       <div class="music-progress-wrap">
         <span id="music-current-time" class="music-time">0:00</span>
         <input id="music-progress" class="music-progress" type="range" min="0" max="1000" value="0" step="1" />
@@ -33,7 +33,6 @@ import { musicConfig } from '@/data/music';
     </button>
     <button id="music-next" class="music-control" type="button" aria-label="Next">▶</button>
     <button id="music-playlist-btn" class="music-control music-playlist-btn" type="button" aria-label="Playlist">☰</button>
-    <button id="music-mode-btn" class="music-control music-mode-btn" type="button" aria-label="Mode" title="列表循环">🔁</button>
   </div>
   
   <!-- Minimal playlist modal (only DOM + lightweight client script). Controller will render list when available. -->
@@ -231,6 +230,9 @@ import { musicConfig } from '@/data/music';
     opacity: 0.5; transition: opacity 0.15s;
   }
   .gmpm-del:hover { opacity: 1; color: #d14b4b; }
+  .marquee-wrap { overflow: hidden; white-space: nowrap; }
+  .marquee-wrap.scroll span { display: inline-block; animation: marquee 6s linear infinite; padding-right: 1.5rem; }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
   #music-playlist-btn {
       grid-area: list;
@@ -786,8 +788,16 @@ import { musicConfig } from '@/data/music';
 
     function updateNowPlaying(track) {
       const { audio, bottomCover, bottomTitle, bottomArtist } = state.els || {};
-      if (bottomTitle) bottomTitle.textContent = track?.title || '-';
-      if (bottomArtist) bottomArtist.textContent = track?.artist || '-';
+      if (bottomTitle) {
+        var span = bottomTitle.querySelector('span');
+        if (span) span.textContent = track?.title || '-';
+        bottomTitle.classList.toggle('scroll', bottomTitle.scrollWidth > bottomTitle.clientWidth);
+      }
+      if (bottomArtist) {
+        var span = bottomArtist.querySelector('span');
+        if (span) span.textContent = track?.artist || '-';
+        bottomArtist.classList.toggle('scroll', bottomArtist.scrollWidth > bottomArtist.clientWidth);
+      }
       if (bottomCover) bottomCover.style.backgroundImage = track?.cover ? `url(${track.cover})` : '';
       if (!audio) return;
 
