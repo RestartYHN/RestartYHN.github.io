@@ -2852,6 +2852,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   async function initMusicPage() {
     queryPageEls();
+    var mbp = document.getElementById('music-bottom-player');
+    if (mbp) mbp.classList.remove('hidden');
 
     if (!/\/music\/?$/i.test(window.location.pathname)) {
       musicUnbind();
