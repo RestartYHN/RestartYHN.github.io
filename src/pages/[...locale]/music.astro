@@ -518,13 +518,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     cursor: pointer;
     transition: background-color 160ms ease, transform 160ms ease;
     min-height: 3.2rem;
-    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
   }
 
-  .music-track-card:hover {
-    background: var(--button-hover-color);
-    border-color: var(--link-color);
-  }
+  :global(.music-track-card) { border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent); }
+  :global(.music-track-card:hover) { background: var(--button-hover-color) !important; border-color: var(--link-color) !important; }
+  :global(.music-playlist-card) { border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent); }
+  :global(.music-playlist-card:hover) { background: var(--button-hover-color) !important; border-color: var(--link-color) !important; }
 
   .music-track-index {
     width: 2rem;
@@ -762,7 +761,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     transition: background-color 160ms ease, transform 160ms ease, opacity 160ms ease;
     position: relative;
     min-height: 3.2rem;
-    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
   }
 
   .music-playlist-card:not(.loading):hover {
