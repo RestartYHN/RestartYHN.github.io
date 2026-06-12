@@ -3,7 +3,7 @@ import MainPageLayout from '@layouts/MainPageLayout.astro'
 import Markdown from '@components/misc/Markdown.astro'
 import Cover from '@components/Cover.astro'
 import FabMenu from '@components/control/FabMenu.astro'
-import Comments from '@components/comment/Comments.svelte'
+import QAList from '@components/comment/QAList.svelte'
 
 import { getSpec } from '@utils/content-utils'
 
@@ -36,7 +36,7 @@ const pageTitle = t("header.about") + " - " + siteConfig.title;
         </Markdown>
         <div class="mt-10 border-t border-[var(--button-border-color)] pt-6">
           <h3 class="text-lg font-bold text-[var(--text-color)] mb-4">Q&A</h3>
-          <Comments postSlug="about-qa" language={currentLang} postTitle="Q&A" qaMode={true} hideForm={true} client:visible/>
+          <QAList postSlug="about-qa" language={currentLang} postTitle="Q&A" client:visible/>
         </div>
     </div>
     <FabMenu showBackBottom={true} />

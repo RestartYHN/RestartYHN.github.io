@@ -107,6 +107,23 @@ export interface Translation {
         unlike: string;
         likeFailed: string;
     },
+    qa: {
+        title: string;
+        askQuestion: string;
+        questionPlaceholder: string;
+        name: string;
+        email: string;
+        submit: string;
+        submitting: string;
+        submitSuccess: string;
+        submitFailed: string;
+        fillRequired: string;
+        loadFailed: string;
+        loading: string;
+        empty: string;
+        total: string;
+        pending: string;
+    },
     langNote: {
         note: string;
         description: string;

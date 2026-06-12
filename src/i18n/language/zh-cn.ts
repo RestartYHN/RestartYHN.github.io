@@ -123,6 +123,23 @@ const translation: Translation = {
         unlike: "取消点赞",
         likeFailed: "操作失败，请稍后重试"
     },
+    qa: {
+        title: "Q&A",
+        askQuestion: "我要提问",
+        questionPlaceholder: "写下你的问题...",
+        name: "昵称",
+        email: "邮箱",
+        submit: "提交问题",
+        submitting: "提交中...",
+        submitSuccess: "问题已提交，审核通过后显示",
+        submitFailed: "提交失败，请稍后再试",
+        fillRequired: "请填写昵称、邮箱和问题内容",
+        loadFailed: "加载失败",
+        loading: "正在加载 Q&A...",
+        empty: "暂无问答",
+        total: "条问答",
+        pending: "待审核"
+    },
     langNote: {
         note: "注意：",
         description: "当前页面不支持简体中文，使用默认语言版本"

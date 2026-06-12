@@ -123,6 +123,23 @@ const translation: Translation = {
         unlike: "Unlike",
         likeFailed: "Action failed, please try again later"
     },
+    qa: {
+        title: "Q&A",
+        askQuestion: "Ask a Question",
+        questionPlaceholder: "Write your question...",
+        name: "Name",
+        email: "Email",
+        submit: "Submit",
+        submitting: "Submitting...",
+        submitSuccess: "Question submitted, will show after review",
+        submitFailed: "Submission failed, please try again later",
+        fillRequired: "Please fill in name, email and your question",
+        loadFailed: "Failed to load",
+        loading: "Loading Q&A...",
+        empty: "No questions yet",
+        total: "Questions",
+        pending: "Pending"
+    },
     langNote: {
         note: "Note: ",
         description: "This page does not support English, using the default language version"
