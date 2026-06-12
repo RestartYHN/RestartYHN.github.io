@@ -1197,7 +1197,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   // Play mode removed; always sequential
-  const playMode = 'sequential';
+  // Play mode synced from global player via getPlayMode()
 
   // Playlist modal elements
   const playlistModal = document.getElementById("music-playlist-modal");
@@ -1230,13 +1230,30 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   // Play mode removed; sequential playback only
 
+  function getPlayMode() {
+    const gc = window[GLOBAL_MUSIC_KEY];
+    if (gc && typeof gc.getState === 'function') return gc.getState().playMode || 'loop';
+    return 'loop';
+  }
+
   function getNextIndex() {
     if (!tracks.length) return 0;
+    var mode = getPlayMode();
+    if (mode === 'single') return currentIndex;
+    if (mode === 'shuffle') {
+      var idx = currentIndex;
+      while (tracks.length > 1 && idx === currentIndex) {
+        idx = Math.floor(Math.random() * tracks.length);
+      }
+      return idx;
+    }
     return (currentIndex + 1) % tracks.length;
   }
 
   function getPrevIndex() {
     if (!tracks.length) return 0;
+    var mode = getPlayMode();
+    if (mode === 'single' || mode === 'shuffle') return currentIndex;
     return (currentIndex - 1 + tracks.length) % tracks.length;
   }
 
