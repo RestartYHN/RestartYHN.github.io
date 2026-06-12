@@ -823,11 +823,12 @@ import { musicConfig } from '@/data/music';
           });
           marqueeEls.forEach(function(el) {
             if (el._overflow <= 2) return;
-            if (allAtLimit && !el._pause) {
-              el._pause = 60;
+            if (el._pause > 0) {
+              el._pause--;
+              if (el._pause === 0) { el._dir = -dir; el._pos += el._dir; }
+              return;
             }
-            if (el._pause > 0) { el._pause--; return; }
-            if (allAtLimit) el._dir = -dir;
+            if (allAtLimit) { el._pause = 60; return; }
             el._pos += el._dir;
             el._pos = Math.max(-el._overflow, Math.min(0, el._pos));
             var span = el.querySelector('span');
