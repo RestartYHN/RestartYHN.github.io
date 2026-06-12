@@ -237,8 +237,7 @@ import { musicConfig } from '@/data/music';
   .gmpm-mode-btn { border: none; background: none; color: var(--text-color-70); font-size: 0.8rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 4px; }
   .gmpm-mode-btn:hover { background: var(--button-hover-color); color: var(--text-color); }
   .marquee-wrap { overflow: hidden; white-space: nowrap; }
-  .marquee-wrap.scroll span { display: inline-block; animation: marquee 8s linear infinite; }
-  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .marquee-wrap span { white-space: nowrap; }
 
   #music-playlist-btn {
       grid-area: list;
@@ -792,39 +791,57 @@ import { musicConfig } from '@/data/music';
       return merged;
     }
 
+    var marqueeTimers = {};
+    var marqueeObserver = null;
+
+    function setupMarquee() {
+      var els = [document.getElementById('music-bottom-title'), document.getElementById('music-bottom-artist')].filter(Boolean);
+      if (marqueeObserver) marqueeObserver.disconnect();
+      marqueeObserver = new ResizeObserver(function() {
+        els.forEach(function(el) { checkMarquee(el); });
+      });
+      els.forEach(function(el) {
+        marqueeObserver.observe(el);
+        checkMarquee(el);
+      });
+    }
+
+    function checkMarquee(el) {
+      if (!el) return;
+      var key = el.id;
+      var overflow = el.scrollWidth - el.clientWidth;
+      if (overflow > 2) {
+        if (!marqueeTimers[key]) {
+          marqueeTimers[key] = setInterval(function() {
+            if (el.scrollLeft >= overflow) el.scrollLeft = 0;
+            else el.scrollLeft += 1;
+          }, 40);
+        }
+      } else {
+        if (marqueeTimers[key]) { clearInterval(marqueeTimers[key]); delete marqueeTimers[key]; }
+        el.scrollLeft = 0;
+      }
+    }
+
+    function scheduleMarqueeCheck() {
+      setupMarquee();
+    }
+
     function updateNowPlaying(track) {
       const { audio, bottomCover, bottomTitle, bottomArtist } = state.els || {};
       if (bottomTitle) {
-        var text = track?.title || '-';
         var span = bottomTitle.querySelector('span');
-        bottomTitle._marqueeText = text;
-        if (span) span.textContent = text;
-        setTimeout(function() {
-          var overflow = bottomTitle.scrollWidth - bottomTitle.clientWidth;
-          if (overflow > 8 && span) {
-            span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
-            bottomTitle.classList.add('scroll');
-          } else {
-            bottomTitle.classList.remove('scroll');
-          }
-        }, 50);
+        if (span) span.textContent = track?.title || '-';
+        else bottomTitle.textContent = track?.title || '-';
       }
       if (bottomArtist) {
-        var text = track?.artist || '-';
         var span = bottomArtist.querySelector('span');
-        bottomArtist._marqueeText = text;
-        if (span) span.textContent = text;
-        setTimeout(function() {
-          var overflow = bottomArtist.scrollWidth - bottomArtist.clientWidth;
-          if (overflow > 8 && span) {
-            span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
-            bottomArtist.classList.add('scroll');
-          } else {
-            bottomArtist.classList.remove('scroll');
-          }
-        }, 50);
+        if (span) span.textContent = track?.artist || '-';
+        else bottomArtist.textContent = track?.artist || '-';
       }
       if (bottomCover) bottomCover.style.backgroundImage = track?.cover ? `url(${track.cover})` : '';
+
+      scheduleMarqueeCheck();
       if (!audio) return;
 
       if (track?.audio) {
