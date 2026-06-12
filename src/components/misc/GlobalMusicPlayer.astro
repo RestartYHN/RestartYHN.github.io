@@ -801,7 +801,7 @@ import { musicConfig } from '@/data/music';
         if (span) span.textContent = text;
         setTimeout(function() {
           var overflow = bottomTitle.scrollWidth - bottomTitle.clientWidth;
-          if (overflow > 4 && span) {
+          if (overflow > 8 && span) {
             span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
             bottomTitle.classList.add('scroll');
           } else {
@@ -816,7 +816,7 @@ import { musicConfig } from '@/data/music';
         if (span) span.textContent = text;
         setTimeout(function() {
           var overflow = bottomArtist.scrollWidth - bottomArtist.clientWidth;
-          if (overflow > 4 && span) {
+          if (overflow > 8 && span) {
             span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
             bottomArtist.classList.add('scroll');
           } else {

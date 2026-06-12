@@ -1638,7 +1638,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         span.textContent = text;
         setTimeout(function() {
           var overflow = bottomTitle.scrollWidth - bottomTitle.clientWidth;
-          if (overflow > 4) {
+          if (overflow > 8) {
             span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
             bottomTitle.classList.add('scroll');
           } else {
@@ -1656,7 +1656,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         requestAnimationFrame(function() {
           requestAnimationFrame(function() {
             var overflow = bottomArtist.scrollWidth - bottomArtist.clientWidth;
-            if (overflow > 4) bottomArtist.classList.add('scroll');
+            if (overflow > 8) bottomArtist.classList.add('scroll');
             else { bottomArtist.classList.remove('scroll'); span.textContent = text; }
           });
         });
