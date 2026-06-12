@@ -792,57 +792,24 @@ import { musicConfig } from '@/data/music';
     }
 
     var marqueeTimer = null;
-    var marqueeObserver = null;
     var marqueeEls = [];
 
     function setupMarquee() {
       marqueeEls = [document.getElementById('music-bottom-title'), document.getElementById('music-bottom-artist')].filter(Boolean);
-      if (marqueeObserver) marqueeObserver.disconnect();
-      marqueeObserver = new ResizeObserver(function() {
-        syncMarquee();
-      });
-      marqueeEls.forEach(function(el) { marqueeObserver.observe(el); });
-      setTimeout(function() { syncMarquee(); }, 100);
-    }
-
-    function syncMarquee() {
-      var anyOverflow = false;
-      marqueeEls.forEach(function(el) {
-        el._overflow = el.scrollWidth - el.clientWidth;
-        if (el._overflow > 2) anyOverflow = true;
-      });
-      if (anyOverflow && !marqueeTimer) {
-        marqueeEls.forEach(function(el) { el._pos = 0; el._dir = -1; el._pause = 0; });
-        marqueeTimer = setInterval(function() {
-          var dir = marqueeEls[0]._dir || -1;
-          var allAtLimit = true;
-          marqueeEls.forEach(function(el) {
-            if (el._overflow <= 2) return;
-            if (dir < 0 && el._pos > -el._overflow) allAtLimit = false;
-            if (dir > 0 && el._pos < 0) allAtLimit = false;
-          });
-          if (allAtLimit) {
-            marqueeEls.forEach(function(el) { el._pause = (el._pause || 0) + 1; });
-            var waitFrames = 80;
-            if (marqueeEls.some(function(el) { return el._pause < waitFrames; })) return;
-            marqueeEls.forEach(function(el) { el._pause = 0; el._dir = -dir; });
-          }
-          marqueeEls.forEach(function(el) {
-            if (el._overflow <= 2) return;
-            if (el._pause) return;
-            el._pos += el._dir;
-            el._pos = Math.max(-el._overflow, Math.min(0, el._pos));
-            var span = el.querySelector('span');
-            if (span) span.style.transform = 'translateX(' + el._pos + 'px)';
-          });
-        }, 20);
-      } else if (!anyOverflow && marqueeTimer) {
-        clearInterval(marqueeTimer); marqueeTimer = null;
+      marqueeEls.forEach(function(el) { el._pos = 0; el._dir = 0; });
+      if (marqueeTimer) return;
+      marqueeTimer = setInterval(function() {
         marqueeEls.forEach(function(el) {
+          var overflow = el.scrollWidth - el.clientWidth;
+          if (overflow <= 2) { el._dir = 0; el._pos = 0; return; }
+          if (!el._dir) el._dir = -1;
+          el._pos += el._dir;
+          if (el._pos <= -overflow) { el._dir = 1; el._pos = -overflow; }
+          else if (el._pos >= 0) { el._dir = -1; el._pos = 0; }
           var span = el.querySelector('span');
-          if (span) span.style.transform = '';
+          if (span) span.style.transform = 'translateX(' + el._pos + 'px)';
         });
-      }
+      }, 30);
     }
     }
 
