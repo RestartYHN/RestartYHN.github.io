@@ -49,9 +49,12 @@ import { musicConfig } from '@/data/music';
       <ul id="global-music-playlist-modal-list" class="global-music-playlist-modal-list"></ul>
     </div>
   </div>
-
+  <button id="music-fab-toggle" class="music-fab-toggle" title="Toggle player" aria-label="Toggle music player">🎵</button>
   <script>
     (function () {
+    document.getElementById('music-fab-toggle').addEventListener('click', function() {
+      document.getElementById('music-bottom-player').classList.toggle('hidden');
+    });
       const modal = document.getElementById('global-music-playlist-modal');
       const backdrop = document.getElementById('global-music-playlist-modal-backdrop');
       const closeBtn = document.getElementById('global-music-playlist-modal-close');
@@ -236,6 +239,20 @@ import { musicConfig } from '@/data/music';
   .gmpm-mode-row { padding: 0.4rem 1rem; border-bottom: 1px solid var(--button-border-color); }
   .gmpm-mode-btn { border: none; background: none; color: var(--text-color-70); font-size: 0.8rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 4px; }
   .gmpm-mode-btn:hover { background: var(--button-hover-color); color: var(--text-color); }
+  .music-fab-toggle {
+    position: fixed; bottom: 1rem; right: 1rem; z-index: 50;
+    width: 40px; height: 40px;
+    border: 1px solid var(--button-border-color);
+    border-radius: 50%;
+    background: var(--bg-color);
+    color: var(--text-color-70);
+    font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: background-color 0.15s;
+  }
+  .music-fab-toggle:hover { background: var(--button-hover-color); color: var(--text-color); }
+  .music-bottom-player.hidden { display: none; }
   .marquee-wrap { overflow: hidden; white-space: nowrap; }
   .marquee-wrap span { white-space: nowrap; display: inline-block; }
 
