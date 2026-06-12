@@ -1640,6 +1640,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       if (span) span.textContent = track.artist || '-';
       else bottomArtist.textContent = track.artist || '-';
     }
+    var gp = window[GLOBAL_MUSIC_KEY];
+    if (gp && gp._marqueeSetup) gp._marqueeSetup();
 
     if (cover) cover.style.backgroundImage = track.cover ? `url(${track.cover})` : "";
     if (bottomCover) bottomCover.style.backgroundImage = track.cover ? `url(${track.cover})` : "";
