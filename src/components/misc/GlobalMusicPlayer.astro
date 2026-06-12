@@ -825,6 +825,7 @@ import { musicConfig } from '@/data/music';
             if (el._overflow <= 2) return;
             if (allAtLimit) el._dir = -dir;
             el._pos += el._dir;
+            el._pos = Math.max(-el._overflow, Math.min(0, el._pos));
             var span = el.querySelector('span');
             if (span) span.style.transform = 'translateX(' + el._pos + 'px)';
           });
