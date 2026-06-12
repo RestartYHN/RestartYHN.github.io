@@ -6,7 +6,7 @@ import { musicConfig } from '@/data/music';
   <audio id="music-audio" preload="metadata" class="hidden"></audio>
 
 
-  <div class="music-bottom-player hidden" id="music-bottom-player">
+  <div class="music-bottom-player" id="music-bottom-player">
     <div class="music-bottom-cover" id="music-bottom-cover"></div>
     <div class="min-w-0 flex-1">
       <p id="music-bottom-title" class="font-semibold text-[var(--text-color)] marquee-wrap"><span>-</span></p>
@@ -49,15 +49,10 @@ import { musicConfig } from '@/data/music';
       <ul id="global-music-playlist-modal-list" class="global-music-playlist-modal-list"></ul>
     </div>
   </div>
-  <button id="music-fab-toggle" class="music-fab-toggle" title="Toggle player" aria-label="Toggle music player">🎵</button>
+  <button id="music-fab-toggle" class="music-fab-toggle" onclick="document.getElementById('music-bottom-player').classList.toggle('hidden')" title="Toggle player" aria-label="Toggle music player">🎵</button>
+
   <script>
     (function () {
-    document.getElementById('music-fab-toggle').addEventListener('click', function() {
-      document.getElementById('music-bottom-player').classList.toggle('hidden');
-    });
-    document.getElementById('music-fab-toggle').addEventListener('click', function() {
-      document.getElementById('music-bottom-player').classList.toggle('hidden');
-    });
       const modal = document.getElementById('global-music-playlist-modal');
       const backdrop = document.getElementById('global-music-playlist-modal-backdrop');
       const closeBtn = document.getElementById('global-music-playlist-modal-close');
@@ -242,7 +237,8 @@ import { musicConfig } from '@/data/music';
   .gmpm-mode-row { padding: 0.4rem 1rem; border-bottom: 1px solid var(--button-border-color); }
   .gmpm-mode-btn { border: none; background: none; color: var(--text-color-70); font-size: 0.8rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 4px; }
   .gmpm-mode-btn:hover { background: var(--button-hover-color); color: var(--text-color); }
-  .music-fab-toggle {
+  .marquee-wrap { overflow: hidden; white-space: nowrap; }
+  :global(.music-fab-toggle) {
     position: fixed; bottom: 1rem; right: 1rem; z-index: 50;
     width: 40px; height: 40px;
     border: 1px solid var(--button-border-color);
@@ -254,10 +250,8 @@ import { musicConfig } from '@/data/music';
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     transition: background-color 0.15s;
   }
-  .music-fab-toggle:hover { background: var(--button-hover-color); color: var(--text-color); }
-  .music-bottom-player.hidden { display: none; }
-  .marquee-wrap { overflow: hidden; white-space: nowrap; }
-  .marquee-wrap span { white-space: nowrap; display: inline-block; }
+  :global(.music-fab-toggle:hover) { background: var(--button-hover-color); color: var(--text-color); }
+  :global(.music-bottom-player.hidden) { display: none; }
 
   #music-playlist-btn {
       grid-area: list;
