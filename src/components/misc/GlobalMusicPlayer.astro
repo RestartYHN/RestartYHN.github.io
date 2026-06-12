@@ -9,8 +9,8 @@ import { musicConfig } from '@/data/music';
   <div class="music-bottom-player" id="music-bottom-player">
     <div class="music-bottom-cover" id="music-bottom-cover"></div>
     <div class="min-w-0 flex-1">
-      <p id="music-bottom-title" class="font-semibold text-[var(--text-color)] marquee-wrap scroll"><span>-</span></p>
-      <p id="music-bottom-artist" class="text-sm text-[var(--text-color-70)] marquee-wrap scroll"><span>-</span></p>
+      <p id="music-bottom-title" class="font-semibold text-[var(--text-color)] marquee-wrap"><span>-</span></p>
+      <p id="music-bottom-artist" class="text-sm text-[var(--text-color-70)] marquee-wrap"><span>-</span></p>
       <div class="music-progress-wrap">
         <span id="music-current-time" class="music-time">0:00</span>
         <input id="music-progress" class="music-progress" type="range" min="0" max="1000" value="0" step="1" />
@@ -798,13 +798,32 @@ import { musicConfig } from '@/data/music';
         var text = track?.title || '-';
         var span = bottomTitle.querySelector('span');
         if (span) span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
+        bottomTitle._marqueeText = text;
+        checkMarquee(bottomTitle);
       }
       if (bottomArtist) {
         var text = track?.artist || '-';
         var span = bottomArtist.querySelector('span');
         if (span) span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
+        bottomArtist._marqueeText = text;
+        checkMarquee(bottomArtist);
       }
       if (bottomCover) bottomCover.style.backgroundImage = track?.cover ? `url(${track.cover})` : '';
+
+      function checkMarquee(el) {
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            var overflow = el.scrollWidth - el.clientWidth;
+            if (overflow > 4) {
+              el.classList.add('scroll');
+            } else {
+              el.classList.remove('scroll');
+              var span = el.querySelector('span');
+              if (span && el._marqueeText) span.textContent = el._marqueeText;
+            }
+          });
+        });
+      }
       if (!audio) return;
 
       if (track?.audio) {
