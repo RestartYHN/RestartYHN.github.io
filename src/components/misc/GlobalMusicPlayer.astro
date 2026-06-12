@@ -812,7 +812,7 @@ import { musicConfig } from '@/data/music';
         if (el._overflow > 2) anyOverflow = true;
       });
       if (anyOverflow && !marqueeTimer) {
-        marqueeEls.forEach(function(el) { el._pos = 0; el._dir = -1; });
+        marqueeEls.forEach(function(el) { el._pos = 0; el._dir = -1; el._pause = 0; });
         marqueeTimer = setInterval(function() {
           var dir = marqueeEls[0]._dir || -1;
           var allAtLimit = true;
@@ -821,9 +821,15 @@ import { musicConfig } from '@/data/music';
             if (dir < 0 && el._pos > -el._overflow) allAtLimit = false;
             if (dir > 0 && el._pos < 0) allAtLimit = false;
           });
+          if (allAtLimit) {
+            marqueeEls.forEach(function(el) { el._pause = (el._pause || 0) + 1; });
+            var waitFrames = 80;
+            if (marqueeEls.some(function(el) { return el._pause < waitFrames; })) return;
+            marqueeEls.forEach(function(el) { el._pause = 0; el._dir = -dir; });
+          }
           marqueeEls.forEach(function(el) {
             if (el._overflow <= 2) return;
-            if (allAtLimit) el._dir = -dir;
+            if (el._pause) return;
             el._pos += el._dir;
             el._pos = Math.max(-el._overflow, Math.min(0, el._pos));
             var span = el.querySelector('span');
@@ -837,6 +843,7 @@ import { musicConfig } from '@/data/music';
           if (span) span.style.transform = '';
         });
       }
+    }
     }
 
     function checkMarquee(el) {
