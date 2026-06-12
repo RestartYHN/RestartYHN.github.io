@@ -240,17 +240,19 @@ import { musicConfig } from '@/data/music';
   .marquee-wrap { overflow: hidden; white-space: nowrap; }
   .marquee-wrap span { white-space: nowrap; display: inline-block; }
   :global(#music-fab-toggle) {
-    position: fixed; bottom: 1rem; right: 1rem; z-index: 100;
-    width: 40px; height: 40px;
+    position: fixed !important; bottom: 5rem; right: 1.2rem; z-index: 999;
+    width: 42px; height: 42px;
     border: 1px solid var(--button-border-color);
     border-radius: 50%;
     background: var(--bg-color);
     color: var(--text-color-70);
-    font-size: 1rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    font-size: 1.1rem; cursor: pointer;
+    display: flex !important; align-items: center; justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    transition: background-color 0.15s, transform 0.15s;
+    opacity: 0.85;
   }
-  :global(#music-fab-toggle:hover) { background: var(--button-hover-color); color: var(--text-color); }
+  :global(#music-fab-toggle:hover) { background: var(--button-hover-color); color: var(--text-color); opacity: 1; transform: scale(1.08); }
 
   #music-playlist-btn {
       grid-area: list;
