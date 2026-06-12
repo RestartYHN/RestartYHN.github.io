@@ -6,7 +6,7 @@ import { musicConfig } from '@/data/music';
   <audio id="music-audio" preload="metadata" class="hidden"></audio>
 
 
-  <div class="music-bottom-player" id="music-bottom-player">
+  <div class="music-bottom-player" id="music-bottom-player" style="display:none">
     <div class="music-bottom-cover" id="music-bottom-cover"></div>
     <div class="min-w-0 flex-1">
       <p id="music-bottom-title" class="font-semibold text-[var(--text-color)] marquee-wrap"><span>-</span></p>
@@ -49,7 +49,7 @@ import { musicConfig } from '@/data/music';
       <ul id="global-music-playlist-modal-list" class="global-music-playlist-modal-list"></ul>
     </div>
   </div>
-  <button id="music-fab-toggle" class="music-fab-toggle" onclick="document.getElementById('music-bottom-player').classList.toggle('hidden')" title="Toggle player" aria-label="Toggle music player">🎵</button>
+  <button id="music-fab-toggle" onclick="var p=document.getElementById('music-bottom-player');p.style.display=p.style.display==='none'?'':'none'" title="Toggle player" aria-label="Toggle music player">🎵</button>
 
   <script>
     (function () {
@@ -238,8 +238,9 @@ import { musicConfig } from '@/data/music';
   .gmpm-mode-btn { border: none; background: none; color: var(--text-color-70); font-size: 0.8rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 4px; }
   .gmpm-mode-btn:hover { background: var(--button-hover-color); color: var(--text-color); }
   .marquee-wrap { overflow: hidden; white-space: nowrap; }
-  :global(.music-fab-toggle) {
-    position: fixed; bottom: 1rem; right: 1rem; z-index: 50;
+  .marquee-wrap span { white-space: nowrap; display: inline-block; }
+  :global(#music-fab-toggle) {
+    position: fixed; bottom: 1rem; right: 1rem; z-index: 100;
     width: 40px; height: 40px;
     border: 1px solid var(--button-border-color);
     border-radius: 50%;
@@ -248,10 +249,8 @@ import { musicConfig } from '@/data/music';
     font-size: 1rem; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    transition: background-color 0.15s;
   }
-  :global(.music-fab-toggle:hover) { background: var(--button-hover-color); color: var(--text-color); }
-  :global(.music-bottom-player.hidden) { display: none; }
+  :global(#music-fab-toggle:hover) { background: var(--button-hover-color); color: var(--text-color); }
 
   #music-playlist-btn {
       grid-area: list;
