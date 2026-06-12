@@ -828,7 +828,7 @@ import { musicConfig } from '@/data/music';
               if (el._pause === 0) { el._dir = -dir; el._pos += el._dir; }
               return;
             }
-            if (allAtLimit) { el._pause = 60; return; }
+            if (allAtLimit) { el._pause = 125; return; }
             el._pos += el._dir;
             el._pos = Math.max(-el._overflow, Math.min(0, el._pos));
             var span = el.querySelector('span');
