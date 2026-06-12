@@ -825,13 +825,6 @@ import { musicConfig } from '@/data/music';
         if (span) span.style.transform = '';
       }
     }
-          }, 30);
-        }
-      } else {
-        if (marqueeTimers[key]) { clearInterval(marqueeTimers[key]); delete marqueeTimers[key]; }
-        el.scrollLeft = 0;
-      }
-    }
 
     function scheduleMarqueeCheck() {
       setupMarquee();
