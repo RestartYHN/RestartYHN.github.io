@@ -1630,8 +1630,18 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     const preserveActivePlayback = Boolean(options?.preserveActivePlayback);
     if (titleEl) titleEl.textContent = track.title || "-";
     if (artistEl) artistEl.textContent = track.artist || "-";
-    if (bottomTitle) bottomTitle.textContent = track.title || "-";
-    if (bottomArtist) bottomArtist.textContent = track.artist || "-";
+    if (bottomTitle) {
+      var span = bottomTitle.querySelector('span');
+      var text = track.title || '-';
+      if (span) span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
+      else bottomTitle.textContent = text;
+    }
+    if (bottomArtist) {
+      var span = bottomArtist.querySelector('span');
+      var text = track.artist || '-';
+      if (span) span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
+      else bottomArtist.textContent = text;
+    }
 
     if (cover) cover.style.backgroundImage = track.cover ? `url(${track.cover})` : "";
     if (bottomCover) bottomCover.style.backgroundImage = track.cover ? `url(${track.cover})` : "";
