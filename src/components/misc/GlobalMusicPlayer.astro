@@ -809,10 +809,20 @@ import { musicConfig } from '@/data/music';
       var overflow = el.scrollWidth - el.clientWidth;
       if (overflow > 2) {
         if (!marqueeTimers[key]) {
+          el._mDir = 1;
+          el.scrollLeft = 0;
           marqueeTimers[key] = setInterval(function() {
-            if (el.scrollLeft >= overflow) el.scrollLeft = 0;
-            else el.scrollLeft += 1;
-          }, 40);
+            if (el._mPaused) return;
+            if (el._mDir > 0 && el.scrollLeft >= overflow) {
+              el._mPaused = true;
+              setTimeout(function() { el._mPaused = false; el._mDir = -1; }, 2000);
+            } else if (el._mDir < 0 && el.scrollLeft <= 0) {
+              el._mPaused = true;
+              setTimeout(function() { el._mPaused = false; el._mDir = 1; }, 2000);
+            } else {
+              el.scrollLeft += el._mDir;
+            }
+          }, 30);
         }
       } else {
         if (marqueeTimers[key]) { clearInterval(marqueeTimers[key]); delete marqueeTimers[key]; }
