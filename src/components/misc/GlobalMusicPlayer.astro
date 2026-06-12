@@ -237,11 +237,8 @@ import { musicConfig } from '@/data/music';
   .gmpm-mode-btn { border: none; background: none; color: var(--text-color-70); font-size: 0.8rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 4px; }
   .gmpm-mode-btn:hover { background: var(--button-hover-color); color: var(--text-color); }
   .marquee-wrap { overflow: hidden; white-space: nowrap; }
-  .marquee-wrap.scroll span { display: inline-block; animation: marquee 5s linear infinite; padding-right: 2rem; }
-  @keyframes marquee {
-    0%, 20% { transform: translateX(0); }
-    80%, 100% { transform: translateX(var(--scroll-by, -100px)); }
-  }
+  .marquee-wrap.scroll span { display: inline-block; animation: marquee 8s linear infinite; }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
   #music-playlist-btn {
       grid-area: list;
@@ -798,25 +795,19 @@ import { musicConfig } from '@/data/music';
     function updateNowPlaying(track) {
       const { audio, bottomCover, bottomTitle, bottomArtist } = state.els || {};
       if (bottomTitle) {
+        var text = track?.title || '-';
         var span = bottomTitle.querySelector('span');
-        if (span) span.textContent = track?.title || '-';
+        if (span) span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
         requestAnimationFrame(function() {
-          var overflow = bottomTitle.scrollWidth - bottomTitle.clientWidth;
-          bottomTitle.classList.toggle('scroll', overflow > 0);
-          if (overflow > 0) {
-            span.style.setProperty('--scroll-by', '-' + overflow + 'px');
-          }
+          bottomTitle.classList.toggle('scroll', bottomTitle.scrollWidth > bottomTitle.clientWidth);
         });
       }
       if (bottomArtist) {
+        var text = track?.artist || '-';
         var span = bottomArtist.querySelector('span');
-        if (span) span.textContent = track?.artist || '-';
+        if (span) span.textContent = text + '  \u00A0\u00A0\u00A0  ' + text;
         requestAnimationFrame(function() {
-          var overflow = bottomArtist.scrollWidth - bottomArtist.clientWidth;
-          bottomArtist.classList.toggle('scroll', overflow > 0);
-          if (overflow > 0) {
-            span.style.setProperty('--scroll-by', '-' + overflow + 'px');
-          }
+          bottomArtist.classList.toggle('scroll', bottomArtist.scrollWidth > bottomArtist.clientWidth);
         });
       }
       if (bottomCover) bottomCover.style.backgroundImage = track?.cover ? `url(${track.cover})` : '';
