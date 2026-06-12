@@ -822,7 +822,11 @@ import { musicConfig } from '@/data/music';
             if (dir > 0 && el._pos < 0) allAtLimit = false;
           });
           marqueeEls.forEach(function(el) {
-            if (el._overflow <= 2) return;
+            if (el._overflow <= 2) {
+              var span = el.querySelector('span');
+              if (span) span.style.transform = '';
+              return;
+            }
             if (el._pause > 0) {
               el._pause--;
               if (el._pause === 0) { el._dir = -dir; el._pos += el._dir; }
