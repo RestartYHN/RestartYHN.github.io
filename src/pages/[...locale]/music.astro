@@ -2745,7 +2745,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (!/\/music\/?$/i.test(window.location.pathname)) return;
     var tag = document.activeElement.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if (e.key === ' ' && !e.ctrlKey && !e.metaKey) {
+    if ((e.code === 'Space' && e.ctrlKey) || e.code === 'MediaPlayPause') {
       e.preventDefault();
       togglePlay();
     }
