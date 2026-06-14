@@ -1071,7 +1071,7 @@ import { musicConfig } from '@/data/music';
         if (e.key === 'ArrowRight' && gc._next) { gc._next(); }
         else if (e.key === 'ArrowLeft' && gc._prev) { gc._prev(); }
       }
-      if (e.code === 'Space' && (e.ctrlKey || e.metaKey)) {
+      if (e.code === 'Space' && e.ctrlKey && e.altKey) {
         e.preventDefault();
         var gc = window[GLOBAL_MUSIC_KEY];
         if (gc && gc._togglePlay) gc._togglePlay();
