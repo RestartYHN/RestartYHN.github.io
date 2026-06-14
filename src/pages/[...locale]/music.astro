@@ -2748,6 +2748,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
       if (e.code === 'ArrowRight') { e.preventDefault(); document.getElementById('music-next').click(); }
       else if (e.code === 'ArrowLeft') { e.preventDefault(); document.getElementById('music-prev').click(); }
+      else if (e.code === 'KeyP') { e.preventDefault(); togglePlay(); }
     }
   });
   
