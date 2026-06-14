@@ -1561,6 +1561,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (!lines.length) {
       lyricsTrack.innerHTML = `<p class="lyrics-line lyrics-placeholder">${isEn ? "No lyric available" : "暂无歌词"}</p>`;
       lyricsTrack.style.transform = "translateY(0px)";
+      const container = lyricsTrack.parentElement;
+      if (container) container.classList.remove("is-static");
+      lyricsTrack.style.position = "absolute";
       return;
     }
     const isStatic = lines.every((l) => l.time === Infinity);
