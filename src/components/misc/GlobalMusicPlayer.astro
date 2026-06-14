@@ -1047,6 +1047,8 @@ import { musicConfig } from '@/data/music';
       syncState,
       getState,
       _marqueeSetup: setupMarquee,
+      _next: function() { var b = document.getElementById('music-next'); if (b) b.click(); },
+      _prev: function() { var b = document.getElementById('music-prev'); if (b) b.click(); },
     };
   }
 
@@ -1057,6 +1059,18 @@ import { musicConfig } from '@/data/music';
     };
     window[GLOBAL_MUSIC_KEY] = makeController();
     window[GLOBAL_MUSIC_KEY].onRouteChange();
+
+    document.addEventListener('keydown', function(e) {
+      var tag = document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+      var ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && !e.altKey) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') e.preventDefault();
+        var gc = window[GLOBAL_MUSIC_KEY];
+        if (e.key === 'ArrowRight' && gc._next) { gc._next(); }
+        else if (e.key === 'ArrowLeft' && gc._prev) { gc._prev(); }
+      }
+    });
     document.addEventListener('astro:page-load', () => window[GLOBAL_MUSIC_KEY].onRouteChange());
     document.addEventListener('astro:after-swap', () => window[GLOBAL_MUSIC_KEY].onRouteChange());
   } else {
