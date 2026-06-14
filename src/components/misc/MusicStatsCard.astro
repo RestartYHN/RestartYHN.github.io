@@ -95,12 +95,36 @@ const isEn = currentLang === 'en';
       if (!card) return;
       API = card.getAttribute('data-api');
       if (!API) return;
+
+      var cardEl = card;
+      cardEl.classList.add('fetch-waiting');
+
+      btnWeek = document.getElementById('st-btn-week');
+      btnAll = document.getElementById('st-btn-all');
+      if (btnWeek) btnWeek.onclick = function () {
+        if (currentType === '1') return;
+        currentType = '1';
+        btnWeek.className = btnWeek.className.replace('text-[var(--text-color-70)]', 'text-[var(--text-color)]').replace('bg-transparent', 'bg-[var(--button-hover-color)]');
+        if (!btnWeek.className.includes('bg-[')) btnWeek.className += ' bg-[var(--button-hover-color)] font-semibold';
+        btnAll.className = btnAll.className.replace('text-[var(--text-color)] font-semibold', 'text-[var(--text-color-70)]').replace('bg-[var(--button-hover-color)]', '');
+        load('1');
+      };
+      if (btnAll) btnAll.onclick = function () {
+        if (currentType === '0') return;
+        currentType = '0';
+        btnAll.className = btnAll.className.replace('text-[var(--text-color-70)]', 'text-[var(--text-color)] font-semibold').replace('bg-transparent', 'bg-[var(--button-hover-color)]');
+        if (!btnAll.className.includes('bg-[')) btnAll.className += ' bg-[var(--button-hover-color)] font-semibold';
+        btnWeek.className = btnWeek.className.replace('text-[var(--text-color)] font-semibold', 'text-[var(--text-color-70)]').replace('bg-[var(--button-hover-color)]', '');
+        load('0');
+      };
+
       try {
         var res = await fetch(API + '/api/music/record?type=' + type, { referrerPolicy: 'no-referrer' });
         var json = await res.json();
         if (json.code !== 200 || !json.data) {
           if (empty) empty.classList.remove('hidden');
           card.classList.remove('hidden');
+          cardEl.classList.remove('fetch-waiting');
           return;
         }
         var d = json.data;
@@ -114,6 +138,7 @@ const isEn = currentLang === 'en';
         renderRecent(d.recent || []);
         renderList(ranked);
         card.classList.remove('hidden');
+        cardEl.classList.remove('fetch-waiting');
       } catch (e) {
         console.debug('[music-stats]', e);
       }
@@ -254,24 +279,6 @@ const isEn = currentLang === 'en';
     }
 
     load('1');
-
-    if (btnWeek) btnWeek.addEventListener('click', function () {
-      if (currentType === '1') return;
-      currentType = '1';
-      btnWeek.className = btnWeek.className.replace('text-[var(--text-color-70)]', 'text-[var(--text-color)]').replace('bg-transparent', 'bg-[var(--button-hover-color)]');
-      if (!btnWeek.className.includes('bg-[')) btnWeek.className += ' bg-[var(--button-hover-color)] font-semibold';
-      btnAll.className = btnAll.className.replace('text-[var(--text-color)] font-semibold', 'text-[var(--text-color-70)]').replace('bg-[var(--button-hover-color)]', '');
-      load('1');
-    });
-
-    if (btnAll) btnAll.addEventListener('click', function () {
-      if (currentType === '0') return;
-      currentType = '0';
-      btnAll.className = btnAll.className.replace('text-[var(--text-color-70)]', 'text-[var(--text-color)] font-semibold').replace('bg-transparent', 'bg-[var(--button-hover-color)]');
-      if (!btnAll.className.includes('bg-[')) btnAll.className += ' bg-[var(--button-hover-color)] font-semibold';
-      btnWeek.className = btnWeek.className.replace('text-[var(--text-color)] font-semibold', 'text-[var(--text-color-70)]').replace('bg-[var(--button-hover-color)]', '');
-      load('0');
-    });
 
     document.addEventListener('astro:page-load', function () { load(currentType); });
   })();
