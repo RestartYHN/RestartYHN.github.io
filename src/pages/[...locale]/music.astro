@@ -2747,8 +2747,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     if (e.ctrlKey && e.code === 'KeyP' && e.shiftKey) { e.preventDefault(); togglePlay(); return; }
     if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
-      if (e.key === 'ArrowRight') { e.preventDefault(); document.getElementById('music-next').click(); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); document.getElementById('music-prev').click(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); if (_musicHandlers.onNext) _musicHandlers.onNext(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); if (_musicHandlers.onPrev) _musicHandlers.onPrev(); }
     }
   });
   
