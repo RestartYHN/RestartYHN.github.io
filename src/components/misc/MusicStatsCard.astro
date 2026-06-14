@@ -70,6 +70,18 @@ const isEn = currentLang === 'en';
     var isEn = document.documentElement.lang === 'en';
     var currentType = '1';
     var allData = [];
+    var isEn = document.documentElement.lang === 'en';
+
+    function preloadBatch(ids, idx, batchSize) {
+      if (idx >= ids.length) return;
+      var end = Math.min(idx + batchSize, ids.length);
+      var batch = ids.slice(idx, end);
+      Promise.all(batch.map(function(id) {
+        return fetch(API + '/api/music/track?id=' + id, { referrerPolicy: 'no-referrer' }).then(function(r) { return r.json(); }).catch(function() {});
+      })).then(function() {
+        preloadBatch(ids, idx + batchSize, batchSize);
+      });
+    }
 
     function fmtDuration(ms) {
       if (!ms) return '--';
@@ -266,8 +278,12 @@ const isEn = currentLang === 'en';
                   if (audio.paused) audio.play().catch(function(){});
                 }
               }, 100);
-            }
-          };
+              setTimeout(function() {
+                var remain = tracks.filter(function(x) { return x.id !== trk.id; });
+                var ids = remain.map(function(x) { return x.id; });
+                if (ids.length) preloadBatch(ids, 0, 20);
+              }, 500);
+            };
         })(tracks[j], j));
       }
     }
