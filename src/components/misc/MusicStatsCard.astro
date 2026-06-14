@@ -191,15 +191,7 @@ const isEn = currentLang === 'en';
               var state = gc.getState();
               var queue = Array.isArray(state.tracks) ? state.tracks.slice() : [];
               queue.push(t);
-              gc.syncState({ tracks: queue, currentIndex: queue.length - 1 });
-              setTimeout(function () {
-                var audio = document.getElementById('music-audio');
-                if (audio) {
-                  audio.removeAttribute('crossorigin');
-                  audio.crossOrigin = null;
-                  if (audio.paused) audio.play().catch(function(){});
-                }
-              }, 100);
+              gc.syncState({ tracks: queue, currentIndex: state.currentIndex });
             }
           };
         })(items[j]));
@@ -251,15 +243,7 @@ const isEn = currentLang === 'en';
               var state = gc.getState();
               var queue = Array.isArray(state.tracks) ? state.tracks.slice() : [];
               queue.push(t);
-              gc.syncState({ tracks: queue, currentIndex: queue.length - 1 });
-              setTimeout(function () {
-                var audio = document.getElementById('music-audio');
-                if (audio) {
-                  audio.removeAttribute('crossorigin');
-                  audio.crossOrigin = null;
-                  if (audio.paused) audio.play().catch(function(){});
-                }
-              }, 100);
+              gc.syncState({ tracks: queue, currentIndex: state.currentIndex });
             }
           };
         })(tracks[j], j));
