@@ -188,7 +188,10 @@ const isEn = currentLang === 'en';
             } catch (e) {}
             var gc = window.__globalMusicBootstrapV1;
             if (gc && typeof gc.syncState === 'function') {
-              gc.syncState({ tracks: [t], currentIndex: 0 });
+              var state = gc.getState();
+              var queue = Array.isArray(state.tracks) ? state.tracks.slice() : [];
+              queue.push(t);
+              gc.syncState({ tracks: queue, currentIndex: queue.length - 1 });
               setTimeout(function () {
                 var audio = document.getElementById('music-audio');
                 if (audio) {
@@ -245,7 +248,10 @@ const isEn = currentLang === 'en';
 
             var gc = window.__globalMusicBootstrapV1;
             if (gc && typeof gc.syncState === 'function') {
-              gc.syncState({ tracks: [t], currentIndex: 0 });
+              var state = gc.getState();
+              var queue = Array.isArray(state.tracks) ? state.tracks.slice() : [];
+              queue.push(t);
+              gc.syncState({ tracks: queue, currentIndex: queue.length - 1 });
               setTimeout(function () {
                 var audio = document.getElementById('music-audio');
                 if (audio) {
