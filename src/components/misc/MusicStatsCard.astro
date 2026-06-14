@@ -138,7 +138,7 @@ const isEn = currentLang === 'en';
         setText('stat-today-count', String(d.todaySongs));
         setText('stat-today-dur', fmtDuration(d.todayDurationMs));
 
-        var ranked = (d.top || []).filter(function (t) { return t.playCount >= 2; });
+        var ranked = (d.top || []).filter(function (t) { return t.playCount >= 4; });
         allData = ranked;
         renderRecent(d.recent || []);
         renderList(ranked);
