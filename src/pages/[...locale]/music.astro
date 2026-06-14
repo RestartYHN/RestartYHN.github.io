@@ -2740,6 +2740,16 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     document.addEventListener('click', delegateMusicClicks);
     document._musicDelegationBound = true;
   }
+
+  document.addEventListener('keydown', function(e) {
+    if (!/\/music\/?$/i.test(window.location.pathname)) return;
+    var tag = document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+      if (e.code === 'ArrowRight') { e.preventDefault(); document.getElementById('music-next').click(); }
+      else if (e.code === 'ArrowLeft') { e.preventDefault(); document.getElementById('music-prev').click(); }
+    }
+  });
   
 
   let _musicHandlers = {};
