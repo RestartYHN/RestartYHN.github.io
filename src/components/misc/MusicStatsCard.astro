@@ -55,11 +55,6 @@ const isEn = currentLang === 'en';
 
 <script is:inline>
   (function () {
-    var card = document.getElementById('music-stats-card');
-    if (!card) return;
-    var API = card.getAttribute('data-api');
-    if (!API) return;
-
     var list = document.getElementById('music-stats-list');
     var empty = document.getElementById('music-stats-empty');
     var recentBlock = document.getElementById('music-recent-block');
@@ -67,9 +62,10 @@ const isEn = currentLang === 'en';
     var btnWeek = document.getElementById('st-btn-week');
     var btnAll = document.getElementById('st-btn-all');
     var rankCount = document.getElementById('st-rank-count');
-    var isEn = document.documentElement.lang === 'en';
+    var cardEl = null;
     var currentType = '1';
     var allData = [];
+    var isEn = document.documentElement.lang === 'en';
 
     function fmtDuration(ms) {
       if (!ms) return '--';
@@ -91,8 +87,16 @@ const isEn = currentLang === 'en';
     }
 
     async function load(type) {
-      try {
-        var res = await fetch(API + '/api/music/record?type=' + type, { referrerPolicy: 'no-referrer' });
+      var card = document.getElementById('music-stats-card');
+      if (!card) return;
+      var API = card.getAttribute('data-api');
+      if (!API) return;
+      cardEl = card;
+      var list = document.getElementById('music-stats-list');
+      var empty = document.getElementById('music-stats-empty');
+      var recentBlock = document.getElementById('music-recent-block');
+      var recentList = document.getElementById('music-recent-list');
+      var rankCount = document.getElementById('st-rank-count');
         var json = await res.json();
         if (json.code !== 200 || !json.data) {
           if (empty) empty.classList.remove('hidden');
