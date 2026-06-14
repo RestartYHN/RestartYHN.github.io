@@ -1049,6 +1049,7 @@ import { musicConfig } from '@/data/music';
       _marqueeSetup: setupMarquee,
       _next: function() { var b = document.getElementById('music-next'); if (b) b.click(); },
       _prev: function() { var b = document.getElementById('music-prev'); if (b) b.click(); },
+      _togglePlay: function() { var a = document.getElementById('music-audio'); if (a) { if (a.paused) a.play().catch(function(){}); else a.pause(); } },
     };
   }
 
@@ -1069,6 +1070,11 @@ import { musicConfig } from '@/data/music';
         var gc = window[GLOBAL_MUSIC_KEY];
         if (e.key === 'ArrowRight' && gc._next) { gc._next(); }
         else if (e.key === 'ArrowLeft' && gc._prev) { gc._prev(); }
+      }
+      if (e.code === 'Space' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        var gc = window[GLOBAL_MUSIC_KEY];
+        if (gc && gc._togglePlay) gc._togglePlay();
       }
     });
     document.addEventListener('astro:page-load', () => window[GLOBAL_MUSIC_KEY].onRouteChange());
