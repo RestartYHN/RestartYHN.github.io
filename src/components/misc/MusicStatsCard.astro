@@ -243,21 +243,9 @@ const isEn = currentLang === 'en';
               }
             } catch (e) {}
 
-            var all = [];
-            var foundIdx = 0;
-            for (var k = 0; k < tracks.length; k++) {
-              var x = { id: tracks[k].id, title: tracks[k].title, artist: tracks[k].artist, cover: tracks[k].cover || '', audio: '', lyric: '', tlyric: '' };
-              if (tracks[k].id === trk.id) {
-                x.audio = t.audio;
-                x.lyric = t.lyric;
-                x.tlyric = t.tlyric;
-                foundIdx = k;
-              }
-              all.push(x);
-            }
             var gc = window.__globalMusicBootstrapV1;
             if (gc && typeof gc.syncState === 'function') {
-              gc.syncState({ tracks: all, currentIndex: foundIdx });
+              gc.syncState({ tracks: [t], currentIndex: 0 });
               setTimeout(function () {
                 var audio = document.getElementById('music-audio');
                 if (audio) {
