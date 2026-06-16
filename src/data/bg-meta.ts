@@ -20,7 +20,6 @@ const bgMeta: Record<
   // xmm.jpg 在浅色主题上原先使用较强的白色罩层（0.7）导致界面元素不可见，降低为 0.15
   'https://img.restartyhn.top/cg/xmm.jpg': { position: 'center', size: 'cover', overlayLight: 'rgba(255,255,255,0.15)', overlayDark: 'rgba(10,10,10,0.35)' },
   'https://img.restartyhn.top/cg/dark-cg.jpg': { position: 'center 20%', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
-  'https://img.restartyhn.top/cg/asya.png': { position: 'center -15%', size: 'cover', overlay: 'transparent' },
   'https://img.restartyhn.top/cg/white.png': { position: 'center', size: 'cover', overlay: 'transparent' },
   'https://img.restartyhn.top/cg/stars.jpg': { position: 'center', size: 'cover', overlayLight: 'transparent', overlayDark: 'rgba(10,10,10,0.2)' },
 };
