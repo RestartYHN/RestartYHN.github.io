@@ -42,41 +42,24 @@ export function AlbumCardComponent(properties, children) {
                 const card = document.getElementById('${cardUuid}-card');
                 if (!card || card.dataset.loaded === "true") return;
 
-                const apiBase = (window.__MUSIC_API__ && window.__MUSIC_API__.apiBase) || '';
+                fetch('https://music.163.com/api/album/${albumId}', { referrerPolicy: "no-referrer" })
+                    .then(function(response) { return response.json(); })
+                    .then(function(result) {
+                        if (result.code !== 200 || !result.album) throw new Error("Album not found");
+                        var album = result.album;
 
-                Promise.all([
-                    fetch(apiBase + '/api/music/albums', { referrerPolicy: "no-referrer" }),
-                    fetch(apiBase + '/api/music/album?id=${albumId}', { referrerPolicy: "no-referrer" })
-                ])
-                    .then(function(responses) { return Promise.all(responses.map(function(r) { return r.json(); })); })
-                    .then(function(results) {
-                        var albumsResult = results[0];
-                        var detailResult = results[1];
-
-                        if (detailResult.code !== 200 || !detailResult.data)
-                            throw new Error("Album detail not found");
-
-                        var tracks = detailResult.data.tracks;
-                        if (!Array.isArray(tracks)) tracks = [];
-
-                        var meta = null;
-                        if (albumsResult.code === 200 && Array.isArray(albumsResult.data)) {
-                            meta = albumsResult.data.find(function(a) { return String(a.id) === String('${albumId}'); });
-                        }
-
-                        var name = (meta && meta.name) || (detailResult.data && detailResult.data.name) || "\u672A\u77E5\u4E13\u8F91";
-                        var artist = (meta && meta.artist) || (detailResult.data && detailResult.data.artist) || "\u672A\u77E5\u827A\u672F\u5BB6";
-                        var cover = (meta && meta.cover) || (detailResult.data && detailResult.data.cover) || "";
-                        var size = (meta && meta.size) || (detailResult.data && detailResult.data.size) || tracks.length;
-                        var publishTime = (meta && meta.publishTime) || (detailResult.data && detailResult.data.publishTime) || null;
+                        var name = album.name || "\u672A\u77E5\u4E13\u8F91";
+                        var artist = (album.artist && album.artist.name) || "\u672A\u77E5\u827A\u672F\u5BB6";
+                        var cover = album.picUrl || "";
+                        var size = album.size || 0;
 
                         document.getElementById('${cardUuid}-name').innerText = name;
                         document.getElementById('${cardUuid}-artist').innerText = artist;
 
-                        var dateStr = publishTime
-                            ? new Date(publishTime).getFullYear() + '-' +
-                              String(new Date(publishTime).getMonth() + 1).padStart(2, '0') + '-' +
-                              String(new Date(publishTime).getDate()).padStart(2, '0')
+                        var dateStr = album.publishTime
+                            ? new Date(album.publishTime).getFullYear() + '-' +
+                              String(new Date(album.publishTime).getMonth() + 1).padStart(2, '0') + '-' +
+                              String(new Date(album.publishTime).getDate()).padStart(2, '0')
                             : "";
                         document.getElementById('${cardUuid}-meta').innerText =
                             size + " \u9996" + (dateStr ? " \u00B7 " + dateStr : "");
@@ -87,7 +70,9 @@ export function AlbumCardComponent(properties, children) {
                             coverEl.style.backgroundColor = 'transparent';
                         }
 
-                        if (tracks.length > 0) _albumTracks = tracks;
+                        if (Array.isArray(album.songs) && album.songs.length > 0)
+                            _albumTracks = album.songs;
+
                         card.classList.remove("fetch-waiting");
                         card.dataset.loaded = "true";
 
