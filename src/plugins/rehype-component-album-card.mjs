@@ -29,7 +29,6 @@ export function AlbumCardComponent(properties, children) {
     const nName = h(`div#${cardUuid}-name`, { class: "album-name" }, "Waiting for API...");
     const nArtist = h(`div#${cardUuid}-artist`, { class: "album-artist" }, "Waiting...");
     const nMeta = h(`div#${cardUuid}-meta`, { class: "album-meta" }, "Waiting...");
-    const nPlayBtn = h(`button#${cardUuid}-play-btn`, { class: "album-play-btn", disabled: "true" }, "\u25B6 \u64AD\u653E\u4E13\u8F91");
 
     const nScript = h(
         `script#${cardUuid}-script`,
@@ -37,7 +36,7 @@ export function AlbumCardComponent(properties, children) {
         `
         (function() {
             var _albumTracks = null;
-            var _playBtnLock = false;
+            var _loading = false;
 
             const initAlbumCard = () => {
                 const card = document.getElementById('${cardUuid}-card');
@@ -45,121 +44,106 @@ export function AlbumCardComponent(properties, children) {
 
                 const apiBase = (window.__MUSIC_API__ && window.__MUSIC_API__.apiBase) || '';
 
-                fetch(apiBase + '/api/music/album?id=${albumId}', { referrerPolicy: "no-referrer" })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.code !== 200 || !result.data) throw new Error("Album not found");
-                        const album = result.data;
+                Promise.all([
+                    fetch(apiBase + '/api/music/albums', { referrerPolicy: "no-referrer" }),
+                    fetch(apiBase + '/api/music/album?id=${albumId}', { referrerPolicy: "no-referrer" })
+                ])
+                    .then(function(responses) { return Promise.all(responses.map(function(r) { return r.json(); })); })
+                    .then(function(results) {
+                        var albumsResult = results[0];
+                        var detailResult = results[1];
 
-                        document.getElementById('${cardUuid}-name').innerText = album.name || "\u672A\u77E5\u4E13\u8F91";
-                        document.getElementById('${cardUuid}-artist').innerText = album.artist || "\u672A\u77E5\u827A\u672F\u5BB6";
+                        if (detailResult.code !== 200 || !detailResult.data)
+                            throw new Error("Album detail not found");
 
-                        const dateStr = album.publishTime
-                            ? new Date(album.publishTime).getFullYear() + '-' +
-                              String(new Date(album.publishTime).getMonth() + 1).padStart(2, '0') + '-' +
-                              String(new Date(album.publishTime).getDate()).padStart(2, '0')
+                        var tracks = detailResult.data.tracks;
+                        if (!Array.isArray(tracks)) tracks = [];
+
+                        var meta = null;
+                        if (albumsResult.code === 200 && Array.isArray(albumsResult.data)) {
+                            meta = albumsResult.data.find(function(a) { return String(a.id) === String('${albumId}'); });
+                        }
+
+                        var name = (meta && meta.name) || (detailResult.data && detailResult.data.name) || "\u672A\u77E5\u4E13\u8F91";
+                        var artist = (meta && meta.artist) || (detailResult.data && detailResult.data.artist) || "\u672A\u77E5\u827A\u672F\u5BB6";
+                        var cover = (meta && meta.cover) || (detailResult.data && detailResult.data.cover) || "";
+                        var size = (meta && meta.size) || (detailResult.data && detailResult.data.size) || tracks.length;
+                        var publishTime = (meta && meta.publishTime) || (detailResult.data && detailResult.data.publishTime) || null;
+
+                        document.getElementById('${cardUuid}-name').innerText = name;
+                        document.getElementById('${cardUuid}-artist').innerText = artist;
+
+                        var dateStr = publishTime
+                            ? new Date(publishTime).getFullYear() + '-' +
+                              String(new Date(publishTime).getMonth() + 1).padStart(2, '0') + '-' +
+                              String(new Date(publishTime).getDate()).padStart(2, '0')
                             : "";
                         document.getElementById('${cardUuid}-meta').innerText =
-                            (album.size || 0) + " \u9996" + (dateStr ? " \u00B7 " + dateStr : "");
+                            size + " \u9996" + (dateStr ? " \u00B7 " + dateStr : "");
 
-                        const coverEl = document.getElementById('${cardUuid}-cover');
-                        if (coverEl && album.cover) {
-                            coverEl.style.backgroundImage = 'url(' + album.cover + '?param=200y200)';
+                        var coverEl = document.getElementById('${cardUuid}-cover');
+                        if (coverEl && cover) {
+                            coverEl.style.backgroundImage = 'url(' + cover + '?param=200y200)';
                             coverEl.style.backgroundColor = 'transparent';
                         }
 
+                        if (tracks.length > 0) _albumTracks = tracks;
                         card.classList.remove("fetch-waiting");
                         card.dataset.loaded = "true";
 
-                        const playBtn = document.getElementById('${cardUuid}-play-btn');
-                        if (playBtn && Array.isArray(album.tracks) && album.tracks.length > 0) {
-                            _albumTracks = album.tracks;
-                            playBtn.removeAttribute("disabled");
-                        } else if (playBtn) {
-                            playBtn.innerText = "\u26A0 \u65E0\u66F2\u76EE";
-                        }
-
                         console.log("[ALBUM-CARD] Loaded: ${albumId}");
                     })
-                    .catch(err => {
+                    .catch(function(err) {
                         card.classList.add("fetch-error");
                         console.warn("[ALBUM-CARD] Error loading ${albumId}:", err);
-                        const playBtn = document.getElementById('${cardUuid}-play-btn');
-                        if (playBtn) {
-                            playBtn.innerText = "\u26A0 \u52A0\u8F7D\u5931\u8D25";
-                            playBtn.removeAttribute("disabled");
-                        }
                     });
             };
 
-            // delegated click on card body
             document.getElementById('${cardUuid}-card').addEventListener("click", function(e) {
-                const playBtn = document.getElementById('${cardUuid}-play-btn');
-                if (!playBtn) return;
-                if (playBtn.contains(e.target)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (_playBtnLock || playBtn.disabled) return;
-                    onPlayClick(playBtn);
-                    return;
-                }
                 if (e.ctrlKey || e.metaKey) return;
                 e.preventDefault();
-                if (_playBtnLock || playBtn.disabled) return;
-                onPlayClick(playBtn);
-            });
-
-            async function onPlayClick(playBtn) {
-                if (!_albumTracks || !_albumTracks.length) return;
-                _playBtnLock = true;
-                playBtn.innerText = "\u23F3 \u52A0\u8F7D\u4E2D...";
+                if (_loading || !_albumTracks || !_albumTracks.length) return;
+                _loading = true;
 
                 const apiBase = (window.__MUSIC_API__ && window.__MUSIC_API__.apiBase) || '';
                 const ids = _albumTracks.map(function(t) { return t.id; }).filter(Boolean);
                 const tracks = [];
-                let failed = 0;
 
-                for (var i = 0; i < ids.length; i++) {
-                    var id = ids[i];
-                    try {
-                        var r = await fetch(apiBase + '/api/music/track?id=' + id, { referrerPolicy: "no-referrer" });
-                        var d = await r.json();
-                        if (d.code === 200 && d.data && d.data.audio) {
-                            tracks.push(d.data);
-                        } else {
-                            failed++;
-                        }
-                    } catch (err) {
-                        failed++;
-                        console.warn("[ALBUM-CARD] Failed to load track:", id, err);
-                    }
-                }
-
-                if (!tracks.length) {
-                    playBtn.innerText = "\u26A0 \u65E0\u53EF\u64AD\u653E\u66F2\u76EE";
-                    _playBtnLock = false;
-                    return;
-                }
-
-                var gc = window.__globalMusicBootstrapV1;
-                if (gc && typeof gc.syncState === "function") {
-                    gc.syncState({ tracks: tracks, currentIndex: 0 });
-                }
-
-                setTimeout(function() {
-                    var audio = document.getElementById("music-audio");
-                    if (audio) {
-                        audio.removeAttribute("crossorigin");
-                        audio.crossOrigin = null;
-                        if (typeof audio.play === "function") {
-                            audio.play().catch(console.warn);
+                (async function() {
+                    for (var i = 0; i < ids.length; i++) {
+                        var id = ids[i];
+                        try {
+                            var r = await fetch(apiBase + '/api/music/track?id=' + id, { referrerPolicy: "no-referrer" });
+                            var d = await r.json();
+                            if (d.code === 200 && d.data && d.data.audio) {
+                                tracks.push(d.data);
+                            }
+                        } catch (err) {
+                            console.warn("[ALBUM-CARD] Failed to load track:", id, err);
                         }
                     }
-                }, 100);
 
-                playBtn.innerText = "\u25B6 \u64AD\u653E\u4E2D  (" + tracks.length + "/" + (tracks.length + failed) + ")";
-                _playBtnLock = false;
-            }
+                    if (!tracks.length) { _loading = false; return; }
+
+                    var gc = window.__globalMusicBootstrapV1;
+                    if (gc && typeof gc.syncState === "function") {
+                        gc.syncState({ tracks: tracks, currentIndex: 0 });
+                    }
+
+                    setTimeout(function() {
+                        var audio = document.getElementById("music-audio");
+                        if (audio) {
+                            audio.removeAttribute("crossorigin");
+                            audio.crossOrigin = null;
+                            if (typeof audio.play === "function") {
+                                audio.play().catch(console.warn);
+                            }
+                        }
+                    }, 100);
+
+                    _loading = false;
+                })();
+            });
 
             initAlbumCard();
             document.addEventListener('astro:page-load', initAlbumCard);
@@ -186,7 +170,6 @@ export function AlbumCardComponent(properties, children) {
                     nName,
                     nArtist,
                     nMeta,
-                    nPlayBtn,
                 ]),
             ]),
             nScript,

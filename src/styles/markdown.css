@@ -589,32 +589,6 @@
     font-size: 0.8rem;
 }
 
-.album-play-btn {
-    margin-top: 0.4rem;
-    padding: 0.35rem 0.9rem;
-    border-radius: 999px;
-    border: 1px solid #d5a56a;
-    background: transparent;
-    color: #d5a56a;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    align-self: flex-start;
-    z-index: 2;
-    position: relative;
-}
-
-.album-play-btn:hover:not(:disabled) {
-    background: #d5a56a;
-    color: #fff;
-}
-
-.album-play-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
 [data-theme="dark"] .album-name {
     color: #ffffff;
 }
