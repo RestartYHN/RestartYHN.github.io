@@ -42,15 +42,17 @@ export function AlbumCardComponent(properties, children) {
                 const card = document.getElementById('${cardUuid}-card');
                 if (!card || card.dataset.loaded === "true") return;
 
-                fetch('https://music.163.com/api/album/${albumId}', { referrerPolicy: "no-referrer" })
+                const apiBase = (window.__MUSIC_API__ && window.__MUSIC_API__.apiBase) || '';
+
+                fetch(apiBase + '/api/music/album?id=${albumId}', { referrerPolicy: "no-referrer" })
                     .then(function(response) { return response.json(); })
                     .then(function(result) {
-                        if (result.code !== 200 || !result.album) throw new Error("Album not found");
-                        var album = result.album;
+                        if (result.code !== 200 || !result.data) throw new Error("Album not found");
+                        var album = result.data;
 
                         var name = album.name || "\u672A\u77E5\u4E13\u8F91";
-                        var artist = (album.artist && album.artist.name) || "\u672A\u77E5\u827A\u672F\u5BB6";
-                        var cover = album.picUrl || "";
+                        var artist = album.artist || "\u672A\u77E5\u827A\u672F\u5BB6";
+                        var cover = album.cover || "";
                         var size = album.size || 0;
 
                         document.getElementById('${cardUuid}-name').innerText = name;
@@ -70,8 +72,8 @@ export function AlbumCardComponent(properties, children) {
                             coverEl.style.backgroundColor = 'transparent';
                         }
 
-                        if (Array.isArray(album.songs) && album.songs.length > 0)
-                            _albumTracks = album.songs;
+                        if (Array.isArray(album.tracks) && album.tracks.length > 0)
+                            _albumTracks = album.tracks;
 
                         card.classList.remove("fetch-waiting");
                         card.dataset.loaded = "true";
