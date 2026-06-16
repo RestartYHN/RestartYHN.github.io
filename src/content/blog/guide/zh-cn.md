@@ -109,6 +109,9 @@ ID 从 `music.163.com/radio?id=xxxxx` 获取。
 ### 音乐卡片
 ::music{id="1825057515"}
 
+### 专辑卡片
+::album{id="381824526"}
+
 ### GitHub 卡片
 ::github{repo="RestartYHN/RestartYHN.github.io"}
 
@@ -266,10 +269,11 @@ $$
 f(x) = \int_{-\infty}^\infty \hat f(\xi)\,e^{2 \pi i \xi x} \,d\xi
 $$
 
-### 音乐卡片、GitHub 卡片、视频
+### 音乐卡片、专辑卡片、GitHub 卡片、视频
 （实时演示见上方「功能展示」区）
 
 - 音乐：`::music{id="歌曲ID"}`，ID 从网易云链接获取
+- 专辑：`::album{id="专辑ID"}`，ID 从网易云专辑链接获取
 - GitHub：`::github{repo="用户/仓库"}`
 - 视频：`<iframe src="..." width="100%" height="468"></iframe>`
 
