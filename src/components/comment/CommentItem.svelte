@@ -3,6 +3,7 @@
 	import CommentItem from './CommentItem.svelte';
 	import i18nit from '../../i18n/translation.ts';
 	import { previewImageStore } from './previewStore';
+	import { parseMarkdown } from '@utils/markdown';
 
 	const dispatch = createEventDispatcher();
 
@@ -87,6 +88,15 @@
 	let replyContent = '';
 	let replySubmitting = false;
 	let replyArea: HTMLTextAreaElement | null = null;
+	let replyShowPreview = false;
+	let replyPreviewHtml = '';
+
+	function toggleReplyPreview() {
+		if (!replyShowPreview) {
+			replyPreviewHtml = parseMarkdown(replyContent);
+		}
+		replyShowPreview = !replyShowPreview;
+	}
 
 	let showAllReplies = false;
 
@@ -408,7 +418,17 @@
 					</div>
 
 					<div>
+					{#if replyShowPreview}
+						<div class="rounded border text-[var(--text-color)] border-[var(--button-border-color)] p-2 min-h-[80px] text-sm leading-relaxed comment-preview">
+							{#if replyContent.trim() === ''}
+								<p class="text-[var(--text-color)]/40">{t('comments.preview') || '预览'}</p>
+							{:else}
+								<div>{@html replyPreviewHtml}</div>
+							{/if}
+						</div>
+					{:else}
 						<textarea placeholder={t('comments.replyPlaceholder') || "写下你的回复..."} class="rounded w-full border text-[var(--text-color)] border-[var(--button-border-color)] focus:outline-none focus:border-[var(--link-color)] text-sm p-2 min-h-[80px]" on:paste={replyHandlePaste} bind:value={replyContent} bind:this={replyArea}></textarea>
+					{/if}
 						<div class="flex justify-between items-center mt-1">
 							<div>
 								<input type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" bind:this={replyFileInput} on:change={replyHandleFileSelect} />
@@ -421,6 +441,10 @@
 					</div>
 
 					<div class="flex justify-end gap-2 items-center">
+						<button type="button" on:click={toggleReplyPreview}
+							class="rounded px-3 py-1 text-sm text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">
+							{replyShowPreview ? (t('comments.write') || '撰写') : (t('comments.preview') || '预览')}
+						</button>
 						<button type="button" on:click={() => { dispatch('cancel'); replySubmitting = false; }} class="rounded px-3 py-1 text-sm text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">{t('comments.cancel')}</button>
 						<button type="submit" disabled={replySubmitting || !isContentWithinLimit(replyContent)} class="rounded px-3 py-1 text-sm font-medium text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] disabled:opacity-50">{replySubmitting ? t('comments.sending') : t('comments.reply')}</button>
 					</div>
@@ -474,4 +498,10 @@
 		max-height: 24px;
 		object-fit: contain;
 	}
+	.comment-preview :global(a) { color: var(--link-color); }
+	.comment-preview :global(p) { margin-bottom: 0.5rem; }
+	.comment-preview :global(code) { background: color-mix(in srgb, var(--text-color) 10%, transparent); padding: 0.15rem 0.3rem; border-radius: 3px; font-size: 0.85rem; }
+	.comment-preview :global(pre) { background: color-mix(in srgb, var(--text-color) 8%, transparent); padding: 0.75rem; border-radius: 4px; overflow-x: auto; }
+	.comment-preview :global(blockquote) { border-left: 3px solid var(--link-color); padding-left: 0.75rem; opacity: 0.85; }
+	.comment-preview :global(img) { max-width: 100%; border-radius: 4px; }
 </style>
