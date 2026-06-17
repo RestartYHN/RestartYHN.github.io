@@ -560,7 +560,7 @@
       </h4>
 
       {#each comments.filter(c => c.pinned) as c}
-        <div class="pinned-comment mb-4 border-l-[3px] border-[var(--link-color)] pl-3 bg-[var(--button-hover-color)]/50 rounded-r-lg">
+         <div class="pinned-comment mb-4 border-l-[3px] border-[var(--link-color)] pl-3">
           <CommentItem {c} {postSlug} {author} {email} {url} {language} {qaMode}
             on:reply={(e) => setReplyingTo(e.detail)} 
             on:cancel={() => setReplyingTo(null)}
