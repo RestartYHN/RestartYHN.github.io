@@ -311,10 +311,10 @@
 <div id="comment-{c.id}" data-aos="fade-up" class="flex gap-2 md:gap-3 w-full max-w-full">
 	{#if c.url}
 	<a href={c.url} target="_blank" class="w-10 h-10 shrink-0">
-		<img src={avatarUrl} alt="avatar" class="w-10 h-10 rounded-full object-cover"/>
+		<img src={avatarUrl} alt="avatar" class="w-10 h-10 rounded-full object-cover" on:error={(e) => (e.target as HTMLImageElement).src = '/favicon/android-chrome-192x192.png'}/>
 	</a>
 	{:else}
-	<img src={avatarUrl} alt="avatar" class="w-10 h-10 rounded-full object-cover shrink-0"/>
+	<img src={avatarUrl} alt="avatar" class="w-10 h-10 rounded-full object-cover shrink-0" on:error={(e) => (e.target as HTMLImageElement).src = '/favicon/android-chrome-192x192.png'}/>
 	{/if}
 
 	<div class="flex-1 min-w-0">
