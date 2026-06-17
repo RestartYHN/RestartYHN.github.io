@@ -131,6 +131,17 @@ pnpm newsignature "把日常写成可回看的轨迹" "—— 来自 Restart 的
 ### 视频
 <iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=BV1sxUHBREEt" scrolling="no" frameborder="no" allowfullscreen="true" width="100%" height="468"></iframe>
 
+以上四种卡片的写法：
+```markdown
+::music{id="歌曲ID"}           ← ID 从 music.163.com/song?id=xxx 取数字
+::album{id="专辑ID"}           ← ID 从 music.163.com/album?id=xxx 取数字
+::github{repo="用户/仓库"}
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=视频BV号"
+  scrolling="no" frameborder="no" allowfullscreen="true"
+  width="100%" height="468"></iframe>
+```
+
 ---
 
 ## Markdown 语法
@@ -305,26 +316,4 @@ Hello from *Typst*!
 #set text(fill: rgb("#2f61eb"), size: 20pt)
 $ cal(A) = pi r^2 $
 Hello from *Typst*!
-```
-
-### 音乐卡片
-`::music{id="歌曲ID"}`，ID 从网易云链接 `music.163.com/song?id=xxx` 取数字部分：
-```markdown
-::music{id="1825057515"}
-```
-
-### 专辑卡片
-`::album{id="专辑ID"}`，ID 从网易云专辑链接取：
-```markdown
-::album{id="381824526"}
-```
-
-### GitHub 卡片
-```markdown
-::github{repo="用户/仓库"}
-```
-
-### 视频
-```html
-<iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=BV1sxUHBREEt" scrolling="no" frameborder="no" allowfullscreen="true" width="100%" height="468"></iframe>
 ```
