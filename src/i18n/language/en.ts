@@ -130,6 +130,7 @@ const translation: Translation = {
         collapseReplies: "Collapse"
     },
     emoji: {
+        close: "Close",
         default: "Classic",
         bilibili: "Bilibili",
         kaomoji: "Kaomoji",

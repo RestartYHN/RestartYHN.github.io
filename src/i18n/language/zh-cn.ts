@@ -126,10 +126,11 @@ const translation: Translation = {
         preview: "预览",
         sortByTime: "按时间",
         sortByLikes: "按点赞",
-        showMoreReplies: "展开更多回复",
+        showMoreReplies: "展开全部",
         collapseReplies: "收起"
     },
     emoji: {
+        close: "关闭",
         default: "黄脸",
         bilibili: "小电视",
         kaomoji: "颜文字",
@@ -149,7 +150,7 @@ const translation: Translation = {
         loadFailed: "加载失败",
         loading: "正在加载 Q&A...",
         empty: "暂无问答",
-        total: "条问答",
+        total: "条Q&A",
         pending: "待审核"
     },
     langNote: {

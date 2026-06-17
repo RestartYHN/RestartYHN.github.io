@@ -210,7 +210,7 @@
           <button on:click={() => activeTab = 'kaomoji'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'kaomoji'}>{t('emoji.kaomoji')}</button>
           <button on:click={() => activeTab = 'emoji'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'emoji'}>{t('emoji.emoji')}</button>
           <div class="flex-1"></div>
-          <button on:click={close} class="px-2 py-1 rounded-md">×</button>
+          <button on:click={close} class="px-2 py-1 rounded-md">{t('emoji.close') || '关闭'}</button>
         </div>
 
         <div class="mt-3">

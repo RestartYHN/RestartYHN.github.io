@@ -114,6 +114,7 @@ export interface Translation {
         collapseReplies: string;
     },
     emoji: {
+        close: string;
         default: string;
         bilibili: string;
         kaomoji: string;
