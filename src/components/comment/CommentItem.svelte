@@ -350,7 +350,7 @@
 			<button on:click={() => showReactions = !showReactions}
 				class="hover:text-[var(--link-color)] transition-colors flex-shrink-0"
 				title="表情">
-				+😊
+				😊
 			</button>
 		</div>
 		{#if hasAnyReaction}
