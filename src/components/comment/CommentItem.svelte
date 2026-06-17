@@ -258,7 +258,7 @@
 		}
 	}
 
-	const avatarUrl = c?.avatar ?? '/favicon/android-chrome-192x192.png';
+	const avatarUrl = (c?.avatar && c.avatar !== '') ? c.avatar : '/favicon/android-chrome-192x192.png';
 
 	// 拍平回复树用于移动端展示
 	function flattenRepliesWithParent(replies: any[], pName: string, pId: any): any[] {
