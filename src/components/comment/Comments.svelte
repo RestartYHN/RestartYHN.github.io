@@ -192,6 +192,54 @@
     showPreview = !showPreview;
   }
 
+  // 图片上传
+  let uploadingImage = false;
+  let fileInput: HTMLInputElement;
+
+  function handlePaste(e: ClipboardEvent) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) uploadAndInsert(file);
+        return;
+      }
+    }
+  }
+
+  function handleFileSelect(e: Event) {
+    const target = e.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (file) {
+      uploadAndInsert(file);
+      target.value = '';
+    }
+  }
+
+  async function uploadAndInsert(file: File) {
+    uploadingImage = true;
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch(`${apiUrl}/api/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.url) {
+        content += (content ? '\n' : '') + `![${file.name}](${data.url})`;
+      } else {
+        alert('上传失败: ' + (data.message || '未知错误'));
+      }
+    } catch (err: any) {
+      alert('图片上传失败: ' + (err.message || err));
+    } finally {
+      uploadingImage = false;
+    }
+  }
+
   // 防止重复提交
   let submitting = false;
 
