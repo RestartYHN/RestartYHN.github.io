@@ -117,17 +117,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       </section>
     </div>
 
-    <section id="music-comments" data-music-comments="true" class="mt-10 rounded-xl border border-[var(--button-border-color)] p-4">
-      <h3 class="mb-4 text-lg font-semibold text-[var(--text-color)]">
-        {isEn ? 'Comments' : '评论区'}
-      </h3>
-      <Comments
+    <Comments
         client:load
         postSlug="music"
         postTitle={pageTitle}
         language={currentLang}
       />
-    </section>
 
   </div>
 
