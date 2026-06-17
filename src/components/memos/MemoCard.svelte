@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import i18nit from '../../i18n/translation.ts';
+  import { siteConfig } from '@/config';
 
   let { dateFormatted = "", words = 0, minutes = 0, language = 'zh-cn', memoId = '' } = $props();
 
@@ -19,7 +20,7 @@
   let showReactions = $state(false);
   let reactions = $state<Record<string, number>>({});
   let myReactions = $state<string[]>([]);
-  const API = 'https://comments.restartyhn.top';
+  const API = siteConfig.comments.backendUrl;
   onMount(async () => {
     if (memoId) {
       try {
