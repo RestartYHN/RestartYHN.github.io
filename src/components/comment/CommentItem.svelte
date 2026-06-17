@@ -352,14 +352,14 @@
 		</div>
 
 		<div class="mt-1 flex items-center gap-2 text-sm text-[var(--text-color-70)]">
-			<button on:click={() => dispatch('reply', c.id)} class="hover:text-[var(--link-color)]">回复</button>
-			<button on:click={toggleLike} disabled={likePending} class="hover:text-[var(--link-color)] disabled:opacity-50" title={likedByMe ? '取消赞' : '点赞'}>
+			<button on:click={() => dispatch('reply', c.id)} class="hover:text-[var(--link-color)]">{t('comments.reply') || '回复'}</button>
+			<button on:click={toggleLike} disabled={likePending} class="hover:text-[var(--link-color)] disabled:opacity-50" title={likedByMe ? (t('comments.unlike') || '取消赞') : (t('comments.like') || '点赞')}>
 				<span class={likedByMe ? 'text-[var(--link-color)]' : ''}>{likedByMe ? '♥' : '♡'}</span>
 				<span class="ml-0.5 text-xs">{likeCount || ''}</span>
 			</button>
 			<button on:click={() => showReactions = !showReactions}
 				class="hover:text-[var(--link-color)] transition-colors flex-shrink-0"
-				title="表情">
+				title={t('comments.emoji') || '表情'}>
 				😊
 			</button>
 		</div>
