@@ -341,18 +341,20 @@
 			{/if}
 		</div>
 
-		<div class="mt-1 flex items-center gap-3 text-sm text-[var(--text-color-70)]">
+		<div class="mt-1 flex items-center gap-2 text-sm text-[var(--text-color-70)]">
 			<button on:click={() => dispatch('reply', c.id)} class="hover:text-[var(--link-color)]">回复</button>
 			<button on:click={toggleLike} disabled={likePending} class="hover:text-[var(--link-color)] disabled:opacity-50" title={likedByMe ? '取消赞' : '点赞'}>
 				<span class={likedByMe ? 'text-[var(--link-color)]' : ''}>{likedByMe ? '♥' : '♡'}</span>
 				<span class="ml-0.5 text-xs">{likeCount || ''}</span>
 			</button>
-			<div class="flex items-center gap-0.5 flex-wrap">
 			<button on:click={() => showReactions = !showReactions}
-				class="w-6 h-6 rounded-full border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors flex-shrink-0"
+				class="hover:text-[var(--link-color)] transition-colors flex-shrink-0"
 				title="表情">
-				😊
+				+😊
 			</button>
+		</div>
+		{#if hasAnyReaction}
+		<div class="flex items-center gap-0.5 flex-wrap">
 			{#each REACT_TYPES as rt}
 				{@const cnt = reactions[rt.key] || 0}
 				{#if cnt > 0}
@@ -364,8 +366,8 @@
 					</button>
 				{/if}
 			{/each}
-			</div>
 		</div>
+		{/if}
 		{#if showReactions}
 		<div class="mt-1 grid grid-cols-5 gap-1 text-xs">
 			{#each REACT_TYPES as rt}

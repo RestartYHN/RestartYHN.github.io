@@ -520,6 +520,8 @@
     {/if}
   </div>
 
+  <div class="my-6 border-t border-[var(--button-border-color)]" id="comments-divider"></div>
+
   <!-- 评论区 -->
   <div class="" id="comments-content">
     {#if loading}
@@ -530,11 +532,16 @@
       <h4 data-aos="fade-up" class="text-[var(--text-color)] text-base font-semibold mb-4 flex items-center gap-2">
         {totalCount || comments.length} {qaMode ? '条Q&A' : '条评论'}
         {#if !qaMode}
-        <select bind:value={sortBy} on:change={() => { page = 1; loadComments(); }}
-          class="ml-auto text-xs border border-[var(--button-border-color)] rounded px-2 py-1 bg-transparent text-[var(--text-color)]">
-          <option value="time">按时间</option>
-          <option value="likes">按点赞</option>
-        </select>
+        <div class="ml-auto flex items-center gap-0 text-xs border border-[var(--button-border-color)] rounded overflow-hidden">
+          <button on:click={() => { if (sortBy !== 'time') { sortBy = 'time'; page = 1; loadComments(); } }}
+            class="px-2.5 py-1 transition-colors {sortBy === 'time' ? 'bg-[var(--link-color)] text-white' : 'bg-transparent text-[var(--text-color)] hover:bg-[var(--button-hover-color)]'}">
+            按时间
+          </button>
+          <button on:click={() => { if (sortBy !== 'likes') { sortBy = 'likes'; page = 1; loadComments(); } }}
+            class="px-2.5 py-1 border-l border-[var(--button-border-color)] transition-colors {sortBy === 'likes' ? 'bg-[var(--link-color)] text-white' : 'bg-transparent text-[var(--text-color)] hover:bg-[var(--button-hover-color)]'}">
+            按点赞
+          </button>
+        </div>
         {/if}
       </h4>
 
