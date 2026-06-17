@@ -121,7 +121,9 @@ const translation: Translation = {
         replyTo: "reply to",
         like: "Like",
         unlike: "Unlike",
-        likeFailed: "Action failed, please try again later"
+        likeFailed: "Action failed, please try again later",
+        write: "Write",
+        preview: "Preview"
     },
     qa: {
         title: "Q&A",

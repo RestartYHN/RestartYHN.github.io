@@ -106,6 +106,8 @@ export interface Translation {
         like: string;
         unlike: string;
         likeFailed: string;
+        write: string;
+        preview: string;
     },
     qa: {
         title: string;

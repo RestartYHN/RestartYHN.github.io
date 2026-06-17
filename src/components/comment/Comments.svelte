@@ -6,6 +6,7 @@
   import { openPicker } from './emojiPickerStore';
   import EmojiPicker from './EmojiPicker.svelte';
   import { previewImageStore } from './previewStore';
+  import { parseMarkdown } from '@utils/markdown';
 
   let overlayEl: HTMLDivElement | null = null;
 
@@ -181,53 +182,14 @@
   let url = '';
   let content = '';
   let contentArea: HTMLTextAreaElement | null = null;
+  let showPreview = false;
+  let previewHtml = '';
 
-  // 图片上传
-  let uploadingImage = false;
-  let fileInput: HTMLInputElement;
-
-  function handlePaste(e: ClipboardEvent) {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-    for (const item of items) {
-      if (item.type.startsWith('image/')) {
-        e.preventDefault();
-        const file = item.getAsFile();
-        if (file) uploadAndInsert(file);
-        return;
-      }
+  function togglePreview() {
+    if (!showPreview) {
+      previewHtml = parseMarkdown(content);
     }
-  }
-
-  function handleFileSelect(e: Event) {
-    const target = e.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (file) {
-      uploadAndInsert(file);
-      target.value = '';
-    }
-  }
-
-  async function uploadAndInsert(file: File) {
-    uploadingImage = true;
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await fetch(`${apiUrl}/api/upload`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (data.url) {
-        content += (content ? '\n' : '') + `![${file.name}](${data.url})`;
-      } else {
-        alert('上传失败: ' + (data.message || '未知错误'));
-      }
-    } catch (err: any) {
-      alert('图片上传失败: ' + (err.message || err));
-    } finally {
-      uploadingImage = false;
-    }
+    showPreview = !showPreview;
   }
 
   // 防止重复提交
@@ -238,17 +200,6 @@
 
   // 本地存储键名
   const STORAGE_KEY = 'comment_user_info';
-
-  // 要隐藏的评论 ID 列表（本地过滤）
-  const HIDDEN_COMMENT_IDS: number[] = [13, 14];
-
-  // 递归移除指定 id 的评论及其子孙
-  function removeCommentsByIds(list: any[], ids: number[]) {
-    if (!list || !list.length) return [];
-    return list
-      .filter(c => !ids.includes(Number(c.id)))
-      .map(c => ({ ...c, replies: c.replies ? removeCommentsByIds(c.replies, ids) : [] }));
-  }
 
   // 从本地存储加载用户信息
   function loadUserInfoFromStorage() {
@@ -298,7 +249,7 @@
       const data = await res.json();
       // 先取原始评论列表
       let loaded = data.data.comments;
-      comments = removeCommentsByIds(loaded, HIDDEN_COMMENT_IDS);
+      comments = loaded;
       totalPage = data.data.pagination.totalPage;
       totalCount = data.data.pagination.totalCount || 0;
       hasMore = data.data.pagination.totalPage > page;
@@ -483,11 +434,21 @@
       </div>
 
       <div>
+        {#if showPreview}
+          <div class="rounded border text-[var(--text-color)] border-[var(--button-border-color)] p-3 min-h-[100px] text-sm leading-relaxed comment-preview">
+            {#if content.trim() === ''}
+              <p class="text-[var(--text-color)]/40">{t('comments.preview') || '预览'}</p>
+            {:else}
+              <div>{@html previewHtml}</div>
+            {/if}
+          </div>
+        {:else}
         <textarea placeholder={t('comments.welcome')}
           class="rounded w-full border text-[var(--text-color)] border-[var(--button-border-color)]  focus:outline-none focus:border-[var(--link-color)] text-sm p-3 min-h-[100px]"
           on:paste={handlePaste}
           on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(); } }}
           bind:value={content} bind:this={contentArea}></textarea>
+        {/if}
         <!-- 顶层表单使用 fallback 注入器，不再保留原始 openPicker 按钮 -->
         <div class="flex justify-between items-center mt-1">
           <div class="flex items-center gap-2">
@@ -511,6 +472,10 @@
       </div>
 
       <div class="flex justify-end gap-3">
+        <button type="button" on:click={togglePreview}
+          class="rounded px-4 py-2 text-sm font-medium text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">
+          {showPreview ? t('comments.write') || '撰写' : t('comments.preview') || '预览'}
+        </button>
         <button type="submit" disabled={submitting || !isContentWithinLimit(content)}
           class="rounded px-4 py-2 text-sm font-medium text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] disabled:opacity-50">
           {submitting ? t('comments.sending') : t('comments.send')}
@@ -601,4 +566,10 @@
     background: var(--button-hover-color);
     color: var(--link-color);
   }
+  .comment-preview :global(a) { color: var(--link-color); }
+  .comment-preview :global(p) { margin-bottom: 0.5rem; }
+  .comment-preview :global(code) { background: color-mix(in srgb, var(--text-color) 10%, transparent); padding: 0.15rem 0.3rem; border-radius: 3px; font-size: 0.85rem; }
+  .comment-preview :global(pre) { background: color-mix(in srgb, var(--text-color) 8%, transparent); padding: 0.75rem; border-radius: 4px; overflow-x: auto; }
+  .comment-preview :global(blockquote) { border-left: 3px solid var(--link-color); padding-left: 0.75rem; opacity: 0.85; }
+  .comment-preview :global(img) { max-width: 100%; border-radius: 4px; }
 </style>

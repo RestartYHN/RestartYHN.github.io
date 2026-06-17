@@ -121,7 +121,9 @@ const translation: Translation = {
         replyTo: "回复",
         like: "点赞",
         unlike: "取消点赞",
-        likeFailed: "操作失败，请稍后重试"
+        likeFailed: "操作失败，请稍后重试",
+        write: "撰写",
+        preview: "预览"
     },
     qa: {
         title: "Q&A",
