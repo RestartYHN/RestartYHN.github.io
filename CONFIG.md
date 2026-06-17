@@ -24,13 +24,13 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 ```
 
 ### 添加画廊图片
-1. 通过 PicList 上传图片到 R2 桶 `img.restartyhn.top/画师名/`
-2. 编辑 `src/data/gallery.template.json` 登记信息（`image`、`thumb`、`avatar` 用 R2 完整 URL）：
-```json
-"tags": ["IP:初音未来", "画师:混合可可"]
+使用脚本自动登记，无需手动编辑 JSON：
+```bash
+pnpm newgallery "图片R2链接" 画师slug "中文标题" "English Title" 年份 "IP:作品IP"
 ```
-3. 新画师需在 `authors` 数组注册
-4. `src/utils/gallery-utils.ts` 的 `R2_BASE` 指向你的 R2 自定义域
+脚本自动补全 id、thumb、tags（含画师标签）、order、enabled。
+
+新画师需先在 `src/data/gallery.template.json` 的 `authors` 数组注册。
 
 ### 添加碎碎念
 `src/content/memos/` 下新建 `YYYY-MM-DD.md`，无 frontmatter，直接写内容。
@@ -39,6 +39,13 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 1. 通过 PicList 上传图片到 R2 桶 `img.restartyhn.top/cg/`
 2. 编辑 `src/components/misc/BackgroundSwitcher.astro` 的 `images` 数组，用 R2 完整 URL
 3. 编辑 `src/data/bg-meta.ts`，key 同步改为 R2 URL
+
+### 首页旋转签名
+使用脚本同时更新中英文：
+```bash
+pnpm newsignature "中文句子" "——中文出处" "English sentence" "-- English credit"
+```
+自动追加到 `src/i18n/language/zh-cn.ts` 和 `en.ts` 的 `rotatingSubTitle` 和 `rotatingPair` 数组，保持中英文索引对齐。
 
 ### 过场动画
 1. 加载动画:`C:\Users\Yin_H\Downloads\Momo-main\public\images`添加gif文件
