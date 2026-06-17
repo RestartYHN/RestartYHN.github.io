@@ -24,13 +24,19 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 ```
 
 ### 添加画廊图片
-使用脚本自动登记，无需手动编辑 JSON：
+1. 通过 PicList 上传图片到 R2 桶 `img.restartyhn.top/画师名/`
+2. 编辑 `src/data/gallery.template.json` 登记信息（`image`、`thumb`、`avatar` 用 R2 完整 URL）：
+```json
+"tags": ["IP:初音未来", "画师:混合可可"]
+```
+3. 新画师需在 `authors` 数组注册
+4. `src/utils/gallery-utils.ts` 的 `R2_BASE` 指向你的 R2 自定义域
+
+也可用脚本一行搞定：
 ```bash
 pnpm newgallery "图片R2链接" 画师slug "中文标题" "English Title" 年份 "IP:作品IP"
 ```
-脚本自动补全 id、thumb、tags（含画师标签）、order、enabled。
-
-新画师需先在 `src/data/gallery.template.json` 的 `authors` 数组注册。
+脚本自动补全 id、thumb、tags、order、enabled。
 
 ### 添加碎碎念
 `src/content/memos/` 下新建 `YYYY-MM-DD.md`，无 frontmatter，直接写内容。
