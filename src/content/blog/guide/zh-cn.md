@@ -277,27 +277,54 @@ Momo 扩展的自定义文本效果（标准 Markdown 之外）：
 
 ### KaTeX 数学公式
 行内 `$E=mc^2$` → $E=mc^2$，块级 `$$公式$$`：
-
+```tex
+$$
+f(x) = \int_{-\infty}^\infty \hat f(\xi)\,e^{2 \pi i \xi x} \,d\xi
+$$
+```
 $$
 f(x) = \int_{-\infty}^\infty \hat f(\xi)\,e^{2 \pi i \xi x} \,d\xi
 $$
 
-### 音乐卡片、专辑卡片、GitHub 卡片、视频
-（实时演示见上方「功能展示」区）
-
-- 音乐：`::music{id="歌曲ID"}`，ID 从网易云链接获取
-- 专辑：`::album{id="专辑ID"}`，ID 从网易云专辑链接获取
-- GitHub：`::github{repo="用户/仓库"}`
-- 视频：`<iframe src="..." width="100%" height="468"></iframe>`
-
 ### Typst 排版
-`\`\`\`typst\`\`\`` 代码块可编写 Typst 排版代码，渲染为 SVG 图形：
+使用 ````typst```` 代码块编写 Typst 排版代码，渲染为 SVG 图形：
 
+源码：
+````
 ```typst
 #set page(width: auto, height: auto, margin: 10pt)
 #set text(fill: rgb("#2f61eb"), size: 20pt)
-
 $ cal(A) = pi r^2 $
-
 Hello from *Typst*!
+```
+````
+
+渲染效果：
+```typst
+#set page(width: auto, height: auto, margin: 10pt)
+#set text(fill: rgb("#2f61eb"), size: 20pt)
+$ cal(A) = pi r^2 $
+Hello from *Typst*!
+```
+
+### 音乐卡片
+`::music{id="歌曲ID"}`，ID 从网易云链接 `music.163.com/song?id=xxx` 取数字部分：
+```markdown
+::music{id="1825057515"}
+```
+
+### 专辑卡片
+`::album{id="专辑ID"}`，ID 从网易云专辑链接取：
+```markdown
+::album{id="381824526"}
+```
+
+### GitHub 卡片
+```markdown
+::github{repo="用户/仓库"}
+```
+
+### 视频
+```html
+<iframe src="//player.bilibili.com/player.html?isOutside=true&bvid=BV1sxUHBREEt" scrolling="no" frameborder="no" allowfullscreen="true" width="100%" height="468"></iframe>
 ```
