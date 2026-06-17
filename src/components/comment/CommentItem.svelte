@@ -461,7 +461,7 @@
 			{/each}
 			{#if hasMoreReplies}
 			<button on:click={() => showAllReplies = !showAllReplies} class="text-xs text-[var(--link-color)] hover:underline mt-2">
-				{showAllReplies ? '收起' : `展开全部 ${totalReplies} 条回复`}
+				{showAllReplies ? (t('comments.collapseReplies') || '收起') : `${t('comments.showMoreReplies') || '展开全部'} ${totalReplies} ${t('comments.showMoreReplies') || t('comments.comments') || '条回复'}`}
 			</button>
 			{/if}
 		</div>

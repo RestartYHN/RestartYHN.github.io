@@ -1,6 +1,10 @@
 <script lang="ts">
   import state, { closePicker } from './emojiPickerStore';
   import { onDestroy } from 'svelte';
+  import i18nit from '../../i18n/translation';
+
+  export let language: string = 'zh-cn';
+  const t = i18nit(language);
 
   const EMOJIS = ['😀','😂','😍','👍','🎉','😮','❤️','🚀','👀','😉','😭','😅','😆','🙌','👏','🔥','🌟','🍀'];
   const KAOMOJI = [
@@ -201,12 +205,12 @@
     <div class="w-[640px] max-w-[95vw] bg-[var(--bg-color)]/60 backdrop-blur-sm border border-[var(--button-border-color)]/40 rounded-lg shadow-lg overflow-hidden">
       <div class="p-3">
         <div class="flex gap-3 items-center">
-          <button on:click={() => activeTab = 'huanglian'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'huanglian'}>黄脸</button>
-          <button on:click={() => activeTab = 'tv'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'tv'}>小电视</button>
-          <button on:click={() => activeTab = 'kaomoji'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'kaomoji'}>颜文字</button>
-          <button on:click={() => activeTab = 'emoji'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'emoji'}>Emoji</button>
+          <button on:click={() => activeTab = 'huanglian'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'huanglian'}>{t('emoji.default')}</button>
+          <button on:click={() => activeTab = 'tv'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'tv'}>{t('emoji.bilibili')}</button>
+          <button on:click={() => activeTab = 'kaomoji'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'kaomoji'}>{t('emoji.kaomoji')}</button>
+          <button on:click={() => activeTab = 'emoji'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'emoji'}>{t('emoji.emoji')}</button>
           <div class="flex-1"></div>
-          <button on:click={close} class="px-2 py-1 rounded-md">关闭</button>
+          <button on:click={close} class="px-2 py-1 rounded-md">×</button>
         </div>
 
         <div class="mt-3">

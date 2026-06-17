@@ -108,6 +108,16 @@ export interface Translation {
         likeFailed: string;
         write: string;
         preview: string;
+        sortByTime: string;
+        sortByLikes: string;
+        showMoreReplies: string;
+        collapseReplies: string;
+    },
+    emoji: {
+        default: string;
+        bilibili: string;
+        kaomoji: string;
+        emoji: string;
     },
     qa: {
         title: string;

@@ -123,7 +123,17 @@ const translation: Translation = {
         unlike: "取消点赞",
         likeFailed: "操作失败，请稍后重试",
         write: "撰写",
-        preview: "预览"
+        preview: "预览",
+        sortByTime: "按时间",
+        sortByLikes: "按点赞",
+        showMoreReplies: "展开更多回复",
+        collapseReplies: "收起"
+    },
+    emoji: {
+        default: "黄脸",
+        bilibili: "小电视",
+        kaomoji: "颜文字",
+        emoji: "Emoji"
     },
     qa: {
         title: "Q&A",

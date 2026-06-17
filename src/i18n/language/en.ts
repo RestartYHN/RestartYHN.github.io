@@ -123,7 +123,17 @@ const translation: Translation = {
         unlike: "Unlike",
         likeFailed: "Action failed, please try again later",
         write: "Write",
-        preview: "Preview"
+        preview: "Preview",
+        sortByTime: "By Time",
+        sortByLikes: "By Likes",
+        showMoreReplies: "Show more replies",
+        collapseReplies: "Collapse"
+    },
+    emoji: {
+        default: "Classic",
+        bilibili: "Bilibili",
+        kaomoji: "Kaomoji",
+        emoji: "Emoji"
     },
     qa: {
         title: "Q&A",

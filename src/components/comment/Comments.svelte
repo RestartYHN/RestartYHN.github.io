@@ -435,7 +435,8 @@
         }
       }
     });
-    obs.observe(document.body, { childList: true, subtree: true });
+    const container = document.getElementById('comments');
+    if (container) obs.observe(container, { childList: true, subtree: true });
   }
 
   // start injector after mount
@@ -538,21 +539,21 @@
   <!-- 评论区 -->
   <div class="" id="comments-content">
     {#if loading}
-      <p data-aos="fade-up" class="text-[var(--text-color)] text-center">{qaMode ? '正在加载 Q&A...' : (t('comments.loading') || '正在加载评论...')}</p>
+      <p data-aos="fade-up" class="text-[var(--text-color)] text-center">{qaMode ? t('qa.loading') : (t('comments.loading') || '正在加载评论...')}</p>
     {:else if error}
       <p data-aos="fade-up" class="text-red-500 text-center">{t('comments.loadFailed') || '加载失败：'}{error}</p>
     {:else}
       <h4 data-aos="fade-up" class="text-[var(--text-color)] text-base font-semibold mb-4 flex items-center gap-2">
-        {totalCount || comments.length} {qaMode ? '条Q&A' : '条评论'}
+        {totalCount || comments.length} {qaMode ? t('qa.total') : t('comments.comments')}
         {#if !qaMode}
         <div class="ml-auto flex items-center gap-0 text-xs border border-[var(--button-border-color)] rounded overflow-hidden">
           <button on:click={() => { if (sortBy !== 'time') { sortBy = 'time'; page = 1; loadComments(); } }}
             class="px-2.5 py-1 transition-colors {sortBy === 'time' ? 'bg-[var(--link-color)] text-white' : 'bg-transparent text-[var(--text-color)] hover:bg-[var(--button-hover-color)]'}">
-            按时间
+            {t('comments.sortByTime') || '按时间'}
           </button>
           <button on:click={() => { if (sortBy !== 'likes') { sortBy = 'likes'; page = 1; loadComments(); } }}
             class="px-2.5 py-1 border-l border-[var(--button-border-color)] transition-colors {sortBy === 'likes' ? 'bg-[var(--link-color)] text-white' : 'bg-transparent text-[var(--text-color)] hover:bg-[var(--button-hover-color)]'}">
-            按点赞
+            {t('comments.sortByLikes') || '按点赞'}
           </button>
         </div>
         {/if}
@@ -596,7 +597,7 @@
       {/if}
     {/if}
   </div>
-  <EmojiPicker />
+  <EmojiPicker {language} />
 </div>
 
 <style>
