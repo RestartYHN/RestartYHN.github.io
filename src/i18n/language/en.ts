@@ -127,7 +127,10 @@ const translation: Translation = {
         sortByTime: "By Time",
         sortByLikes: "By Likes",
         showMoreReplies: "Show more replies",
-        collapseReplies: "Collapse"
+        collapseReplies: "Collapse",
+        image: "Image",
+        uploadingImage: "Uploading...",
+        emoji: "Emoji"
     },
     emoji: {
         close: "Close",

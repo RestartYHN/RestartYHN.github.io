@@ -127,7 +127,10 @@ const translation: Translation = {
         sortByTime: "按时间",
         sortByLikes: "按点赞",
         showMoreReplies: "展开全部",
-        collapseReplies: "收起"
+        collapseReplies: "收起",
+        image: "图片",
+        uploadingImage: "上传中...",
+        emoji: "表情"
     },
     emoji: {
         close: "关闭",

@@ -112,6 +112,9 @@ export interface Translation {
         sortByLikes: string;
         showMoreReplies: string;
         collapseReplies: string;
+        image: string;
+        uploadingImage: string;
+        emoji: string;
     },
     emoji: {
         close: string;
