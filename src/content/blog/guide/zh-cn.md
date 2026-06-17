@@ -44,11 +44,11 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 - 标签格式：`"IP:初音未来"`、`"画师:混合可可"`
 - 新增画师需 R2 上传图片 + JSON 注册两步
 
-也可用脚本一行登记：
+也可用脚本一行登记，支持批量 `&&` 串联：
 ```bash
-pnpm newgallery "图片R2链接" 画师slug "中文标题" "English Title" 年份 "IP:作品IP"
+pnpm newgallery "url1" Matcha "鹿目圆" "Kaname Madoka" 2026 "IP:魔法少女小圆" && \
+pnpm newgallery "url2" Rumoon "初音未来" "Hatsune Miku" 2026 "IP:初音未来"
 ```
-脚本自动补全 id、thumb、tags、order、enabled，追加到 JSON。
 
 ### 碎碎念
 `src/content/memos/` 下新建 `YYYY-MM-DD.md`，无 frontmatter，直接写 Markdown。
@@ -96,11 +96,11 @@ ID 从 `music.163.com/radio?id=xxxxx` 获取。
 - 博客和碎碎念图片较少，仍走 Git 本地存储
 
 ### 首页旋转签名
-使用脚本同时追加到中英文语言文件：
+使用脚本同时追加到中英文语言文件，支持批量：
 ```bash
 pnpm newsignature "中文句子" "——中文出处" "English sentence" "-- English credit"
+pnpm newsignature "把日常写成可回看的轨迹" "—— 来自 Restart 的日常记录" "Turn everyday into a traceable track" "-- From Restart's daily notes"
 ```
-自动追加到 `rotatingSubTitle.home` 和 `rotatingPair.home` 数组，保证中英文一一对应。
 
 ### 评论区表情
 编辑 `src/components/comment/EmojiPicker.svelte` 第 14-61 行的 `bilibiliEmojis` 数组：
