@@ -1231,37 +1231,55 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return 'loop';
   }
 
-  // Shuffle back-history: remembers up to N previously-played tracks so manual
-  // "previous" walks back through real play order. Auto-cleared when the play mode
-  // changes OR the track collection (tracks array reference) is replaced -- see
-  // prevStackGuard. Appending to the same array (add-to-queue) keeps it valid.
-  let prevStack = [];
-  let prevStackMode = null;
-  let prevStackTracksRef = null;
-  const PREV_STACK_MAX = 3;
+  // Shuffle navigation = a small browser-style history window with a back/forward
+  // cursor, so the listener can wander BACK and FORWARD among recently-played
+  // tracks (the random "neighborhood"). Auto-reset when the play mode changes, the
+  // track collection is replaced, or the current track was changed out-of-band
+  // (e.g. clicking a track in the list).
+  let shuffleHist = [];
+  let shuffleCursor = -1;
+  let shuffleHistMode = null;
+  let shuffleHistTracksRef = null;
+  const SHUFFLE_HIST_MAX = 4; // current track + up to 3 previous
 
-  function prevStackGuard() {
+  function shuffleHistGuard() {
     var m = getPlayMode();
-    if (m !== prevStackMode || tracks !== prevStackTracksRef) {
-      prevStack = [];
-      prevStackMode = m;
-      prevStackTracksRef = tracks;
+    if (m !== shuffleHistMode || tracks !== shuffleHistTracksRef) {
+      shuffleHist = [];
+      shuffleCursor = -1;
+      shuffleHistMode = m;
+      shuffleHistTracksRef = tracks;
     }
+    if (shuffleCursor < 0 || shuffleHist[shuffleCursor] !== currentIndex) {
+      shuffleHist = [currentIndex];
+      shuffleCursor = 0;
+    }
+  }
+
+  function randomShuffleIndex() {
+    var idx = currentIndex;
+    while (tracks.length > 1 && idx === currentIndex) {
+      idx = Math.floor(Math.random() * tracks.length);
+    }
+    return idx;
   }
 
   function getNextIndex(manual = false) {
     if (!tracks.length) return 0;
-    prevStackGuard();
     var mode = getPlayMode();
-    // Single-repeat only governs auto-advance on track end; manual next still advances.
     if (mode === 'single' && !manual) return currentIndex;
     if (mode === 'shuffle') {
-      prevStack.push(currentIndex);
-      if (prevStack.length > PREV_STACK_MAX) prevStack.shift();
-      var idx = currentIndex;
-      while (tracks.length > 1 && idx === currentIndex) {
-        idx = Math.floor(Math.random() * tracks.length);
+      shuffleHistGuard();
+      if (shuffleCursor < shuffleHist.length - 1) {
+        // retrace forward through the window
+        shuffleCursor += 1;
+        return shuffleHist[shuffleCursor];
       }
+      // at the newest -> brand new random, slide the window
+      var idx = randomShuffleIndex();
+      shuffleHist.push(idx);
+      if (shuffleHist.length > SHUFFLE_HIST_MAX) shuffleHist.shift();
+      shuffleCursor = shuffleHist.length - 1;
       return idx;
     }
     return (currentIndex + 1) % tracks.length;
@@ -1269,12 +1287,15 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   function getPrevIndex(manual = false) {
     if (!tracks.length) return 0;
-    prevStackGuard();
     var mode = getPlayMode();
     if (mode === 'single' && !manual) return currentIndex;
     if (mode === 'shuffle') {
-      if (prevStack.length > 0) return prevStack.pop();
-      return currentIndex; // back-history exhausted -> stay put
+      shuffleHistGuard();
+      if (shuffleCursor > 0) {
+        shuffleCursor -= 1;
+        return shuffleHist[shuffleCursor];
+      }
+      return currentIndex; // at the oldest -> stay put
     }
     return (currentIndex - 1 + tracks.length) % tracks.length;
   }

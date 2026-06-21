@@ -520,9 +520,10 @@ import { musicConfig } from '@/data/music';
       handlers: {},
       els: null,
       playMode: 'loop',
-      prevStack: [],
-      prevStackMode: null,
-      prevStackTracksRef: null,
+      shuffleHist: [],
+      shuffleCursor: -1,
+      shuffleHistMode: null,
+      shuffleHistTracksRef: null,
       selfHealId: null,
       selfHealCount: 0,
       playToken: 0,
@@ -601,28 +602,43 @@ import { musicConfig } from '@/data/music';
 
     // Play mode helper removed; sequential playback only
 
-    var PREV_STACK_MAX = 3;
-    // Clear shuffle back-history when the play mode changes OR the track collection
-    // (state.tracks reference) is replaced. Appending to the same array keeps it valid.
-    function prevStackGuard() {
-      if (state.playMode !== state.prevStackMode || state.tracks !== state.prevStackTracksRef) {
-        state.prevStack = [];
-        state.prevStackMode = state.playMode;
-        state.prevStackTracksRef = state.tracks;
+    var SHUFFLE_HIST_MAX = 4; // current track + up to 3 previous
+    // Shuffle navigation = browser-style history window (back/forward cursor): wander
+    // back AND forward among recently-played tracks. Reset on mode/collection change
+    // or out-of-band current-track change (e.g. list click).
+    function shuffleHistGuard() {
+      if (state.playMode !== state.shuffleHistMode || state.tracks !== state.shuffleHistTracksRef) {
+        state.shuffleHist = [];
+        state.shuffleCursor = -1;
+        state.shuffleHistMode = state.playMode;
+        state.shuffleHistTracksRef = state.tracks;
       }
+      if (state.shuffleCursor < 0 || state.shuffleHist[state.shuffleCursor] !== state.currentIndex) {
+        state.shuffleHist = [state.currentIndex];
+        state.shuffleCursor = 0;
+      }
+    }
+    function randomShuffleIndex() {
+      var idx = state.currentIndex;
+      while (state.tracks.length > 1 && idx === state.currentIndex) {
+        idx = Math.floor(Math.random() * state.tracks.length);
+      }
+      return idx;
     }
 
     function getNextIndex(manual = false) {
       if (!state.tracks.length) return 0;
-      prevStackGuard();
       if (state.playMode === 'single' && !manual) return state.currentIndex;
       if (state.playMode === 'shuffle') {
-        state.prevStack.push(state.currentIndex);
-        if (state.prevStack.length > PREV_STACK_MAX) state.prevStack.shift();
-        var idx = state.currentIndex;
-        while (state.tracks.length > 1 && idx === state.currentIndex) {
-          idx = Math.floor(Math.random() * state.tracks.length);
+        shuffleHistGuard();
+        if (state.shuffleCursor < state.shuffleHist.length - 1) {
+          state.shuffleCursor += 1;
+          return state.shuffleHist[state.shuffleCursor];
         }
+        var idx = randomShuffleIndex();
+        state.shuffleHist.push(idx);
+        if (state.shuffleHist.length > SHUFFLE_HIST_MAX) state.shuffleHist.shift();
+        state.shuffleCursor = state.shuffleHist.length - 1;
         return idx;
       }
       return (state.currentIndex + 1) % state.tracks.length;
@@ -630,11 +646,14 @@ import { musicConfig } from '@/data/music';
 
     function getPrevIndex(manual = false) {
       if (!state.tracks.length) return 0;
-      prevStackGuard();
       if (state.playMode === 'single' && !manual) return state.currentIndex;
       if (state.playMode === 'shuffle') {
-        if (state.prevStack.length > 0) return state.prevStack.pop();
-        return state.currentIndex; // back-history exhausted -> stay put
+        shuffleHistGuard();
+        if (state.shuffleCursor > 0) {
+          state.shuffleCursor -= 1;
+          return state.shuffleHist[state.shuffleCursor];
+        }
+        return state.currentIndex; // at the oldest -> stay put
       }
       return (state.currentIndex - 1 + state.tracks.length) % state.tracks.length;
     }
