@@ -1907,8 +1907,14 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     try {
       const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
       if (result?.code === 200 && result.data) {
-        setTrackCache(id, result.data);
-        return result.data;
+        const data = result.data;
+        // Route playback through the backend stream proxy so the volatile, IP-bound
+        // NetEase CDN URL is never exposed to the browser (avoids 403 on expiry).
+        if (data.audio) {
+          data.audio = `${API_BASE}/api/music/stream?id=${encodeURIComponent(id)}&level=exhigh`;
+        }
+        setTrackCache(id, data);
+        return data;
       }
     } catch (error) {
       console.warn("[music] load track failed", id, error);
