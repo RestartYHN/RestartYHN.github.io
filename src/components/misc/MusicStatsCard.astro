@@ -189,9 +189,15 @@ const isEn = currentLang === 'en';
             var gc = window.__globalMusicBootstrapV1;
             if (gc && typeof gc.syncState === 'function') {
               var state = gc.getState();
-              var queue = Array.isArray(state.tracks) ? state.tracks.slice() : [];
-              queue.push(t);
-              gc.syncState({ tracks: queue, currentIndex: state.currentIndex });
+              var base = Array.isArray(state.tracks) ? state.tracks : [];
+              var exists = base.some(function (x) { return String(x.id) === String(t.id); });
+              if (base.length === 0) {
+                gc.syncState({ tracks: [t], currentIndex: 0 });
+              } else if (!exists) {
+                // 加入"下一首"：插到当前曲之后，不跳转、不打断；新数组让随机窗口自动重置
+                var at = (typeof state.currentIndex === 'number' ? state.currentIndex : -1) + 1;
+                gc.syncState({ tracks: base.slice(0, at).concat([t], base.slice(at)) });
+              }
             }
           };
         })(items[j]));
@@ -241,9 +247,15 @@ const isEn = currentLang === 'en';
             var gc = window.__globalMusicBootstrapV1;
             if (gc && typeof gc.syncState === 'function') {
               var state = gc.getState();
-              var queue = Array.isArray(state.tracks) ? state.tracks.slice() : [];
-              queue.push(t);
-              gc.syncState({ tracks: queue, currentIndex: state.currentIndex });
+              var base = Array.isArray(state.tracks) ? state.tracks : [];
+              var exists = base.some(function (x) { return String(x.id) === String(t.id); });
+              if (base.length === 0) {
+                gc.syncState({ tracks: [t], currentIndex: 0 });
+              } else if (!exists) {
+                // 加入"下一首"：插到当前曲之后，不跳转、不打断；新数组让随机窗口自动重置
+                var at = (typeof state.currentIndex === 'number' ? state.currentIndex : -1) + 1;
+                gc.syncState({ tracks: base.slice(0, at).concat([t], base.slice(at)) });
+              }
             }
           };
         })(tracks[j], j));
