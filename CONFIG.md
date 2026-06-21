@@ -29,7 +29,10 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 ```json
 "tags": ["IP:初音未来", "画师:混合可可"]
 ```
-3. 新画师需在 `authors` 数组注册
+3. 新画师需在 `authors` 数组注册，也可用脚本：
+```bash
+pnpm newauthor slug "中文名" "English Name" "头像R2链接" "中文简介" "English description"
+```
 4. `src/utils/gallery-utils.ts` 的 `R2_BASE` 指向你的 R2 自定义域
 
 也可用脚本一行搞定：

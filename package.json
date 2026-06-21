@@ -9,6 +9,7 @@
     "astro": "astro",
     "newpost": "node script/newpost.js",
     "newgallery": "node script/newgallery.js",
+    "newauthor": "node script/newauthor.js",
     "newsignature": "node script/newsignature.js"
   },
   "dependencies": {

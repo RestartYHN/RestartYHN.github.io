@@ -42,7 +42,10 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 - `authors` 数组注册画师（slug、name、description、avatar、order）
 - `works` 数组登记作品（id、author、title、image、year、tags）
 - 标签格式：`"IP:初音未来"`、`"画师:混合可可"`
-- 新增画师需 R2 上传图片 + JSON 注册两步
+- 新增画师需 R2 上传图片 + JSON 注册两步，也可用脚本：
+```bash
+pnpm newauthor slug "中文名" "English Name" "头像R2链接" "中文简介" "English description"
+```
 
 也可用脚本一行登记，支持批量 `&&` 串联：
 ```bash
