@@ -1112,11 +1112,80 @@ import { musicConfig } from '@/data/music';
       }
     }
 
+    // ---- Authoritative store API (single source of truth) ----
+    // P1: additive only. Nothing else calls these yet; behavior unchanged.
+    function emitChange() {
+      try { window.dispatchEvent(new CustomEvent('music-state-change')); } catch (e) {}
+    }
+    function refreshBoundUI() {
+      if (state.bound && state.els) {
+        var t = state.tracks[state.currentIndex];
+        if (t) updateNowPlaying(t);
+        updatePlayerPosition();
+        updatePlayButtonState();
+      }
+    }
+    function getTracks() { return state.tracks; }
+    function getIndex() { return state.currentIndex; }
+    function getCurrentTrack() { return state.tracks[state.currentIndex] || null; }
+    function setQueue(tracksArr, index) {
+      state.tracks = Array.isArray(tracksArr) ? tracksArr : [];
+      var n = state.tracks.length;
+      state.currentIndex = (Number.isFinite(index) && n) ? Math.max(0, Math.min(index, n - 1)) : 0;
+      state.loaded = true;
+      refreshBoundUI();
+      emitChange();
+    }
+    // Insert "up next" (after current), dedupe; returns the resulting index of the track. No jump.
+    function insertNext(track) {
+      if (!track) return state.currentIndex;
+      var existIdx = state.tracks.findIndex(function (x) { return String(x.id) === String(track.id); });
+      var target;
+      if (state.tracks.length === 0) { state.tracks = [track]; state.loaded = true; target = 0; }
+      else if (existIdx !== -1) { target = existIdx; }
+      else {
+        target = (Number.isFinite(state.currentIndex) ? state.currentIndex : -1) + 1;
+        state.tracks = state.tracks.slice(0, target).concat([track], state.tracks.slice(target));
+      }
+      emitChange();
+      return target;
+    }
+    function setIndex(i) {
+      if (i >= 0 && i < state.tracks.length) { state.currentIndex = i; refreshBoundUI(); emitChange(); }
+    }
+    async function playIndex(i) {
+      if (i < 0 || i >= state.tracks.length) return;
+      state.currentIndex = i;
+      await playCurrent();
+      emitChange();
+    }
+    function removeAt(i) {
+      if (i < 0 || i >= state.tracks.length) return;
+      state.tracks = state.tracks.slice(0, i).concat(state.tracks.slice(i + 1));
+      if (state.currentIndex >= state.tracks.length) state.currentIndex = Math.max(0, state.tracks.length - 1);
+      else if (i < state.currentIndex) state.currentIndex -= 1;
+      refreshBoundUI();
+      emitChange();
+    }
+    async function nextTrack(manual) { await stepNext(manual); emitChange(); }
+    async function prevTrack(manual) { await stepPrev(manual); emitChange(); }
+
     return {
       onRouteChange,
       bootstrap,
       syncState,
       getState,
+      // P1 authoritative store API (single source of truth)
+      getTracks,
+      getIndex,
+      getCurrentTrack,
+      setQueue,
+      insertNext,
+      setIndex,
+      playIndex,
+      removeAt,
+      next: nextTrack,
+      prev: prevTrack,
       _marqueeSetup: setupMarquee,
       _next: function() { var b = document.getElementById('music-next'); if (b) b.click(); },
       _prev: function() { var b = document.getElementById('music-prev'); if (b) b.click(); },
