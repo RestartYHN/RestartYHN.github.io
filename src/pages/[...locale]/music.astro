@@ -2545,44 +2545,23 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         return;
       }
 
-      const ids = programs.map((p) => String(p?.mainTrackId || p?.id || '')).filter(Boolean);
       const version = ++loadVersion;
 
-      tracks = [];
-      if (USE_DIRECT_NETEASE_API) {
-        tracks = programs.map((p) => {
-          const id = String(p?.mainTrackId || p?.id || '');
-          return {
-            id,
-            title: p?.name || p?.title || `Song ${id}`,
-            artist: p?.dj?.nickname || p?.radio?.name || 'Unknown Artist',
-            cover: p?.coverUrl || p?.radio?.picUrl || '',
-            audio: '', lyric: '', tlyric: '', unavailable: false
-          };
-        }).filter((t) => t.id);
-      } else {
-        for (let i = 0; i < ids.length; i++) {
-          if (version !== loadVersion) return;
-          const id = ids[i];
-          const p = programs.find((x) => String(x.mainTrackId) === id || String(x.id) === id) || {};
-          try {
-            const track = await loadTrack(id);
-            const pTitle = p?.name || p?.title;
-            const pArtist = p?.dj?.nickname || p?.radio?.name;
-            const pCover = p?.coverUrl || p?.radio?.picUrl;
-            const pDesc = p?.description;
-            tracks.push({
-              ...track,
-              title: pTitle || track.title,
-              artist: pArtist || track.artist,
-              cover: pCover || track.cover || '',
-              lyric: pDesc || track.lyric || ''
-            });
-          } catch (e) {
-            console.warn('[music] load podcast track failed', id, e);
-          }
-        }
-      }
+      // Build tracks lazily from program metadata, exactly like playlists: the
+      // playable URL is resolved on demand in prepareTrackForPlayback, not all
+      // upfront. The old backend path eagerly resolved every episode in a long
+      // sequential loop, which was slow AND could be aborted mid-way by a concurrent
+      // loadVersion bump -- that is why podcasts sometimes failed to load while songs did not.
+      tracks = programs.map((p) => {
+        const id = String(p?.mainTrackId || p?.id || '');
+        return {
+          id,
+          title: p?.name || p?.title || `Song ${id}`,
+          artist: p?.dj?.nickname || p?.radio?.name || 'Unknown Artist',
+          cover: p?.coverUrl || p?.radio?.picUrl || '',
+          audio: '', lyric: '', tlyric: '', unavailable: false
+        };
+      }).filter((t) => t.id);
 
       if (!tracks.length) {
         renderTrackList();
