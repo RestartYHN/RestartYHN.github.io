@@ -1346,12 +1346,21 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     progressEl.style.setProperty("--progress-percent", `${Math.max(0, Math.min(100, ratio * 100))}%`);
   }
 
-  async function getJson(url) {
-    const res = await fetch(url, { referrerPolicy: "no-referrer" });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+  async function getJson(url, _retried = false) {
+    try {
+      const res = await fetch(url, { referrerPolicy: "no-referrer" });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return res.json();
+    } catch (err) {
+      // Page init fires a burst of concurrent requests at a small shared server;
+      // an occasional dropped connection (ERR_CONNECTION_CLOSED) or upstream
+      // timeout makes one fail. A manual refresh fixes it, so retry once silently.
+      if (_retried) throw err;
+      await new Promise((r) => setTimeout(r, 600));
+      return getJson(url, true);
     }
-    return res.json();
   }
 
   function withTimestamp(params = {}) {
@@ -1969,7 +1978,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   async function hydrateTrack(track) {
-    const needsHydrate = isPlaceholderTrack(track) || (!track.lyric && !track.audio);
+    const needsHydrate = isPlaceholderTrack(track) || !track.audio;
     if (!track?.id || !needsHydrate) return track;
     try {
       const fresh = await loadTrack(track.id);
@@ -2559,7 +2568,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           title: p?.name || p?.title || `Song ${id}`,
           artist: p?.dj?.nickname || p?.radio?.name || 'Unknown Artist',
           cover: p?.coverUrl || p?.radio?.picUrl || '',
-          audio: '', lyric: '', tlyric: '', unavailable: false
+          audio: '', lyric: p?.description || '', tlyric: '', unavailable: false
         };
       }).filter((t) => t.id);
 
