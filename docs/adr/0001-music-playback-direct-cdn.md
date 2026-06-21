@@ -60,7 +60,7 @@
 - nginx：还原代理时代残留指令（`proxy_buffering off` / `proxy_http_version 1.1` / `Connection ""`），去掉到 node 的 keep-alive 竞态隐患
 - 服务器加 2G swap（1.9G 内存 + 0 swap → 防 OOM 秒杀 momo-backend/ncm-api）
 
-> 架构提醒：本项目有**两个独立播放器**——音乐页（`music.astro`，仅 `/music`）与全局底部条（`GlobalMusicPlayer.astro`，跨页常驻），各自有 `<audio>` 和状态，靠 `syncToGlobalPlayer/bootstrap` 同步 `tracks`。任何播放相关改动都要**两边对齐**，这是本次大量 bug 的来源。
+> 架构提醒：本项目有**两个独立播放器**——音乐页（`music.astro`，仅 `/music`）与全局底部条（`GlobalMusicPlayer.astro`，跨页常驻），各自有 `<audio>` 和状态，靠 `syncToGlobalPlayer/bootstrap` 同步 `tracks`。任何播放相关改动都要**两边对齐**，这是本次大量 bug 的来源。**（后续做了"单一真源"重构缓解此问题，见文末「单一真源（SSOT）重构」一节。）**
 
 ## 后果
 
@@ -72,3 +72,21 @@
 
 - **stalled 而非 error**：真实过期若表现为卡住而非 `error` 事件，`onError` 不触发、自愈不启动。当前实测会报 error；若日后遇到纯 stalled 卡死，需补"卡顿看门狗"（播放中无进度超过数秒则重取续播）。
 - **music 页极限快速连点**：底部条已有 `playToken` 守卫；音乐页未补同款。实测一次切 4-5 首无碍，极限连点视为可接受边角，**不做**。
+
+## 单一真源（SSOT）重构
+
+**起因**：上面"两个独立播放器各存一份 `tracks`"的架构缝，会导致加歌后"莫名消失/不同步"——`music→global` 每次操作都推、`global→music` 只在进页面 restore，**不对称** → 页面旧列表反向覆盖全局 → 新加的歌消失。
+
+**决策**：**GlobalMusicPlayer = 唯一真源**。理由：它跨页常驻、持有共享的 `<audio id="music-audio">`、卡片本就直接写它；而 `music.astro` 仅 `/music` 页存在，物理上当不了全局真源。→ `music.astro` 退化为它的"视图"。
+
+**已做（分步、每步实测稳）**：
+- **P1**：GlobalPlayer 暴露权威 store API（`getTracks/getIndex/getCurrentTrack/setQueue/insertNext/setIndex/playIndex/removeAt/next/prev`），任何变更派发 `music-state-change` 事件。纯新增、零行为变化。
+- **P2**：`music.astro` 订阅 `music-state-change` → 把本地 `tracks/currentIndex` 当 store 的**持续对齐镜像**（仅刷新列表/位置/计数，不碰播放与歌词，避免闪烁）；`bootstrap/syncState` 补 `emit`。→ **"消失/不同步"从运行层面根除（实测很稳）。**
+- **P3a**：四个加歌入口（音乐页搜索 + 首页 `MusicStatsCard` 两处 + `::music` 博客卡片）收口到 `gc.insertNext`，删掉各自手动拼数组的代码；行为不变（插当前曲后、去重、不跳）。专辑卡片仍走 `syncState` 整体替换（"播专辑"语义）。
+
+**评估为 cosmetic / 高风险 → 不做（已接受的技术债）**：
+- **P3b**（加载器改走 `gc.setQueue`）：加载器现已通过 `bootstrapGlobalPlayer→bootstrap` 写 store，`setQueue` 只改写入顺序、最终态相同，**不修任何 bug**；动 5 处加载器核心有风险，**不做**。
+- **P3c**（导航/水合改走 store 方法、删 `syncToGlobalPlayer`）：镜像已持续对齐、无残留分歧，纯写入顺序整理，**不做**。
+- **P4**（统一播放绑定：GlobalPlayer 在音乐页也全权绑定，删 `music.astro` 重复的播放逻辑）：两边 `updateNowPlaying` 更新不同 DOM（底部条 vs 封面+歌词），统一需把封面/歌词改成事件驱动 + 重划 audio 事件归属——**高风险，且刚修好这块绑定**（`musicBind` 早退 bug），边际收益低，**不做**。
+
+**残留技术债（运行时无害，维护时务必注意）**：`music.astro` 与 `GlobalPlayer` 仍**各存一份** `getNextIndex/getPrevIndex/shuffle 历史/onError 自愈/updatePlayButtonState/audio 绑定`。它们**按页面互斥、不会同时跑**（音乐页用前者、他页用后者），所以不是运行时冲突，而是**代码重复**——**以后改播放逻辑要两边都改，否则 drift**。彻底消除需做 P4（已评估不划算）。
