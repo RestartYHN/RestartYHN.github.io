@@ -89,25 +89,28 @@ export function MusicCardComponent(properties, children) {
                                     };
 
                                     if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
-                                        const exists = state.tracks.some(t => String(t.id) === String(newTrack.id));
-                                        if (!exists) {
-                                            // 加入"下一首"：插到当前曲之后，不跳转、不打断当前播放
+                                        const existIdx = state.tracks.findIndex(t => String(t.id) === String(newTrack.id));
+                                        if (existIdx !== -1) {
+                                            globalController.syncState({ tracks: state.tracks, currentIndex: existIdx });
+                                        } else {
+                                            // 插当前曲之后并跳过去（新数组让随机窗口以这首为新起点重置）
                                             const at = (Number.isFinite(state.currentIndex) ? state.currentIndex : -1) + 1;
                                             const tracks = [...state.tracks.slice(0, at), newTrack, ...state.tracks.slice(at)];
-                                            globalController.syncState({ tracks });
+                                            globalController.syncState({ tracks, currentIndex: at });
                                         }
                                     } else {
-                                        // 队列为空：作为当前曲并开始播放
                                         globalController.syncState({ tracks: [newTrack], currentIndex: 0 });
-                                        setTimeout(() => {
-                                            const audio = document.getElementById("music-audio");
-                                            if (audio) {
-                                                audio.removeAttribute("crossorigin");
-                                                audio.crossOrigin = null;
-                                                if (typeof audio.play === "function" && audio.paused) audio.play().catch(console.warn);
-                                            }
-                                        }, 50);
                                     }
+
+                                    // 必定播放添加的这一首
+                                    setTimeout(() => {
+                                        const audio = document.getElementById("music-audio");
+                                        if (audio) {
+                                            audio.removeAttribute("crossorigin");
+                                            audio.crossOrigin = null;
+                                            if (typeof audio.play === "function") audio.play().catch(console.warn);
+                                        }
+                                    }, 50);
                                 }
                             });
                         }
