@@ -1631,8 +1631,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   function updateNowPlaying(track, options = {}) {
     const preserveActivePlayback = Boolean(options?.preserveActivePlayback);
-    // New track on screen -> allow one fresh self-heal attempt for it.
-    _selfHealAttemptedId = null;
+    // New track on screen -> reset its self-heal budget.
+    _selfHealId = null;
+    _selfHealCount = 0;
     if (titleEl) titleEl.textContent = track.title || "-";
     if (artistEl) artistEl.textContent = track.artist || "-";
     if (bottomTitle) {
@@ -1802,8 +1803,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   // stale entries cached by the old proxy approach.
   const trackCacheKey = "music-track-cache-v3";
   const trackCacheTTL = 3 * 60 * 1000; // 3 minutes
-  // Guards onError self-heal to a single re-fetch attempt per track.
-  let _selfHealAttemptedId = null;
+  // Self-heal budget: up to a few re-fetch attempts per track-error episode,
+  // reset once playback successfully resumes (see "playing" handler).
+  let _selfHealId = null;
+  let _selfHealCount = 0;
+  const SELF_HEAL_MAX = 3;
   
   function getTrackCache(id) {
     try {
@@ -2758,6 +2762,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     _musicHandlers.onPlay = () => updatePlayButtonState();
     _musicHandlers.onPause = () => updatePlayButtonState();
+    _musicHandlers.onPlaying = () => { _selfHealCount = 0; };
     _musicHandlers.onPrev = async () => {
       if (!tracks.length) return;
       currentIndex = getPrevIndex();
@@ -2800,8 +2805,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       if (!cur?.id || !audio) return;
       // Self-heal: the NetEase CDN link likely expired. Re-resolve a fresh one once
       // (busting both browser caches) and resume from the current position.
-      if (_selfHealAttemptedId === cur.id) return;
-      _selfHealAttemptedId = cur.id;
+      if (_selfHealId !== cur.id) { _selfHealId = cur.id; _selfHealCount = 0; }
+      if (_selfHealCount >= SELF_HEAL_MAX) return;
+      _selfHealCount += 1;
       try {
         try { localStorage.removeItem(`${trackCacheKey}:${cur.id}`); } catch {}
         const fresh = await loadTrack(cur.id);
@@ -2859,6 +2865,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
     audio.addEventListener("play", _musicHandlers.onPlay);
     audio.addEventListener("pause", _musicHandlers.onPause);
+    audio.addEventListener("playing", _musicHandlers.onPlaying);
     audio.addEventListener("timeupdate", _musicHandlers.onTimeUpdate);
     audio.addEventListener("timeupdate", _musicHandlers.onProgressTimeUpdate);
     audio.addEventListener("loadedmetadata", _musicHandlers.onLoadedMetadata);
@@ -2872,6 +2879,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   function musicUnbind() {
     if (_musicHandlers.onPlay) audio?.removeEventListener("play", _musicHandlers.onPlay);
     if (_musicHandlers.onPause) audio?.removeEventListener("pause", _musicHandlers.onPause);
+    if (_musicHandlers.onPlaying) audio?.removeEventListener("playing", _musicHandlers.onPlaying);
     if (_musicHandlers.onTimeUpdate) audio?.removeEventListener("timeupdate", _musicHandlers.onTimeUpdate);
     if (_musicHandlers.onProgressTimeUpdate) audio?.removeEventListener("timeupdate", _musicHandlers.onProgressTimeUpdate);
     if (_musicHandlers.onLoadedMetadata) audio?.removeEventListener("loadedmetadata", _musicHandlers.onLoadedMetadata);
