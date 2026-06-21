@@ -1631,6 +1631,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   function updateNowPlaying(track, options = {}) {
     const preserveActivePlayback = Boolean(options?.preserveActivePlayback);
+    // New track on screen -> allow one fresh self-heal attempt for it.
+    _selfHealAttemptedId = null;
     if (titleEl) titleEl.textContent = track.title || "-";
     if (artistEl) artistEl.textContent = track.artist || "-";
     if (bottomTitle) {
@@ -1795,9 +1797,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     }
   }
 
-  // Track cache with 10 minute TTL
-  const trackCacheKey = "music-track-cache-v2";
-  const trackCacheTTL = 10 * 60 * 1000; // 10 minutes
+  // Track cache. CDN audio URLs are short-lived, so keep the TTL low and rely on
+  // onError self-heal for anything that slips past it. Bumped to v3 to drop any
+  // stale entries cached by the old proxy approach.
+  const trackCacheKey = "music-track-cache-v3";
+  const trackCacheTTL = 3 * 60 * 1000; // 3 minutes
+  // Guards onError self-heal to a single re-fetch attempt per track.
+  let _selfHealAttemptedId = null;
   
   function getTrackCache(id) {
     try {
@@ -1908,11 +1914,9 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       const result = await getJson(`${API_BASE}/api/music/track?id=${encodeURIComponent(id)}`);
       if (result?.code === 200 && result.data) {
         const data = result.data;
-        // Route playback through the backend stream proxy so the volatile, IP-bound
-        // NetEase CDN URL is never exposed to the browser (avoids 403 on expiry).
-        if (data.audio) {
-          data.audio = `${API_BASE}/api/music/stream?id=${encodeURIComponent(id)}&level=exhigh`;
-        }
+        // Play the NetEase CDN URL directly in the browser (fast, off our 3Mbps server),
+        // upgraded to https. Short-lived URL is covered by low cache TTL + onError self-heal.
+        if (data.audio) data.audio = normalizeAudioUrl(data.audio);
         setTrackCache(id, data);
         return data;
       }
@@ -2790,8 +2794,33 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         showStatus(isEn ? "No playable URL for this track in direct mode." : "直连模式下该歌曲暂无可用播放链接。", "error");
       }
     };
-    _musicHandlers.onError = () => {
+    _musicHandlers.onError = async () => {
       console.warn('[music] Audio error:', audio?.error?.code, audio?.error?.message, 'src:', audio?.src);
+      const cur = tracks[currentIndex];
+      if (!cur?.id || !audio) return;
+      // Self-heal: the NetEase CDN link likely expired. Re-resolve a fresh one once
+      // (busting both browser caches) and resume from the current position.
+      if (_selfHealAttemptedId === cur.id) return;
+      _selfHealAttemptedId = cur.id;
+      try {
+        try { localStorage.removeItem(`${trackCacheKey}:${cur.id}`); } catch {}
+        const fresh = await loadTrack(cur.id);
+        const newUrl = normalizeAudioUrl(fresh?.audio || '');
+        if (!newUrl) return;
+        const pos = Number(audio.currentTime) || 0;
+        cur.audio = newUrl;
+        tracks[currentIndex] = { ...cur, audio: newUrl };
+        audio.src = newUrl;
+        audio.load();
+        const restore = () => {
+          try { if (pos > 0 && Number.isFinite(audio.duration)) audio.currentTime = pos; } catch {}
+        };
+        audio.addEventListener('loadedmetadata', restore, { once: true });
+        audio.play().catch(e => console.warn('[music] self-heal play failed', e?.message || e));
+        console.debug('[music] self-heal re-fetched url for', cur.id);
+      } catch (e) {
+        console.warn('[music] self-heal failed', cur?.id, e);
+      }
     };
     _musicHandlers.onEnded = async () => {
       if (!tracks.length) return;
