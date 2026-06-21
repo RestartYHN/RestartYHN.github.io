@@ -59,9 +59,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
             <div id="music-cover" class="music-cover"></div>
             <h3 id="music-title" class="music-title">Loading...</h3>
             <p id="music-artist" class="music-artist">-</p>
-            <button id="music-play-toggle" class="music-play-btn" type="button">
-              {isEn ? 'Play / Pause' : '播放 / 暂停'}
-            </button>
           </div>
         </div>
       </section>
@@ -1138,10 +1135,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     albumListEl = document.getElementById('music-album-list');
     albumSubtitleEl = document.getElementById('music-album-subtitle');
     btnMainPlay = document.getElementById("music-main-play");
-    btnCardPlay = document.getElementById("music-play-toggle");
-    btnPrev = document.getElementById("music-prev");
-    btnNext = document.getElementById("music-next");
-    progressWrap = document.querySelector(".music-progress-wrap");
     playIcon = btnMainPlay?.querySelector(".music-control-icon-play");
     pauseIcon = btnMainPlay?.querySelector(".music-control-icon-pause");
     // [Fix] Removed restrictive crossOrigin='anonymous' to allow playing 302-redirect NetEase outer links.
@@ -1236,12 +1229,33 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return 'loop';
   }
 
+  // Shuffle back-history: remembers up to N previously-played tracks so manual
+  // "previous" walks back through real play order. Auto-cleared when the play mode
+  // changes OR the track collection (tracks array reference) is replaced -- see
+  // prevStackGuard. Appending to the same array (add-to-queue) keeps it valid.
+  let prevStack = [];
+  let prevStackMode = null;
+  let prevStackTracksRef = null;
+  const PREV_STACK_MAX = 3;
+
+  function prevStackGuard() {
+    var m = getPlayMode();
+    if (m !== prevStackMode || tracks !== prevStackTracksRef) {
+      prevStack = [];
+      prevStackMode = m;
+      prevStackTracksRef = tracks;
+    }
+  }
+
   function getNextIndex(manual = false) {
     if (!tracks.length) return 0;
+    prevStackGuard();
     var mode = getPlayMode();
     // Single-repeat only governs auto-advance on track end; manual next still advances.
     if (mode === 'single' && !manual) return currentIndex;
     if (mode === 'shuffle') {
+      prevStack.push(currentIndex);
+      if (prevStack.length > PREV_STACK_MAX) prevStack.shift();
       var idx = currentIndex;
       while (tracks.length > 1 && idx === currentIndex) {
         idx = Math.floor(Math.random() * tracks.length);
@@ -1253,8 +1267,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   function getPrevIndex(manual = false) {
     if (!tracks.length) return 0;
+    prevStackGuard();
     var mode = getPlayMode();
-    if ((mode === 'single' && !manual) || mode === 'shuffle') return currentIndex;
+    if (mode === 'single' && !manual) return currentIndex;
+    if (mode === 'shuffle') {
+      if (prevStack.length > 0) return prevStack.pop();
+      return currentIndex; // back-history exhausted -> stay put
+    }
     return (currentIndex - 1 + tracks.length) % tracks.length;
   }
 
@@ -2711,7 +2730,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   // Delegate play/pause clicks to avoid binding-order issues and duplicate handlers.
   function delegateMusicClicks(e) {
-    const btn = e.target.closest('#music-main-play, #music-play-toggle');
+    const btn = e.target.closest('#music-main-play');
     if (!btn) return;
 
     // On the music page, let the page handle bottom player clicks (page owns playback UI).

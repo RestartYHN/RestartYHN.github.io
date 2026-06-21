@@ -520,6 +520,11 @@ import { musicConfig } from '@/data/music';
       handlers: {},
       els: null,
       playMode: 'loop',
+      prevStack: [],
+      prevStackMode: null,
+      prevStackTracksRef: null,
+      selfHealId: null,
+      selfHealCount: 0,
     };
 
     // Bootstrap the global player with tracks from music page
@@ -595,10 +600,24 @@ import { musicConfig } from '@/data/music';
 
     // Play mode helper removed; sequential playback only
 
+    var PREV_STACK_MAX = 3;
+    // Clear shuffle back-history when the play mode changes OR the track collection
+    // (state.tracks reference) is replaced. Appending to the same array keeps it valid.
+    function prevStackGuard() {
+      if (state.playMode !== state.prevStackMode || state.tracks !== state.prevStackTracksRef) {
+        state.prevStack = [];
+        state.prevStackMode = state.playMode;
+        state.prevStackTracksRef = state.tracks;
+      }
+    }
+
     function getNextIndex() {
       if (!state.tracks.length) return 0;
+      prevStackGuard();
       if (state.playMode === 'single') return state.currentIndex;
       if (state.playMode === 'shuffle') {
+        state.prevStack.push(state.currentIndex);
+        if (state.prevStack.length > PREV_STACK_MAX) state.prevStack.shift();
         var idx = state.currentIndex;
         while (state.tracks.length > 1 && idx === state.currentIndex) {
           idx = Math.floor(Math.random() * state.tracks.length);
@@ -610,8 +629,12 @@ import { musicConfig } from '@/data/music';
 
     function getPrevIndex() {
       if (!state.tracks.length) return 0;
+      prevStackGuard();
       if (state.playMode === 'single') return state.currentIndex;
-      if (state.playMode === 'shuffle') return Math.floor(Math.random() * state.tracks.length);
+      if (state.playMode === 'shuffle') {
+        if (state.prevStack.length > 0) return state.prevStack.pop();
+        return state.currentIndex; // back-history exhausted -> stay put
+      }
       return (state.currentIndex - 1 + state.tracks.length) % state.tracks.length;
     }
 
@@ -969,8 +992,33 @@ import { musicConfig } from '@/data/music';
       audio.addEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       audio.addEventListener('play', updatePlayButtonState);
       audio.addEventListener('pause', updatePlayButtonState);
-      state.handlers.onError = () => {
+      audio.addEventListener('playing', () => { state.selfHealCount = 0; });
+      var SELF_HEAL_MAX = 3;
+      state.handlers.onError = async () => {
         console.warn('[GlobalPlayer] Audio error:', audio.error?.code, audio.error?.message, 'src:', audio.src);
+        const cur = state.tracks[state.currentIndex];
+        if (!cur?.id || !audio) return;
+        // Self-heal: NetEase CDN link likely expired. Force a fresh re-resolve
+        // (never reuse the stale synced url) and resume from the current position.
+        if (state.selfHealId !== cur.id) { state.selfHealId = cur.id; state.selfHealCount = 0; }
+        if (state.selfHealCount >= SELF_HEAL_MAX) return;
+        state.selfHealCount += 1;
+        try {
+          const fresh = await loadTrack(cur.id);
+          const newUrl = normalizeAudioUrl(fresh?.audio || '');
+          if (!newUrl) return;
+          const pos = Number(audio.currentTime) || 0;
+          state.tracks[state.currentIndex] = { ...cur, ...fresh, audio: newUrl };
+          audio.src = newUrl;
+          audio.load();
+          const restore = () => {
+            try { if (pos > 0 && Number.isFinite(audio.duration)) audio.currentTime = pos; } catch (e) {}
+          };
+          audio.addEventListener('loadedmetadata', restore, { once: true });
+          audio.play().catch(e => console.warn('[GlobalPlayer] self-heal play failed', e.message));
+        } catch (e) {
+          console.warn('[GlobalPlayer] self-heal failed', cur?.id, e);
+        }
       };
       audio.addEventListener('error', state.handlers.onError);
       // [Fix] Removed restrictive crossOrigin='anonymous'
