@@ -89,36 +89,25 @@ export function MusicCardComponent(properties, children) {
                                     };
 
                                     if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
-                                        // 把这首歌插到当前播放位置的下一首
-                                        const tracks = [...state.tracks];
-                                        const existsIndex = tracks.findIndex(t => String(t.id) === String(newTrack.id));
-                                        
-                                        if (existsIndex !== -1) {
-                                            // 如果列表里已经有这首歌，直接跳过去
-                                            globalController.syncState({ tracks, currentIndex: existsIndex });
-                                        } else {
-                                            // 插入下一首
-                                            tracks.splice(state.currentIndex + 1, 0, newTrack);
-                                            globalController.syncState({ tracks, currentIndex: state.currentIndex + 1 });
+                                        const exists = state.tracks.some(t => String(t.id) === String(newTrack.id));
+                                        if (!exists) {
+                                            // 加入"下一首"：插到当前曲之后，不跳转、不打断当前播放
+                                            const at = (Number.isFinite(state.currentIndex) ? state.currentIndex : -1) + 1;
+                                            const tracks = [...state.tracks.slice(0, at), newTrack, ...state.tracks.slice(at)];
+                                            globalController.syncState({ tracks });
                                         }
                                     } else {
-                                        // 全局播放器当前没歌，直接初始化
+                                        // 队列为空：作为当前曲并开始播放
                                         globalController.syncState({ tracks: [newTrack], currentIndex: 0 });
-                                    }
-
-                                    // 模拟自动播放
-                                    setTimeout(() => {
-                                        const audio = document.getElementById("music-audio");
-                                        if (audio) {
-                                            // 【修复 CORS 问题】移除 audio 的跨域限制，允许直接播放网易云重定向的无 CORS 头的媒体资源
-                                            audio.removeAttribute("crossorigin");
-                                            audio.crossOrigin = null;
-
-                                            if (typeof audio.play === "function" && audio.paused) {
-                                                audio.play().catch(console.warn);
+                                        setTimeout(() => {
+                                            const audio = document.getElementById("music-audio");
+                                            if (audio) {
+                                                audio.removeAttribute("crossorigin");
+                                                audio.crossOrigin = null;
+                                                if (typeof audio.play === "function" && audio.paused) audio.play().catch(console.warn);
                                             }
-                                        }
-                                    }, 50);
+                                        }, 50);
+                                    }
                                 }
                             });
                         }
