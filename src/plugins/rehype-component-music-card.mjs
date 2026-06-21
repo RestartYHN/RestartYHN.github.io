@@ -75,9 +75,7 @@ export function MusicCardComponent(properties, children) {
                                 
                                 e.preventDefault();
                                 const globalController = window.__globalMusicBootstrapV1;
-                                if (globalController && typeof globalController.syncState === "function") {
-                                    const state = typeof globalController.getState === "function" ? globalController.getState() : null;
-                                    
+                                if (globalController && typeof globalController.insertNext === "function") {
                                     const newTrack = {
                                         id: "${songId}",
                                         title: track.title || "未知曲目",
@@ -87,18 +85,10 @@ export function MusicCardComponent(properties, children) {
                                         tlyric: track.tlyric || "",
                                         audio: track.audio || "https://music.163.com/song/media/outer/url?id=${songId}.mp3"
                                     };
-
-                                    if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
-                                        const exists = state.tracks.some(t => String(t.id) === String(newTrack.id));
-                                        if (!exists) {
-                                            // 加入"下一首"：插到当前曲之后，不跳转、不打断当前播放
-                                            const at = (Number.isFinite(state.currentIndex) ? state.currentIndex : -1) + 1;
-                                            const tracks = [...state.tracks.slice(0, at), newTrack, ...state.tracks.slice(at)];
-                                            globalController.syncState({ tracks });
-                                        }
-                                    } else {
-                                        // 队列为空：作为当前曲并开始播放
-                                        globalController.syncState({ tracks: [newTrack], currentIndex: 0 });
+                                    const wasEmpty = (globalController.getTracks().length === 0);
+                                    globalController.insertNext(newTrack); // 插当前曲之后、去重、不跳
+                                    if (wasEmpty) {
+                                        // 空队列：作为唯一曲目并开始播放
                                         setTimeout(() => {
                                             const audio = document.getElementById("music-audio");
                                             if (audio) {

@@ -2411,21 +2411,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       if (!track) return;
       const loaded = await loadTrack(track.id);
       if (!loaded.audio) return;
-      const exists = tracks.some(t => String(t.id) === String(loaded.id));
-      if (!exists) {
-        if (tracks.length) {
-          // Add as "up next": insert right after the current track, do NOT jump.
-          // Rebuild the array (new ref) so the shuffle history window auto-resets.
-          const at = currentIndex + 1;
-          tracks = [...tracks.slice(0, at), loaded, ...tracks.slice(at)];
-        } else {
-          tracks = [loaded];
-          currentIndex = 0;
-          updateNowPlaying(loaded);
-        }
-        renderTrackList();
-        updatePlayerPosition();
-        syncToGlobalPlayer();
+      const gc = window[GLOBAL_MUSIC_KEY];
+      const exists = (gc?.getTracks?.() || tracks).some(t => String(t.id) === String(loaded.id));
+      if (gc && typeof gc.insertNext === 'function') {
+        const wasEmpty = !(gc.getTracks().length);
+        gc.insertNext(loaded); // store inserts after current (dedupe), emits -> page list refreshes
+        if (wasEmpty) { currentIndex = 0; updateNowPlaying(loaded); }
       }
       results.classList.add('hidden');
       input.value = '';
