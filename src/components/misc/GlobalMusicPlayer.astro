@@ -546,6 +546,7 @@ import { musicConfig } from '@/data/music';
           updatePlayButtonState();
         }
       }
+      emitChange();
     }
 
     // Sync current playback state from music page
@@ -566,6 +567,7 @@ import { musicConfig } from '@/data/music';
         updatePlayerPosition();
         updatePlayButtonState();
       }
+      emitChange();
     }
 
     // Get current state for external access

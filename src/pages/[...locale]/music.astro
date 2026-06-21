@@ -3072,6 +3072,17 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     renderTrackList();
     updatePlayerPosition();
   });
+  // P2: mirror the global store. Any store change refreshes the page list/position
+  // (single source of truth = GlobalMusicPlayer). Does NOT touch playback/lyrics here.
+  window.addEventListener('music-state-change', () => {
+    const gc = window[GLOBAL_MUSIC_KEY];
+    if (!gc || typeof gc.getTracks !== 'function') return;
+    tracks = gc.getTracks();
+    currentIndex = gc.getIndex();
+    renderTrackList();
+    updatePlayerPosition();
+    updatePlaylistCount();
+  });
   document.addEventListener('astro:after-swap', initMusicPage);
   document.addEventListener('astro:page-load', initMusicPage);
 </script>
