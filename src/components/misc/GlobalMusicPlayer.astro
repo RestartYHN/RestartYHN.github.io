@@ -525,6 +525,7 @@ import { musicConfig } from '@/data/music';
       prevStackTracksRef: null,
       selfHealId: null,
       selfHealCount: 0,
+      playToken: 0,
     };
 
     // Bootstrap the global player with tracks from music page
@@ -611,10 +612,10 @@ import { musicConfig } from '@/data/music';
       }
     }
 
-    function getNextIndex() {
+    function getNextIndex(manual = false) {
       if (!state.tracks.length) return 0;
       prevStackGuard();
-      if (state.playMode === 'single') return state.currentIndex;
+      if (state.playMode === 'single' && !manual) return state.currentIndex;
       if (state.playMode === 'shuffle') {
         state.prevStack.push(state.currentIndex);
         if (state.prevStack.length > PREV_STACK_MAX) state.prevStack.shift();
@@ -627,10 +628,10 @@ import { musicConfig } from '@/data/music';
       return (state.currentIndex + 1) % state.tracks.length;
     }
 
-    function getPrevIndex() {
+    function getPrevIndex(manual = false) {
       if (!state.tracks.length) return 0;
       prevStackGuard();
-      if (state.playMode === 'single') return state.currentIndex;
+      if (state.playMode === 'single' && !manual) return state.currentIndex;
       if (state.playMode === 'shuffle') {
         if (state.prevStack.length > 0) return state.prevStack.pop();
         return state.currentIndex; // back-history exhausted -> stay put
@@ -912,11 +913,14 @@ import { musicConfig } from '@/data/music';
     async function playCurrent() {
       const { audio } = state.els || {};
       if (!audio || !state.tracks.length) return;
+      const token = ++state.playToken;
       const track = await hydrateTrack(state.currentIndex);
+      if (token !== state.playToken) return; // superseded by a newer selection (rapid switching)
       if (!track) return;
       updateNowPlaying(track);
+      if (token !== state.playToken) return;
       if (track.audio) {
-        audio.play().catch(e => console.warn('[GlobalPlayer] Play failed:', e.message));
+        audio.play().catch(e => { if (e?.name !== 'AbortError') console.warn('[GlobalPlayer] Play failed:', e.message); });
       }
       updatePlayButtonState();
       // Sync playlist modal active indicator if open
@@ -925,15 +929,15 @@ import { musicConfig } from '@/data/music';
       }
     }
 
-    async function stepPrev() {
+    async function stepPrev(manual = false) {
       if (!state.tracks.length) return;
-      state.currentIndex = getPrevIndex();
+      state.currentIndex = getPrevIndex(manual);
       await playCurrent();
     }
 
-    async function stepNext() {
+    async function stepNext(manual = false) {
       if (!state.tracks.length) return;
-      state.currentIndex = getNextIndex();
+      state.currentIndex = getNextIndex(manual);
       await playCurrent();
     }
 
@@ -956,8 +960,8 @@ import { musicConfig } from '@/data/music';
         updatePlayButtonState();
       };
 
-      state.handlers.onPrev = () => stepPrev();
-      state.handlers.onNext = () => stepNext();
+      state.handlers.onPrev = () => stepPrev(true);
+      state.handlers.onNext = () => stepNext(true);
       state.handlers.onTimeUpdate = () => {
         if (!audio || !progressEl) return;
         const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
@@ -971,7 +975,7 @@ import { musicConfig } from '@/data/music';
       };
 
       state.handlers.onEnded = async () => {
-        await stepNext();
+        await stepNext(false);
       };
       state.handlers.onLoadedMetadata = () => {
         if (state.els?.totalTimeEl) state.els.totalTimeEl.textContent = formatClock(audio.duration || 0);
