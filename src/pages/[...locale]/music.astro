@@ -1236,10 +1236,11 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return 'loop';
   }
 
-  function getNextIndex() {
+  function getNextIndex(manual = false) {
     if (!tracks.length) return 0;
     var mode = getPlayMode();
-    if (mode === 'single') return currentIndex;
+    // Single-repeat only governs auto-advance on track end; manual next still advances.
+    if (mode === 'single' && !manual) return currentIndex;
     if (mode === 'shuffle') {
       var idx = currentIndex;
       while (tracks.length > 1 && idx === currentIndex) {
@@ -1250,10 +1251,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     return (currentIndex + 1) % tracks.length;
   }
 
-  function getPrevIndex() {
+  function getPrevIndex(manual = false) {
     if (!tracks.length) return 0;
     var mode = getPlayMode();
-    if (mode === 'single' || mode === 'shuffle') return currentIndex;
+    if ((mode === 'single' && !manual) || mode === 'shuffle') return currentIndex;
     return (currentIndex - 1 + tracks.length) % tracks.length;
   }
 
@@ -2753,7 +2754,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     _musicHandlers.onPlaying = () => { _selfHealCount = 0; };
     _musicHandlers.onPrev = async () => {
       if (!tracks.length) return;
-      currentIndex = getPrevIndex();
+      currentIndex = getPrevIndex(true);
       const current = await prepareTrackForPlayback(currentIndex);
       if (!current) return;
       updateNowPlaying(current);
@@ -2771,7 +2772,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     };
     _musicHandlers.onNext = async () => {
       if (!tracks.length) return;
-      currentIndex = getNextIndex();
+      currentIndex = getNextIndex(true);
       const current = await prepareTrackForPlayback(currentIndex);
       if (!current) return;
       updateNowPlaying(current);
