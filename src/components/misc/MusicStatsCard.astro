@@ -190,24 +190,14 @@ const isEn = currentLang === 'en';
             if (gc && typeof gc.syncState === 'function') {
               var state = gc.getState();
               var base = Array.isArray(state.tracks) ? state.tracks : [];
-              var existIdx = base.findIndex(function (x) { return String(x.id) === String(t.id); });
-              var target;
+              var exists = base.some(function (x) { return String(x.id) === String(t.id); });
               if (base.length === 0) {
-                target = 0;
                 gc.syncState({ tracks: [t], currentIndex: 0 });
-              } else if (existIdx !== -1) {
-                target = existIdx;
-                gc.syncState({ tracks: base, currentIndex: target });
-              } else {
-                // 插当前曲之后并跳过去（新数组让随机窗口以这首为新起点重置）
-                target = (typeof state.currentIndex === 'number' ? state.currentIndex : -1) + 1;
-                gc.syncState({ tracks: base.slice(0, target).concat([t], base.slice(target)), currentIndex: target });
+              } else if (!exists) {
+                // 加入"下一首"：插到当前曲之后，不跳转、不打断；新数组让随机窗口自动重置
+                var at = (typeof state.currentIndex === 'number' ? state.currentIndex : -1) + 1;
+                gc.syncState({ tracks: base.slice(0, at).concat([t], base.slice(at)) });
               }
-              // 必定播放添加的这一首
-              setTimeout(function () {
-                var audio = document.getElementById('music-audio');
-                if (audio) { audio.removeAttribute('crossorigin'); audio.crossOrigin = null; if (typeof audio.play === 'function') audio.play().catch(function () {}); }
-              }, 50);
             }
           };
         })(items[j]));
@@ -258,24 +248,14 @@ const isEn = currentLang === 'en';
             if (gc && typeof gc.syncState === 'function') {
               var state = gc.getState();
               var base = Array.isArray(state.tracks) ? state.tracks : [];
-              var existIdx = base.findIndex(function (x) { return String(x.id) === String(t.id); });
-              var target;
+              var exists = base.some(function (x) { return String(x.id) === String(t.id); });
               if (base.length === 0) {
-                target = 0;
                 gc.syncState({ tracks: [t], currentIndex: 0 });
-              } else if (existIdx !== -1) {
-                target = existIdx;
-                gc.syncState({ tracks: base, currentIndex: target });
-              } else {
-                // 插当前曲之后并跳过去（新数组让随机窗口以这首为新起点重置）
-                target = (typeof state.currentIndex === 'number' ? state.currentIndex : -1) + 1;
-                gc.syncState({ tracks: base.slice(0, target).concat([t], base.slice(target)), currentIndex: target });
+              } else if (!exists) {
+                // 加入"下一首"：插到当前曲之后，不跳转、不打断；新数组让随机窗口自动重置
+                var at = (typeof state.currentIndex === 'number' ? state.currentIndex : -1) + 1;
+                gc.syncState({ tracks: base.slice(0, at).concat([t], base.slice(at)) });
               }
-              // 必定播放添加的这一首
-              setTimeout(function () {
-                var audio = document.getElementById('music-audio');
-                if (audio) { audio.removeAttribute('crossorigin'); audio.crossOrigin = null; if (typeof audio.play === 'function') audio.play().catch(function () {}); }
-              }, 50);
             }
           };
         })(tracks[j], j));

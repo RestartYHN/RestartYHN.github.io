@@ -2411,29 +2411,27 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
       if (!track) return;
       const loaded = await loadTrack(track.id);
       if (!loaded.audio) return;
-      const existIdx = tracks.findIndex(t => String(t.id) === String(loaded.id));
-      if (existIdx !== -1) {
-        currentIndex = existIdx;
-      } else if (tracks.length) {
-        // insert right after current, then jump to it and play (rebuild array -> shuffle window reseeds here)
-        const at = currentIndex + 1;
-        tracks = [...tracks.slice(0, at), loaded, ...tracks.slice(at)];
-        currentIndex = at;
-      } else {
-        tracks = [loaded];
-        currentIndex = 0;
+      const exists = tracks.some(t => String(t.id) === String(loaded.id));
+      if (!exists) {
+        if (tracks.length) {
+          // Add as "up next": insert right after the current track, do NOT jump.
+          // Rebuild the array (new ref) so the shuffle history window auto-resets.
+          const at = currentIndex + 1;
+          tracks = [...tracks.slice(0, at), loaded, ...tracks.slice(at)];
+        } else {
+          tracks = [loaded];
+          currentIndex = 0;
+          updateNowPlaying(loaded);
+        }
+        renderTrackList();
+        updatePlayerPosition();
+        syncToGlobalPlayer();
       }
-      const current = await prepareTrackForPlayback(currentIndex);
-      updateNowPlaying(current || tracks[currentIndex]);
-      renderTrackList();
-      updatePlayerPosition();
-      syncToGlobalPlayer();
-      if (audio?.src) { hideStatus(); audio.play().catch(e => console.warn('[music] Play failed:', e?.message || e)); }
       results.classList.add('hidden');
       input.value = '';
       currentDataset = [];
       selectedIdx = -1;
-      showStatus(isEn ? `Playing: ${loaded.title}` : `正在播放: ${loaded.title}`);
+      showStatus(exists ? (isEn ? "Already in queue" : "已在队列中") : (isEn ? `Up next: ${loaded.title}` : `已加入下一首: ${loaded.title}`));
       setTimeout(hideStatus, 2000);
     }
 
