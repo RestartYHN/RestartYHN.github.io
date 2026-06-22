@@ -221,9 +221,8 @@ if (profileConfig.indexPage) {
   font-family: "STSong", "SimSun", "Songti SC", serif;
   letter-spacing: 1px;
 }
-  /* 常驻顶栏的毛玻璃和阴影（全断点） */
+  /* 常驻顶栏：仅毛玻璃模糊，无主题色底，半透明适应背景 */
   #main-header {
-    background-color: rgba(var(--bg-color-rgb), 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(var(--button-border-color-rgb), 0.1);
