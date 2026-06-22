@@ -70,7 +70,7 @@ const totalPages = Math.ceil(links.length / perPage) || 1
         </div>
 
         <h2 class="text-2xl font-bold text-[var(--text-color)] mb-4">{currentLang === "en" ? "Links" : "外部链接"}</h2>
-        <section id="links-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
+        <section id="links-grid" class="grid content-start gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
             {links.map((item, i) => (
                 <a
                 id={`link-${item.title[normalizedLang]}`}
