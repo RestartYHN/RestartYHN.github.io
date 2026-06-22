@@ -66,6 +66,10 @@ const totalPages = Math.ceil(links.length / perPage) || 1
             }
         </div>
 
+        <Markdown class="mb-6 markdown-content onload-animation">
+            <Content />
+        </Markdown>
+
         <h2 class="text-2xl font-bold text-[var(--text-color)] mb-4">{currentLang === "en" ? "Links" : "外部链接"}</h2>
         <section id="links-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
             {links.map((item, i) => (
@@ -110,10 +114,6 @@ const totalPages = Math.ceil(links.length / perPage) || 1
             </button>
           </div>
         )}
-
-        <Markdown class="mb-6 markdown-content onload-animation">
-            <Content />
-        </Markdown>
     </div>
 </MainPageLayout>
 

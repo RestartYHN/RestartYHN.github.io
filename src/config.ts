@@ -137,8 +137,8 @@ export const externalLinkConfig: ExternalLinkItem[] = [
     },
     {
         title: {
-            "zh-cn": "时光与快乐并存(热情市民c先生的切片man)",
-            en: "Time and Joy Coexist (Passionate Citizen C's Clip Man)"
+            "zh-cn": "时光与快乐并存",
+            en: "Time and Joy Coexist"
         },
         url: "https://space.bilibili.com/592312291?spm_id_from=333.337.0.0",
         description: {
