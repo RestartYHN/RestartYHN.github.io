@@ -27,8 +27,9 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 1. 通过 PicList 上传图片到 R2 桶 `img.restartyhn.top/画师名/`
 2. 编辑 `src/data/gallery.template.json` 登记信息（`image`、`thumb`、`avatar` 用 R2 完整 URL）：
 ```json
-"tags": ["IP:初音未来", "画师:混合可可"]
+"tags": ["IP:初音未来"]
 ```
+> 画师由作品的 `author` 字段关联（对应 `authors` 注册），无需写 `画师:` 标签；`title` 仅填中文。
 3. 新画师需在 `authors` 数组注册，也可用脚本：
 ```bash
 pnpm newauthor slug "中文名" "English Name" "头像R2链接" "中文简介" "English description"
@@ -37,12 +38,12 @@ pnpm newauthor slug "中文名" "English Name" "头像R2链接" "中文简介" "
 
 也可用脚本一行搞定：
 ```bash
-pnpm newgallery "图片R2链接" 画师slug "中文标题" "English Title" 年份 "IP:作品IP"
+pnpm newgallery "图片R2链接" 画师slug "中文标题" 年份 "IP:作品IP"
 ```
-脚本自动补全 id、thumb、tags、order、enabled。支持批量：
+脚本自动补全 id、thumb、order、enabled。支持批量：
 ```bash
-pnpm newgallery "url1" Matcha "鹿目圆" "Kaname Madoka" 2026 "IP:魔法少女小圆" && \
-pnpm newgallery "url2" Rumoon "初音未来" "Hatsune Miku" 2026 "IP:初音未来"
+pnpm newgallery "url1" Matcha "鹿目圆" 2026 "IP:魔法少女小圆" && \
+pnpm newgallery "url2" Rumoon "初音未来" 2026 "IP:初音未来"
 
 ### 添加碎碎念
 `src/content/memos/` 下新建 `YYYY-MM-DD.md`，无 frontmatter，直接写内容。

@@ -95,14 +95,16 @@
 
 ```bash
 pnpm newauthor  slug  "中文名"  "English"  "头像URL"  "中文简介"  "English desc"
-pnpm newgallery "图片URL" 画师slug  "中文标题"  "Title"  年份  "IP:xxx"
+pnpm newgallery "图片URL" 画师slug  "中文标题"  年份  "IP:xxx"
 pnpm newsignature "中文句" "——出处" "English" "-- Credit"
 ```
 
-- 脚本自动补全 `id`、`order`、`enabled`、`thumb`(=image)、画师标签等样板字段
-- `newgallery` 自动根据 `author` slug 查找画师名称并追加 `画师:xxx` 标签
+- 脚本自动补全 `id`、`order`、`enabled`、`thumb`(=image) 等样板字段
+- 画师由作品的 `author` slug 关联（注册信息 `authors[].name` 为权威），不再写入 `画师:xxx` 标签；作品 `title` 仅存中文
 - `newsignature` 同时追加中英文文件，保证 `rotatingSubTitle` 和 `rotatingPair` 数组索引对齐
 - 支持 `&&` 串联批量运行
+
+> 更新（2026-06-23）：原 `newgallery` 会自动追加 `画师:画师名` 标签，后因与 `author` 字段重复、手写中文不随 i18n 切换，已移除该自动标签；作品标题改为仅中文（英文交浏览器翻译）。
 
 **教训：面向自己的工具也应该投入——少写重复代码，少犯对齐错误。**
 

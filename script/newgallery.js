@@ -3,12 +3,12 @@ import { basename, extname, join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const args = process.argv.slice(2);
-if (args.length < 5) {
-  console.error('Usage: pnpm newgallery <imageUrl> <authorSlug> <titleZh> <titleEn> <year> [tags...]');
+if (args.length < 4) {
+  console.error('Usage: pnpm newgallery <imageUrl> <authorSlug> <titleZh> <year> [tags...]');
   process.exit(1);
 }
 
-const [imageUrl, authorSlug, titleZh, titleEn, year, ...tags] = args;
+const [imageUrl, authorSlug, titleZh, year, ...tags] = args;
 const id = basename(imageUrl, extname(imageUrl));
 
 const __filename = fileURLToPath(import.meta.url);
@@ -24,13 +24,13 @@ if (!author) {
   process.exit(1);
 }
 
-const autoTags = [`画师:${author.name['zh-cn']}`, ...tags];
+const autoTags = [...tags];
 const maxOrder = data.works.reduce((max, w) => Math.max(max, w.order || 0), 0);
 
 const work = {
   id,
   author: authorSlug,
-  title: { 'zh-cn': titleZh, en: titleEn },
+  title: { 'zh-cn': titleZh },
   image: imageUrl,
   thumb: imageUrl,
   year: parseInt(year),

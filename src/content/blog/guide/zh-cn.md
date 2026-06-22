@@ -41,7 +41,7 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 使用 Cloudflare R2 图床 + PicList 上传。图片存入 `img.restartyhn.top/画师名/`，编辑 `src/data/gallery.template.json`：
 - `authors` 数组注册画师（slug、name、description、avatar、order）
 - `works` 数组登记作品（id、author、title、image、year、tags）
-- 标签格式：`"IP:初音未来"`、`"画师:混合可可"`
+- 标签格式：`"IP:初音未来"`（`维度:值`）；画师由 `author` 字段关联，**无需** `画师:` 标签
 - 新增画师需 R2 上传图片 + JSON 注册两步，也可用脚本：
 ```bash
 pnpm newauthor slug "中文名" "English Name" "头像R2链接" "中文简介" "English description"
@@ -49,8 +49,8 @@ pnpm newauthor slug "中文名" "English Name" "头像R2链接" "中文简介" "
 
 也可用脚本一行登记，支持批量 `&&` 串联：
 ```bash
-pnpm newgallery "url1" Matcha "鹿目圆" "Kaname Madoka" 2026 "IP:魔法少女小圆" && \
-pnpm newgallery "url2" Rumoon "初音未来" "Hatsune Miku" 2026 "IP:初音未来"
+pnpm newgallery "url1" Matcha "鹿目圆" 2026 "IP:魔法少女小圆" && \
+pnpm newgallery "url2" Rumoon "初音未来" 2026 "IP:初音未来"
 ```
 
 ### 碎碎念
