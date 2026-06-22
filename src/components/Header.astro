@@ -57,8 +57,8 @@ if (profileConfig.indexPage) {
 ---
 
 <!-- header -->
-<div id="main-header" data-pagefind-ignore="all" class="fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out md:relative md:translate-y-0">
-<div class="flex items-center pt-1 md:py-4 text-[var(--text-color)] max-w-[var(--header-width)] mx-auto">
+<div id="main-header" data-pagefind-ignore="all" class="sticky top-0 left-0 right-0 z-[100]">
+<div class="relative flex items-center pt-1 md:py-4 text-[var(--text-color)] max-w-[var(--header-width)] mx-auto">
     <!-- logo -->
     <div class="min-w-0 flex-shrink pr-1 md:pr-2 py-1 md:py-2 z-30 header-logo">
         <a href={ indexPage } >
@@ -68,11 +68,42 @@ if (profileConfig.indexPage) {
           ) : (
             <Image src={headerAvatar} alt={profileConfig.name} width={36} height={36} quality={70} format="webp" loading="eager" class="w-8 h-8 md:w-9 md:h-9 flex-shrink-0 rounded-full object-cover border border-[var(--button-border-color)]" />
           )}
-          <span class="text-[1.125rem] md:text-[1.40625rem] font-bold truncate">{ siteConfig.title }</span>
+          <span class="text-[1.125rem] md:text-[1.40625rem] font-bold truncate">Restart</span>
         </span>
         </a>
     </div>
-    
+
+    <!-- nav (desktop, icons) -->
+    <nav id="nav-bar" data-pagefind-ignore="all" class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center z-20">
+      <a href={ indexPage } title={t("header.home")} aria-label={t("header.home")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname === indexPage ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:house" class="w-4 h-4" />
+      </a>
+      <a href={ blogPage } title={t("header.blog")} aria-label={t("header.blog")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname.startsWith(blogPage) ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:newspaper" class="w-4 h-4" />
+      </a>
+      <a href={ musicPage } title={t("header.music")} aria-label={t("header.music")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname.startsWith(musicPage) ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:music" class="w-4 h-4" />
+      </a>
+      <a href={ galleryPage } title={t("header.appreciation")} aria-label={t("header.appreciation")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname.startsWith(galleryPage) ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:images" class="w-4 h-4" />
+      </a>
+      <a href={ friendsPage } title={t("header.friends")} aria-label={t("header.friends")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname === friendsPage ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:link" class="w-4 h-4" />
+      </a>
+      <a href={ archivesPage } title={t("header.archive")} aria-label={t("header.archive")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname === archivesPage ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:book-bookmark" class="w-4 h-4" />
+      </a>
+      <a href={ aboutPage } title={t("header.about")} aria-label={t("header.about")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname === aboutPage ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:user" class="w-4 h-4" />
+      </a>
+      <a href={ guestbookPage } title={t("header.guestbook")} aria-label={t("header.guestbook")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname.startsWith(guestbookPage) ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:comments" class="w-4 h-4" />
+      </a>
+      <a href={ memosPage } title={t("header.memos")} aria-label={t("header.memos")} class={`flex items-center justify-center w-9 h-9 rounded-lg mx-0.5 transition-colors hover:text-current ${Astro.url.pathname.startsWith(memosPage) ? 'bg-[var(--button-hover-color)]' : 'hover:bg-[var(--button-hover-color)]'}`}>
+        <Icon name="fa6-solid:book" class="w-4 h-4" />
+      </a>
+    </nav>
+
     <!-- tools -->
     <div class="ml-auto flex flex-shrink-0 gap-0.5 md:gap-1 pl-2 md:pl-2 py-1 md:py-2 justify-end z-30 mr-1">
         <!-- Search -->
@@ -114,7 +145,7 @@ if (profileConfig.indexPage) {
               </div>
           </div>
         </div>
-        <div class="relative md:hidden">
+        <div class="relative lg:hidden">
           <!-- Mobile Menu -->
             <button id="mobile-menu-button" class="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 hover:bg-[var(--button-hover-color)] active:scale-90 rounded-lg hover:text-current border border-[var(--button-border-color)] transition-all duration-300" aria-label="Mobile Menu">
               <Icon name="fa6-solid:align-justify" class="w-4 h-4 md:w-5 md:h-5" />
@@ -125,82 +156,6 @@ if (profileConfig.indexPage) {
 </div>
 </div>
 
-    <!-- nav_bar -->
-    <div id="nav-bar" data-pagefind-ignore="all" class="hidden md:flex absolute left-[46%] top-0 transform -translate-x-1/2 justify-center items-center text-lg font-bold my-5 z-100">
-        <div id="nav-bar-list" class="transition relative z-10 flex max-w-max flex-1 items-center justify-center rounded-outer p-1.5 backdrop-blur rounded-lg bg-[color:var(--bg-color)]/20">
-          <!-- 首页链接 -->
-          <a href={ indexPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname === indexPage 
-                  ? 'bg-[var(--button-hover-color)]' 
-                  : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-              {t("header.home")}
-          </a>
-            <!-- 博客链接 -->
-            <a href={ blogPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname.startsWith(blogPage)
-                ? 'bg-[var(--button-hover-color)]'
-                : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-              {t("header.blog")}
-            </a>
-            <!-- 音乐链接 -->
-            <a href={ musicPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname.startsWith(musicPage)
-                ? 'bg-[var(--button-hover-color)]'
-                : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-              {t("header.music")}
-            </a>
-            <!-- 鉴赏链接 -->
-            <a href={ galleryPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname.startsWith(galleryPage)
-                ? 'bg-[var(--button-hover-color)]'
-                : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-              {t("header.appreciation")}
-            </a>
-            <!-- 友链链接 -->
-            <a href={ friendsPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname === friendsPage
-                ? 'bg-[var(--button-hover-color)]'
-                : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-              {t("header.friends")}
-            </a>
-            <!-- 归档链接 -->
-            <a href={ archivesPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname === archivesPage
-                ? 'bg-[var(--button-hover-color)]'
-                : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-              {t("header.archive")}
-            </a>
-            <!-- 关于链接 -->
-            <a href={ aboutPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname === aboutPage
-                ? 'bg-[var(--button-hover-color)]'
-                : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-              {t("header.about")}
-            </a>
-            <a href={ guestbookPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname.startsWith(guestbookPage)
-                ? 'bg-[var(--button-hover-color)]'
-                : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-            {t("header.guestbook")}
-          </a>
-            <!-- 碎碎念链接 -->
-            <a href={ memosPage } class={`transition-colors rounded-lg px-2.5 py-0.5 mx-0.5 hover:text-current ${
-              Astro.url.pathname.startsWith(memosPage)
-                ? 'bg-[var(--button-hover-color)]'
-                : 'hover:bg-[var(--button-hover-color)]'
-              }`}>
-              {t("header.memos")}
-            </a>
-        </div>
-    </div>
 <!-- Mobile Menu -->
 <div id="mobile-menu-container" class="fixed inset-0 z-[100] hidden">
     <div id="mobile-menu-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300 ease-in-out"></div>
@@ -266,19 +221,12 @@ if (profileConfig.indexPage) {
   font-family: "STSong", "SimSun", "Songti SC", serif;
   letter-spacing: 1px;
 }
-  /* 移动端 (小于 776px) 的毛玻璃和阴影 */
-  @media (max-width: 775px) {
-    #main-header {
-      background-color: rgba(var(--bg-color-rgb), 0.7);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(var(--button-border-color-rgb), 0.1);
-    }
-  }
-
-  /* 当手指上滑时，JS 会给这个 ID 添加该类来隐藏 Header */
-  .header-hidden {
-    transform: translateY(-100%);
+  /* 常驻顶栏的毛玻璃和阴影（全断点） */
+  #main-header {
+    background-color: rgba(var(--bg-color-rgb), 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(var(--button-border-color-rgb), 0.1);
   }
 </style>
 
@@ -289,8 +237,6 @@ function initMobileNav() {
   const container = document.getElementById('mobile-menu-container');
   const overlay = document.getElementById('mobile-menu-overlay');
   const drawer = document.getElementById('mobile-menu-drawer');
-  const navBar = document.getElementById('nav-bar');
-  const navBarList = document.getElementById('nav-bar-list');
 
   if (!menuButton || !container) return;
   const mobileMenuContainer = container;
@@ -323,27 +269,6 @@ function initMobileNav() {
   // 监听导航点击（点击后自动关闭）
   drawer?.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', closeMenu);
-  });
-
-  let isFixed = false;
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 0 && !isFixed && navBar && navBarList) {
-      navBar.classList.add('fixed');
-      navBarList.classList.add(
-        'border',
-        'border-[var(--button-border-color)]',
-        'shadow-[0_4px_12px_var(--shadow-color)]'
-      );
-      isFixed = true;
-    } else if (window.scrollY === 0 && isFixed && navBar && navBarList) {
-      navBar.classList.remove('fixed');
-      navBarList.classList.remove(
-        'border',
-        'border-[var(--button-border-color)]',
-        'shadow-[0_4px_12px_var(--shadow-color)]'
-      );
-      isFixed = false;
-    }
   });
 }
 
@@ -381,50 +306,6 @@ function initLanguageMenu() {
 }
 document.addEventListener('astro:page-load', initLanguageMenu);
 document.addEventListener('astro:after-swap', initLanguageMenu);
-</script>
-
-<script>
-  function initHeaderScroll() {
-    const header = document.getElementById('main-header');
-    if (!header) return;
-    const headerEl = header;
-
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-
-    function updateHeader() {
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY;
-
-      if (window.innerWidth < 776) {
-        if (currentScrollY <= 50) {
-          headerEl.classList.remove('header-hidden');
-        } 
-        else if (scrollDelta > 0 && currentScrollY > 100) {
-          headerEl.classList.add('header-hidden');
-        } 
-        else if (scrollDelta < 0) {
-          headerEl.classList.remove('header-hidden');
-        }
-      } else {
-        headerEl.classList.remove('header-hidden');
-      }
-      lastScrollY = currentScrollY;
-      ticking = false;
-    }
-
-    function onScroll() {
-      if (!ticking) {
-        window.requestAnimationFrame(updateHeader);
-        ticking = true;
-      }
-    }
-
-    window.removeEventListener('scroll', onScroll);
-    window.addEventListener('scroll', onScroll, { passive: true });
-  }
-
-  document.addEventListener('astro:page-load', initHeaderScroll);
 </script>
 
 <script>
