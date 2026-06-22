@@ -1,3 +1,1 @@
-### Add a Link Exchange
-
- If you'd like to exchange friend links, feel free to send an [email](mailto:478929164@qq.com) so we can get to know each other.
+If you'd like to exchange friend links, feel free to send an [email](mailto:478929164@qq.com) so we can get to know each other.
