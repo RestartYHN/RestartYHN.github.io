@@ -48,11 +48,11 @@ const pageTitle = `${coverTitle} - ${t("header.appreciation")} - ${siteConfig.ti
       {authors.map((author) => (
         <a
           href={`${getRelativeLocaleUrl(currentLang, `/appreciation/gallery/${author.slug}/`)}?v=${cacheVersion}`}
-          class="group block overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 hover:border-[var(--link-color)] transition-colors"
+          class="group flex items-center gap-4 rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 p-4 hover:border-[var(--link-color)] transition-colors"
         >
-          <img src={author.avatar} alt={author.name[normalizedLang]} class="w-full h-auto object-contain bg-black/5" loading="lazy" decoding="async" />
-          <div class="p-3">
-            <h3 class="text-base font-semibold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors">
+          <img src={author.avatar} alt={author.name[normalizedLang]} class="w-16 h-16 rounded-full object-cover bg-black/5 flex-shrink-0" loading="lazy" decoding="async" />
+          <div class="min-w-0">
+            <h3 class="text-base font-semibold text-[var(--text-color)] group-hover:text-[var(--link-color)] transition-colors truncate">
               {author.name[normalizedLang]}
             </h3>
             <p class="mt-1 text-sm text-[var(--text-color-70)]">
