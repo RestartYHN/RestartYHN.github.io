@@ -505,31 +505,36 @@ const cacheVersion = Date.now().toString()
   document.addEventListener('DOMContentLoaded', initTagFilter);
   document.addEventListener('astro:page-load', initTagFilter);
 
-  const bioContent = document.getElementById('artist-bio-content');
-  const bioToggle = document.getElementById('artist-bio-toggle');
+  function initBioToggle() {
+    const bioContent = document.getElementById('artist-bio-content');
+    const bioToggle = document.getElementById('artist-bio-toggle');
+    if (!bioContent || !bioToggle) return;
+    if (bioToggle.dataset.bound === 'true') return;
+    bioToggle.dataset.bound = 'true';
 
-  if (bioContent && bioToggle) {
     const isLong = bioContent.textContent !== null && bioContent.textContent.trim().length > 120;
+    if (!isLong) return;
 
-    if (isLong) {
-      bioContent.classList.add('is-collapsed');
-      bioToggle.classList.remove('hidden');
+    bioContent.classList.add('is-collapsed');
+    bioToggle.classList.remove('hidden');
 
-      bioToggle.addEventListener('click', () => {
-        const expanded = bioToggle.getAttribute('aria-expanded') === 'true';
-        bioToggle.setAttribute('aria-expanded', String(!expanded));
-        bioToggle.textContent = expanded
-          ? (document.documentElement.lang === 'en' ? 'Show more' : '展开')
-          : (document.documentElement.lang === 'en' ? 'Show less' : '收起');
+    bioToggle.addEventListener('click', () => {
+      const expanded = bioToggle.getAttribute('aria-expanded') === 'true';
+      bioToggle.setAttribute('aria-expanded', String(!expanded));
+      bioToggle.textContent = expanded
+        ? (document.documentElement.lang === 'en' ? 'Show more' : '展开')
+        : (document.documentElement.lang === 'en' ? 'Show less' : '收起');
 
-        if (expanded) {
-          bioContent.classList.add('is-collapsed');
-          bioContent.classList.remove('is-expanded');
-        } else {
-          bioContent.classList.remove('is-collapsed');
-          bioContent.classList.add('is-expanded');
-        }
-      });
-    }
+      if (expanded) {
+        bioContent.classList.add('is-collapsed');
+        bioContent.classList.remove('is-expanded');
+      } else {
+        bioContent.classList.remove('is-collapsed');
+        bioContent.classList.add('is-expanded');
+      }
+    });
   }
+
+  document.addEventListener('DOMContentLoaded', initBioToggle);
+  document.addEventListener('astro:page-load', initBioToggle);
 </script>
