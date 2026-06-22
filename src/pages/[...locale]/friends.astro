@@ -156,7 +156,23 @@ const totalPages = Math.ceil(links.length / perPage) || 1
       b.addEventListener('click', () => showPage(parseInt(b.dataset.page)));
     });
 
+    function reserveHeight() {
+      grid.style.minHeight = '';
+      const prev = currentPage;
+      showPage(0);
+      const full = grid.offsetHeight;
+      showPage(prev);
+      grid.style.minHeight = full + 'px';
+    }
+
     showPage(0);
+    reserveHeight();
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(reserveHeight, 150);
+    });
   }
 
   document.addEventListener('DOMContentLoaded', initPagination);
