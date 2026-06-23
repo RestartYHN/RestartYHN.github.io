@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import icon from 'astro-icon';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeExternalLinks from 'rehype-external-links';
 import remarkDirective from 'remark-directive';
 import rehypeComponents from "rehype-components";
 
@@ -61,6 +62,7 @@ export default defineConfig({
     ],
     rehypePlugins: [
       rehypeKatex,
+      [rehypeExternalLinks, { target: '_blank', rel: ['nofollow', 'noopener', 'noreferrer'] }],
       customFigurePlugin,
       [
         rehypeComponents,
