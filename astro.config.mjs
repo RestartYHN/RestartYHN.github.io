@@ -85,6 +85,28 @@ export default defineConfig({
     ]
   },
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        "@iconify/svelte",
+        "svelte",
+        "svelte/transition",
+        "marked",
+        "fuse.js",
+        "photoswipe",
+        "pinyin-pro",
+      ],
+    },
+    server: {
+      warmup: {
+        clientFiles: [
+          "src/layouts/Layout.astro",
+          "src/components/Header.astro",
+          "src/components/misc/GlobalMusicPlayer.astro",
+          "src/components/misc/Search.astro",
+          "src/components/control/ThemeIcon.astro",
+        ],
+      },
+    },
   }
 });
