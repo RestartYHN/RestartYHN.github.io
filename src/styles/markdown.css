@@ -747,6 +747,70 @@
     margin-left: 8px;
 }
 
+/* 文章引用卡片 */
+.card-ref {
+    display: block;
+    max-width: 480px;
+    margin: 1.2rem auto;
+    padding: 0.9rem 1.1rem;
+    border-radius: 10px;
+    border: 1px solid var(--button-border-color);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card-ref:hover {
+    border-color: var(--link-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .card-ref:hover {
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.06);
+}
+
+.ref-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.ref-card-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+}
+
+.ref-card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    line-height: 1.3;
+}
+
+.card-ref:hover .ref-card-title {
+    color: var(--link-color);
+}
+
+.ref-card-meta {
+    font-size: 0.75rem;
+    color: var(--text-color-70);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.ref-card-desc {
+    font-size: 0.82rem;
+    color: var(--text-color-70);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ref-card-desc:empty {
+    display: none;
+}
+
 .no-styling {
     text-decoration: none;
     color: inherit;

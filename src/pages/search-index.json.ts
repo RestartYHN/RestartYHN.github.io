@@ -6,12 +6,14 @@ import { i18n } from 'astro:config/client'
 interface SearchDoc {
 	id: string
 	title: string
+	description: string
 	content: string
 	bigrams: string
 	tags: string[]
 	url: string
 	type: string
 	lang: string
+	date: string
 }
 
 const RE_CJK = /[\u4e00-\u9fff\u3400-\u4dbf]/g
@@ -48,12 +50,14 @@ export async function GET() {
 		docs.push({
 			id: `post-${slugId}-${lang}`,
 			title,
+			description: post.data.description || '',
 			content,
 			bigrams: buildBigrams(title, content, tags.join(' ')),
 			tags,
 			url: `${pathPrefix(lang)}/blog/${slugId}/`,
 			type: 'post',
 			lang,
+			date: post.data.pubDate.toISOString().substring(0, 10),
 		})
 	}
 
@@ -70,12 +74,14 @@ export async function GET() {
 		docs.push({
 			id: `appreciation-${slugId}-${lang}`,
 			title,
+			description: entry.data.description || '',
 			content,
 			bigrams: buildBigrams(title, content, tags.join(' ')),
 			tags,
 			url: `${pathPrefix(lang)}/appreciation/articles/${slugId}/`,
 			type: 'appreciation',
 			lang,
+			date: entry.data.pubDate.toISOString().substring(0, 10),
 		})
 	}
 
@@ -89,12 +95,14 @@ export async function GET() {
 		docs.push({
 			id: `memo-${dateStr}-${lang}`,
 			title,
+			description: '',
 			content,
 			bigrams: buildBigrams(title, content),
 			tags: [],
 			url: `${pathPrefix(lang)}/memos/`,
 			type: 'memo',
 			lang,
+			date: '',
 		})
 	}
 
@@ -106,12 +114,14 @@ export async function GET() {
 			docs.push({
 				id: `gallery-author-${author.slug}-${lang}`,
 				title,
+				description: '',
 				content,
 				bigrams: buildBigrams(title, content),
 				tags: [],
 				url: `${pathPrefix(lang)}/appreciation/gallery/${author.slug}/`,
 				type: 'gallery-author',
 				lang,
+				date: '',
 			})
 		}
 	}
@@ -123,12 +133,14 @@ export async function GET() {
 			docs.push({
 				id: `gallery-work-${work.id}-${lang}`,
 				title,
+				description: '',
 				content,
 				bigrams: buildBigrams(title, content, tags.join(' ')),
 				tags,
 				url: work.link || `${pathPrefix(lang)}/appreciation/gallery/${work.author}/`,
 				type: 'gallery-work',
 				lang,
+				date: '',
 			})
 		}
 	}
@@ -140,12 +152,14 @@ export async function GET() {
 			docs.push({
 				id: `friend-${friend.name}-${lang}`,
 				title,
+				description: '',
 				content,
 				bigrams: buildBigrams(title, content),
 				tags: [],
 				url: friend.url,
 				type: 'friend',
 				lang,
+				date: '',
 			})
 		}
 	}
@@ -159,12 +173,14 @@ export async function GET() {
 			docs.push({
 				id: `external-${link.title['zh-cn']}-${lang}`,
 				title,
+				description: '',
 				content,
 				bigrams: buildBigrams(title, content, tags.join(' ')),
 				tags,
 				url: link.url,
 				type: 'external-link',
 				lang,
+				date: '',
 			})
 		}
 	}
