@@ -23,6 +23,9 @@ import { remarkReadingTime } from './src/plugins/remark-reading-time.mjs';
 import { remarkLqip } from './src/plugins/remark-lqip.js';
 
 import svelte from "@astrojs/svelte";
+import expressiveCode from "astro-expressive-code";
+import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
+import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 
 
 // https://astro.build/config
@@ -44,13 +47,24 @@ export default defineConfig({
       "vscode-icons": ["*"],
       "material-symbols": ["*"]
     }
-  }), svelte()],
-  markdown: {
-    shikiConfig: {
-      theme: 'one-dark-pro', // code theme
-      // theme: 'github-dark',
-      wrap: false
+  }), svelte(),
+  expressiveCode({
+    themes: ["github-light", "github-dark"],
+    plugins: [
+      pluginCollapsibleSections(),
+      pluginLineNumbers(),
+    ],
+    defaultProps: {
+      wrap: true,
     },
+    styleOverrides: {
+      borderRadius: "0.5rem",
+      codeFontFamily: "'JetBrains Mono Variable', SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      codeFontSize: "0.875rem",
+      codeLineHeight: "1.5rem",
+    },
+  })],
+  markdown: {
     remarkPlugins: [
       remarkMath,
       remarkReadingTime,
@@ -107,6 +121,13 @@ export default defineConfig({
           "src/components/control/ThemeIcon.astro",
         ],
       },
+    },
+    build: {
+      cssCodeSplit: true,
+      assetsInlineLimit: 4096,
+    },
+    esbuildOptions: {
+      drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
     },
   }
 });
