@@ -4,11 +4,9 @@ import { blogCoverUrl, getRelativeLocaleUrl } from '@utils/url-utils';
 import { formatFullDate } from '@/utils/time';
 import ImageModule from '@components/misc/ImageModule.astro';
 import { i18n } from 'astro:config/client';
-import i18nit from '@i18n/translation';
 import { Icon } from "astro-icon/components";
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
-const t = i18nit(currentLang);
 const allPosts = await getBlogEntrySort(currentLang);
 // Latest posts: strictly by pubDate desc (do not let pinned affect ordering)
 const posts = allPosts.slice().sort((a,b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);

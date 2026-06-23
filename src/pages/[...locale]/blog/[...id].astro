@@ -1,6 +1,6 @@
 ---
 import '@styles/global.css'
-import { siteConfig, licenseConfig, profileConfig } from '@/config'
+import { siteConfig, licenseConfig } from '@/config'
 import MainPageLayout from '@layouts/MainPageLayout.astro'
 import Markdown from '@components/misc/Markdown.astro'
 import ImageModule from '@components/misc/ImageModule.astro'
@@ -10,7 +10,7 @@ import LicenseCard from '@components/misc/LicenseCard.astro'
 import Comments from '@components/comment/Comments.svelte'
 import BlogNavi from '@components/control/BlogNavi.astro'
 
-import { getCollection, render } from 'astro:content'
+import { render } from 'astro:content'
 import { i18n } from "astro:config/client";
 import i18nit from '@i18n/translation'
 import { Icon } from "astro-icon/components";
@@ -33,7 +33,7 @@ export async function getStaticPaths() {
     const paths = [];
     
     for (const locale of locales) {
-        const blogEntries = await getBlogEntrySort(locale);
+        const blogEntries = await getBlogEntrySort(locale as string);
 
         for (let i = 0; i < blogEntries.length; i++) {
             const entry = blogEntries[i];

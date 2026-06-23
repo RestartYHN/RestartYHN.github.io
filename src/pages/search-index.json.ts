@@ -31,7 +31,7 @@ function buildBigrams(...parts: string[]): string {
 }
 
 export async function GET() {
-	const defaultLang = i18n.defaultLocale
+	const defaultLang = i18n!.defaultLocale
 	const docs: SearchDoc[] = []
 	const pathPrefix = (lang: string) => (lang === defaultLang ? '' : `/${lang}`)
 

@@ -1,6 +1,6 @@
 import { visit } from 'unist-util-visit';
 import { getLqipGradient } from '../utils/getLqipColors';
-import path from 'path';
+import path from 'node:path';
 
 export function remarkLqip(options = {}) {
   const { enable = true } = options;

@@ -10,7 +10,7 @@
 
     let display = '';
     let creditDisplay = '';
-    let timer: number | undefined = undefined;
+    let timer: number | undefined ;
 
     const sleep = (ms: number) => new Promise<void>((resolve) => {
         timer = window.setTimeout(resolve, ms);

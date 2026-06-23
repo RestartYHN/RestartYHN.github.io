@@ -37,7 +37,7 @@
                 const regex = /\{(.+?)\}\((.+?)\)|!!(.+?)!!|==(.+?)==|\+\+(.+?)\+\+/g;
                 const parts: string[] = [];
                 let lastIndex = 0;
-                let match;
+		let match: RegExpExecArray | null;
 
                 while ((match = regex.exec(text)) !== null) {
                         if (match.index > lastIndex) {

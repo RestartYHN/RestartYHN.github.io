@@ -16,7 +16,7 @@ function getVisiblePages(current: number, total: number) {
   const delta = 1; 
   const range = [];
   const rangeWithDots = [];
-  let l;
+  let l: any;
 
   for (let i = 1; i <= total; i++) {
     if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {

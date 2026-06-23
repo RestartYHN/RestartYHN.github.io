@@ -5,6 +5,7 @@ import Cover from '@components/Cover.astro';
 import MemoTimeline from '@components/memos/MemoTimeline.astro';
 import { siteConfig } from '@/config'
 import { getMemos } from '@utils/content-utils'
+import type { CollectionEntry } from 'astro:content'
 import i18nit from '@i18n/translation'
 import { i18n } from "astro:config/client";
 
@@ -21,7 +22,7 @@ const memosPost = await getMemos();
 if (!memosPost) {
     throw new Error('No memos post found');
 }
-const sortedMemos = memosPost.sort((a, b) => b.id.localeCompare(a.id));
+const sortedMemos = memosPost.sort((a: CollectionEntry<'memos'>, b: CollectionEntry<'memos'>) => b.id.localeCompare(a.id));
 
 const pageTitle = t("header.memos") + " - " + siteConfig.title;
 ---
@@ -31,7 +32,7 @@ const pageTitle = t("header.memos") + " - " + siteConfig.title;
         <Cover title={t("cover.title.memos")} subTitle={t("cover.subTitle.memos")} />
         
         <div class="mt-8">
-            {sortedMemos.map((memo) => (
+            {sortedMemos.map((memo: CollectionEntry<'memos'>) => (
                 <MemoTimeline memo={memo} />
             ))}
         </div>

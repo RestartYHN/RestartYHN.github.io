@@ -139,7 +139,7 @@ const cacheVersion = Date.now().toString()
                 {group.letters.map(l => (
                   <div class="tag-letter-group" data-letter={l.key}>
                     <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
-                    <div class="tag-letter-values ml-2" class:hidden={l.values.length > 3}>
+                    <div class:list={["tag-letter-values ml-2", { hidden: l.values.length > 3 }]}>
                       {l.values.map(v => (
                         <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
                           {v.val} <span class="opacity-50">({v.count})</span>
@@ -173,7 +173,7 @@ const cacheVersion = Date.now().toString()
               {group.letters.map(l => (
                 <div class="tag-letter-group-desktop" data-letter={l.key}>
                   <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
-                  <div class="tag-letter-values-desktop ml-2" class:hidden={l.values.length > 3}>
+                  <div class:list={["tag-letter-values-desktop ml-2", { hidden: l.values.length > 3 }]}>
                     {l.values.map(v => (
                       <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
                         {v.val} <span class="opacity-50">({v.count})</span>
@@ -283,24 +283,24 @@ const cacheVersion = Date.now().toString()
 </style>
 
 <script>
-  let overlayEl = null;
+  let overlayEl: HTMLDivElement | null = null;
 
   function closeOverlay() {
     if (overlayEl) {
-      document.removeEventListener('keydown', overlayEl.__keyHandler);
+      document.removeEventListener('keydown', (overlayEl as any).__keyHandler);
       overlayEl.remove();
       overlayEl = null;
     }
   }
 
-  function openGalleryPreview(imageSrc) {
+  function openGalleryPreview(imageSrc: string) {
     closeOverlay();
 
     const visibleArticles = document.querySelectorAll('#gallery-grid article:not([style*="display: none"])');
     const imgs = Array.from(visibleArticles).map(article => {
-      const img = article.querySelector('img[data-gallery-src]');
+      const img = article.querySelector<HTMLElement>('img[data-gallery-src]');
       return img ? img.dataset.gallerySrc : null;
-    }).filter(src => src);
+    }).filter(src => src) as string[];
 
     let currentIndex = imgs.indexOf(imageSrc);
     if (currentIndex === -1) currentIndex = 0;
@@ -336,7 +336,7 @@ const cacheVersion = Date.now().toString()
     const updateTransform = () => { img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`; };
     const resetTransform = () => { scale = 1; posX = 0; posY = 0; updateTransform(); };
 
-    const updateImage = (index) => {
+    const updateImage = (index: number) => {
       if(index < 0) index = imgs.length - 1;
       if(index >= imgs.length) index = 0;
       currentIndex = index;
@@ -390,7 +390,7 @@ const cacheVersion = Date.now().toString()
     overlayEl.appendChild(img);
     (document.body.parentElement || document.documentElement).appendChild(overlayEl);
 
-    const onKey = (e) => { 
+    const onKey = (e: KeyboardEvent) => { 
       if (e.key === 'Escape') closeOverlay(); 
       if (imgs.length > 1) {
         if (e.key === 'ArrowLeft') updateImage(currentIndex - 1);
@@ -398,16 +398,16 @@ const cacheVersion = Date.now().toString()
       }
     };
     document.addEventListener('keydown', onKey);
-    overlayEl.__keyHandler = onKey;
+    (overlayEl as any).__keyHandler = onKey;
   }
 
   function initGalleryPreview() {
-    const imgs = document.querySelectorAll('img[data-gallery-src]');
+    const imgs = document.querySelectorAll<HTMLElement>('img[data-gallery-src]');
     imgs.forEach(img => {
       if (img.dataset.bound === 'true') return;
       img.dataset.bound = 'true';
       img.addEventListener('click', () => {
-        openGalleryPreview(img.dataset.gallerySrc);
+        openGalleryPreview(img.dataset.gallerySrc!);
       });
     });
   }
@@ -416,7 +416,7 @@ const cacheVersion = Date.now().toString()
   document.addEventListener('astro:page-load', initGalleryPreview);
 
   function initTagFilter() {
-    const containers = [document.getElementById('tag-filter'), document.getElementById('tag-filter-desktop')].filter(Boolean);
+    const containers = [document.getElementById('tag-filter'), document.getElementById('tag-filter-desktop')].filter(Boolean) as HTMLElement[];
     if (containers.length === 0) return;
     if (containers.every(c => c.dataset.bound === 'true')) return;
 
@@ -424,7 +424,7 @@ const cacheVersion = Date.now().toString()
     unbound.forEach(c => { c.dataset.bound = 'true'; });
 
     unbound.forEach(filterBar => {
-      filterBar.querySelectorAll('[data-dim-toggle]').forEach(toggle => {
+      filterBar.querySelectorAll<HTMLElement>('[data-dim-toggle]').forEach(toggle => {
         toggle.addEventListener('click', () => {
           const dim = toggle.dataset.dimToggle;
           const suffix = filterBar.id === 'tag-filter-desktop' ? '-desktop' : '';
@@ -443,11 +443,11 @@ const cacheVersion = Date.now().toString()
       });
     });
 
-    const allBtns = containers.flatMap(c => [...c.querySelectorAll('.tag-filter-btn')]);
-    const articles = document.querySelectorAll('#gallery-grid article');
+    const allBtns = containers.flatMap(c => [...c.querySelectorAll<HTMLElement>('.tag-filter-btn')]);
+    const articles = document.querySelectorAll<HTMLElement>('#gallery-grid article');
     const selected = new Set();
     let useOr = false;
-    const modeToggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-desktop')].filter(Boolean);
+    const modeToggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-desktop')].filter(Boolean) as HTMLElement[];
 
     modeToggles.forEach(t => {
       t.addEventListener('click', () => {
@@ -460,7 +460,7 @@ const cacheVersion = Date.now().toString()
     function applyFilter() {
       containers.forEach(filterBar => {
         const allBtn = filterBar.querySelector('[data-tag=""]');
-        const tagBtns = filterBar.querySelectorAll('[data-tag]:not([data-tag=""])');
+        const tagBtns = filterBar.querySelectorAll<HTMLElement>('[data-tag]:not([data-tag=""])');
         if (!allBtn) return;
         if (selected.size === 0) {
           allBtn.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');

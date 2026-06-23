@@ -312,7 +312,7 @@
     // 防止重复提交
     if (submitting) return;
     
-    let submitAuthor, submitEmail, submitUrl, submitContent;
+    let submitAuthor: string, submitEmail: string, submitUrl: string, submitContent: string;
     
     if (replyData) {
       // 处理回复评论
@@ -383,7 +383,7 @@
   }
 
   // 删除评论后的处理函数
-  async function handleCommentDelete(e: CustomEvent) {
+  async function handleCommentDelete(_e: CustomEvent) {
     // 重新加载评论以反映删除
     await loadComments();
   }
@@ -413,7 +413,7 @@
     btn.addEventListener('click', () => {
       const taEl = ta as HTMLTextAreaElement;
       // 使用统一的全局 picker（openPicker），避免与旧的 fallback portal 冲突
-      openPicker((emoji: string, target?: HTMLElement | null) => {
+      openPicker((emoji: string, _target?: HTMLElement | null) => {
         insertEmojiToTextarea(taEl, emoji);
       }, taEl);
     });
@@ -423,7 +423,7 @@
 
   function setupFallbackInjector() {
     // inject into existing forms
-    document.querySelectorAll('#comments form').forEach((f) => addEmojiButtonToForm(f as HTMLFormElement));
+    document.querySelectorAll('#comments form').forEach((f) => { addEmojiButtonToForm(f as HTMLFormElement); });
 
     // watch for new forms (reply forms appear dynamically)
     const obs = new MutationObserver((mutations) => {
@@ -431,7 +431,7 @@
         for (const n of Array.from(m.addedNodes)) {
           if (!(n as Element).querySelector) continue;
           if ((n as Element).matches && (n as Element).matches('#comments form')) addEmojiButtonToForm(n as HTMLFormElement);
-          (n as Element).querySelectorAll && (n as Element).querySelectorAll('#comments form').forEach((f) => addEmojiButtonToForm(f as HTMLFormElement));
+          (n as Element).querySelectorAll && (n as Element).querySelectorAll('#comments form').forEach((f) => { addEmojiButtonToForm(f as HTMLFormElement); });
         }
       }
     });

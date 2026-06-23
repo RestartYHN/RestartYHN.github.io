@@ -185,7 +185,7 @@
     const canvas = document.getElementById("cursor-trail") as HTMLCanvasElement;
     if (!canvas) return;
     
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d")!;
     if (!ctx) return;
 
     let particles: Particle[] = [];
@@ -351,15 +351,7 @@
       return "#A5F6F7";
     }
 
-    let isMoving = false;
-    let lastX = -100;
-    let lastY = -100;
-
     function onMouseMove(e: MouseEvent) {
-      lastX = e.clientX;
-      lastY = e.clientY;
-      isMoving = true;
-      
       const spatialColor = getThemeColorAt(e.clientX, e.clientY);
       particles.push(new Particle(e.clientX, e.clientY, spatialColor));
       if (Math.random() > 0.5) {

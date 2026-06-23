@@ -18,7 +18,7 @@ const currentLang = Astro.currentLocale || i18n!.defaultLocale
 const normalizedLang = currentLang === 'en' ? 'en' : 'zh-cn'
 const t = i18nit(currentLang)
 
-const { authors, works } = loadGalleryData()
+const { authors } = loadGalleryData()
 const cacheVersion = Date.now().toString()
 
 const coverTitle = normalizedLang === 'en' ? 'Gallery' : '画廊'

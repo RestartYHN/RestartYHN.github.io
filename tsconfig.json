@@ -3,6 +3,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "allowUnreachableCode": false,
     "allowJs": false,
     "declaration": true,
     "plugins": [

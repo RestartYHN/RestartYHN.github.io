@@ -16,8 +16,6 @@ import type { Translation } from '@i18n/key';
 
 import i18nit from '@i18n/translation'
 
-const { locale = i18n!.defaultLocale } = Astro.params;
-
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
 const t = i18nit(currentLang);
 const localeContent: Translation = currentLang === "en" ? en : zhCN;

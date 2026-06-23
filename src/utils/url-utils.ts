@@ -40,11 +40,11 @@ export function blogCoverUrl(contentPath: string, blogName: string): string {
 }
 
 export function getRelativeLocaleUrl(lang: string, path: string) : string { 
-    const prefixDefaultLocale = i18n.routing.prefixDefaultLocale;
+    const prefixDefaultLocale = (i18n!.routing as { prefixDefaultLocale: boolean }).prefixDefaultLocale;
     if(prefixDefaultLocale) {
         return joinUrl("/", lang, path);
     }else {
-        if(lang === i18n.defaultLocale) return joinUrl("/", path);
+        if(lang === i18n!.defaultLocale) return joinUrl("/", path);
         return joinUrl("/", lang, path);
     }
 }

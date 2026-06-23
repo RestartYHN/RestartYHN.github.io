@@ -115,7 +115,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
               {group.letters.map(l => (
                 <div class="tag-letter-group-mobile" data-letter={l.key}>
                   <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
-                  <div class="tag-letter-values-mobile ml-2" class:hidden={l.values.length > 3}>
+                  <div class:list={["tag-letter-values-mobile ml-2", { hidden: l.values.length > 3 }]}>
                     {l.values.map(v => (
                       <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
                         {v.val} <span class="opacity-50">({v.count})</span>
@@ -188,7 +188,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
               {group.letters.map(l => (
                 <div class="tag-letter-group" data-letter={l.key}>
                   <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
-                  <div class="tag-letter-values ml-2" class:hidden={l.values.length > 3}>
+                  <div class:list={["tag-letter-values ml-2", { hidden: l.values.length > 3 }]}>
                     {l.values.map(v => (
                       <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
                         {v.val} <span class="opacity-50">({v.count})</span>
@@ -206,24 +206,24 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 </MainPageLayout>
 
 <script>
-  let overlayEl = null;
+  let overlayEl: HTMLDivElement | null = null;
 
   function closeOverlay() {
     if (overlayEl) {
-      document.removeEventListener('keydown', overlayEl.__keyHandler);
+      document.removeEventListener('keydown', (overlayEl as any).__keyHandler);
       overlayEl.remove();
       overlayEl = null;
     }
   }
 
-  function openGalleryPreview(imageSrc) {
+  function openGalleryPreview(imageSrc: string) {
     closeOverlay();
 
     const visibleArticles = document.querySelectorAll('#gallery-grid article:not([style*="display: none"])');
     const imgs = Array.from(visibleArticles).map(article => {
-      const img = article.querySelector('img[data-gallery-src]');
+      const img = article.querySelector<HTMLElement>('img[data-gallery-src]');
       return img ? img.dataset.gallerySrc : null;
-    }).filter(src => src);
+    }).filter(src => src) as string[];
 
     let currentIndex = imgs.indexOf(imageSrc);
     if (currentIndex === -1) currentIndex = 0;
@@ -259,7 +259,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
     const updateTransform = () => { img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`; };
     const resetTransform = () => { scale = 1; posX = 0; posY = 0; updateTransform(); };
 
-    const updateImage = (index) => {
+    const updateImage = (index: number) => {
       if(index < 0) index = imgs.length - 1;
       if(index >= imgs.length) index = 0;
       currentIndex = index;
@@ -288,7 +288,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
     overlayEl.appendChild(img);
     (document.body.parentElement || document.documentElement).appendChild(overlayEl);
-    const onKey = (e) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeOverlay();
       if (imgs.length > 1) {
         if (e.key === 'ArrowLeft') updateImage(currentIndex - 1);
@@ -296,14 +296,14 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
       }
     };
     document.addEventListener('keydown', onKey);
-    overlayEl.__keyHandler = onKey;
+    (overlayEl as any).__keyHandler = onKey;
   }
 
   function initGalleryPreview() {
-    document.querySelectorAll('img[data-gallery-src]').forEach(img => {
+    document.querySelectorAll<HTMLElement>('img[data-gallery-src]').forEach(img => {
       if (img.dataset.bound === 'true') return;
       img.dataset.bound = 'true';
-      img.addEventListener('click', () => openGalleryPreview(img.dataset.gallerySrc));
+      img.addEventListener('click', () => openGalleryPreview(img.dataset.gallerySrc!));
     });
   }
 
@@ -311,7 +311,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
   document.addEventListener('astro:page-load', initGalleryPreview);
 
   function initTagFilter() {
-    const containers = [document.getElementById('tag-filter'), document.getElementById('tag-filter-mobile')].filter(Boolean);
+    const containers = [document.getElementById('tag-filter'), document.getElementById('tag-filter-mobile')].filter(Boolean) as HTMLElement[];
     if (containers.length === 0) return;
     if (containers.every(c => c.dataset.bound === 'true')) return;
 
@@ -319,7 +319,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
     unbound.forEach(c => { c.dataset.bound = 'true'; });
 
     unbound.forEach(filterBar => {
-      filterBar.querySelectorAll('[data-dim-toggle]').forEach(toggle => {
+      filterBar.querySelectorAll<HTMLElement>('[data-dim-toggle]').forEach(toggle => {
         toggle.addEventListener('click', () => {
           const dim = toggle.dataset.dimToggle;
           const cls = filterBar.id === 'tag-filter-mobile' ? '.tag-dim-group-mobile' : '.tag-dim-group';
@@ -339,12 +339,12 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
       });
     });
 
-    const allBtns = containers.flatMap(c => [...c.querySelectorAll('.tag-filter-btn')]);
-    const articles = document.querySelectorAll('#gallery-grid article');
+    const allBtns = containers.flatMap(c => [...c.querySelectorAll<HTMLElement>('.tag-filter-btn')]);
+    const articles = document.querySelectorAll<HTMLElement>('#gallery-grid article');
     const selected = new Set();
     let useOr = false;
-    const countEls = [document.getElementById('selected-count'), document.getElementById('selected-count-mobile')].filter(Boolean);
-    const modeToggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-mobile')].filter(Boolean);
+    const countEls = [document.getElementById('selected-count'), document.getElementById('selected-count-mobile')].filter(Boolean) as HTMLElement[];
+    const modeToggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-mobile')].filter(Boolean) as HTMLElement[];
 
     modeToggles.forEach(t => {
       t.addEventListener('click', () => {
@@ -357,7 +357,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
     function applyFilter() {
       containers.forEach(filterBar => {
         const allBtn = filterBar.querySelector('[data-tag=""]');
-        const tagBtns = filterBar.querySelectorAll('[data-tag]:not([data-tag=""])');
+        const tagBtns = filterBar.querySelectorAll<HTMLElement>('[data-tag]:not([data-tag=""])');
         if (!allBtn) return;
 
         if (selected.size === 0) {

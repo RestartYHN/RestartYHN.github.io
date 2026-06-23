@@ -17,7 +17,7 @@ const t = i18nit(currentLang);
 
 
 // 获取当前页面在不同语言下的路径
-const getLocalePath = (path: string, targetLocale: string) => {
+const getLocalePath = (_path: string, targetLocale: string) => {
   const currentPath = Astro.url.pathname;
   const defaultLocale = i18n?.defaultLocale || "zh-cn";
   
@@ -321,7 +321,7 @@ document.addEventListener('astro:after-swap', initLanguageMenu);
 
     function updateBtnState() {
       const enabled = localStorage.getItem('momo-cursor-enabled') !== 'false';
-      btn.classList.toggle('cursor-disabled', !enabled);
+      btn!.classList.toggle('cursor-disabled', !enabled);
     }
 
     updateBtnState();

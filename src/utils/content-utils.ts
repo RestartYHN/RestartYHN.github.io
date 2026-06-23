@@ -14,7 +14,7 @@ export type BlogEntryWithLocaleStatus = CollectionEntry<'blog'> & {
 };
 
 export async function getBlogEntrySort(
-  lang: string,
+  lang?: string,
   filter?: (entry: CollectionEntry<'blog'>) => boolean | undefined,
   sort?: (a: CollectionEntry<'blog'>, b: CollectionEntry<'blog'>) => number
 ): Promise<BlogEntryWithLocaleStatus[]> { // 修改返回类型
@@ -36,7 +36,7 @@ export async function getBlogEntrySort(
   const blogEntries = await getCollection('blog', filter || defaultFilter);
 
   const grouped = new Map<string, Record<string, CollectionEntry<'blog'>>>();
-  const defaultLanguage = i18n.defaultLocale;
+  const defaultLanguage = i18n!.defaultLocale;
 
   for (const post of blogEntries) {
     const parts = post.id.split('/');
@@ -86,7 +86,7 @@ export async function getSpec(
     lang: string,
     spec: string
 ) {
-    const defaultLanguage = i18n.defaultLocale;
+    const defaultLanguage = i18n!.defaultLocale;
     let collection = await getEntry('spec', `${spec}/${lang}`)
     if(!collection) collection = await getEntry('spec', `${spec}/${defaultLanguage}`);
     return collection;
@@ -97,8 +97,8 @@ export type AppreciationEntryWithLocaleStatus = CollectionEntry<'appreciation'> 
 };
 
 export async function getAppreciationEntrySort(lang: string) {
-  const defaultLanguage = i18n.defaultLocale;
-  const entries = await getCollection('appreciation', ({ data }) => {
+  const defaultLanguage = i18n!.defaultLocale;
+  const entries = await getCollection('appreciation', ({ data }: CollectionEntry<'appreciation'>) => {
     return import.meta.env.PROD ? data.draft !== true : true;
   });
 

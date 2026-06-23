@@ -17,7 +17,7 @@ const className = Astro.props.class
     const spoilers = document.querySelectorAll('.spoiler');
     
     spoilers.forEach(el => {
-      let timeoutId = null;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
       let clickTime = 0;
 
       el.addEventListener('click', () => {
@@ -122,12 +122,12 @@ const className = Astro.props.class
     const blocks = document.querySelectorAll("pre");
 
     blocks.forEach((block) => {
-      if (block.parentElement.classList.contains("code-block-wrapper")) return;
+      if (block.parentElement!.classList.contains("code-block-wrapper")) return;
 
       const wrapper = document.createElement("div");
       wrapper.className = "code-block-wrapper";
 
-      block.parentNode.insertBefore(wrapper, block);
+      block.parentNode!.insertBefore(wrapper, block);
       wrapper.appendChild(block);
 
       const button = document.createElement("button");

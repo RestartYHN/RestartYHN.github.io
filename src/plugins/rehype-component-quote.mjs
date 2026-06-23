@@ -12,7 +12,7 @@ export function QuoteComponent(properties, children) {
         return h("div", { class: "hidden" }, "Invalid quote content");
     }
 
-    let currentChildren = properties?.["has-directive-label"] ? children.slice(1) : children;
+    const currentChildren = properties?.["has-directive-label"] ? children.slice(1) : children;
 
     const processNodes = (nodes) => {
         return nodes.flatMap((node, index) => {

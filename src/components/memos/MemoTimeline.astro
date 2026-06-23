@@ -2,7 +2,6 @@
 import { render } from 'astro:content'
 import { formatFullDate, formatFullDateTime } from '@/utils/time'
 import { i18n } from "astro:config/client";
-import i18nit from '@i18n/translation'
 
 import MemoCardSvelte from './MemoCard.svelte'
 import Markdown from '@components/misc/Markdown.astro'
@@ -10,7 +9,6 @@ import Markdown from '@components/misc/Markdown.astro'
 const { memo } = Astro.props;
 
 const currentLang = Astro.currentLocale || i18n!.defaultLocale;
-const t = i18nit(currentLang);
 
 const dateStr = memo.id;
 const { Content } = await render(memo);
@@ -18,9 +16,7 @@ const { Content } = await render(memo);
 const d = dateStr.split(/[tT]/)[0].split('-').map(Number);
 const timeMatch = dateStr.match(/[tT](\d{2})(\d{2})$/);
 let dateFormatted: string;
-let hasTime = false;
 if (timeMatch && d.length === 3 && !isNaN(d[2])) {
-  hasTime = true;
   const hh = Number(timeMatch[1]), mm = Number(timeMatch[2]);
   dateFormatted = formatFullDateTime(new Date(d[0], d[1] - 1, d[2], hh, mm), currentLang);
 } else {
