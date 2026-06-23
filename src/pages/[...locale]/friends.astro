@@ -159,10 +159,13 @@ const totalPages = Math.ceil(links.length / perPage) || 1
     function reserveHeight() {
       grid.style.minHeight = '';
       const prev = currentPage;
-      showPage(0);
-      const full = grid.offsetHeight;
+      let max = 0;
+      for (let p = 0; p < totalPages; p++) {
+        showPage(p);
+        max = Math.max(max, grid.offsetHeight);
+      }
       showPage(prev);
-      grid.style.minHeight = full + 'px';
+      grid.style.minHeight = max + 'px';
     }
 
     showPage(0);
