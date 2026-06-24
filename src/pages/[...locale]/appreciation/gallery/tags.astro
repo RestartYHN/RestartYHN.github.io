@@ -424,7 +424,12 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
     function updateUI(hidden) {
       grid.classList.toggle('hide-card-tags', hidden);
       const label = document.documentElement.lang === 'en' ? (hidden ? 'Show' : 'Hide') : (hidden ? '显示' : '隐藏');
-      btns.forEach(b => { b.textContent = label; b.dataset.hidden = String(hidden); });
+      btns.forEach(b => {
+        b.textContent = label;
+        b.classList.toggle('bg-[var(--link-color)]', hidden);
+        b.classList.toggle('text-white', hidden);
+        b.classList.toggle('border-[var(--link-color)]', hidden);
+      });
     }
 
     const hidden = localStorage.getItem(STORAGE_KEY) === 'true';
@@ -439,7 +444,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
     });
   }
 
-  document.addEventListener('DOMContentLoaded', initCardTagToggle);
+  initCardTagToggle();
   document.addEventListener('astro:page-load', initCardTagToggle);
 </script>
 
