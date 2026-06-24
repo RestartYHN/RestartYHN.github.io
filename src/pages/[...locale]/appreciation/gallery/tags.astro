@@ -85,22 +85,38 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
   <script is:inline>
-    window.toggleCardText = function(btn) {
-      var grid = document.getElementById('gallery-grid');
-      if (!grid) return;
-      var cards = grid.querySelectorAll('.card-text');
-      var hidden = cards.length > 0 && cards[0].style.display === 'none';
-      for (var i = 0; i < cards.length; i++) cards[i].style.display = hidden ? '' : 'none';
-      var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
-      var label = document.documentElement.lang === 'en' ? (!hidden ? 'Hide' : 'Show') : (!hidden ? '隐藏' : '显示');
-      for (var j = 0; j < btns.length; j++) {
-        btns[j].textContent = label;
-        btns[j].classList.toggle('bg-[var(--link-color)]', !hidden);
-        btns[j].classList.toggle('text-white', !hidden);
-        btns[j].classList.toggle('border-[var(--link-color)]', !hidden);
+    (function() {
+      var STORAGE_KEY = 'momo-gallery-hide-card-tags';
+      window.toggleCardText = function(btn) {
+        var grid = document.getElementById('gallery-grid');
+        if (!grid) return;
+        var cards = grid.querySelectorAll('.card-text');
+        var hidden = cards.length > 0 && cards[0].style.display === 'none';
+        for (var i = 0; i < cards.length; i++) cards[i].style.display = hidden ? '' : 'none';
+        updateBtns(!hidden);
+      };
+      function updateBtns(hidden) {
+        var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
+        var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
+        for (var j = 0; j < btns.length; j++) {
+          btns[j].textContent = label;
+          btns[j].classList.toggle('bg-[var(--link-color)]', hidden);
+          btns[j].classList.toggle('text-white', hidden);
+          btns[j].classList.toggle('border-[var(--link-color)]', hidden);
+        }
+        localStorage.setItem(STORAGE_KEY, String(hidden));
       }
-      localStorage.setItem('momo-gallery-hide-card-tags', String(!hidden));
-    };
+      deferInit();
+      function deferInit() {
+        var grid = document.getElementById('gallery-grid');
+        if (!grid) { setTimeout(deferInit, 10); return; }
+        var hidden = localStorage.getItem(STORAGE_KEY) === 'true';
+        if (hidden) {
+          grid.querySelectorAll('.card-text').forEach(function(c) { c.style.display = 'none'; });
+        }
+        updateBtns(hidden);
+      }
+    })();
   </script>
   <div class="mx-auto w-full max-w-[var(--page-width)]">
     <div class="mb-4">
@@ -433,23 +449,4 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
   document.addEventListener('DOMContentLoaded', initTagFilter);
   document.addEventListener('astro:page-load', initTagFilter);
-
-  function initCardTagToggle() {
-    const hidden = localStorage.getItem('momo-gallery-hide-card-tags') === 'true';
-    if (hidden) {
-      const grid = document.getElementById('gallery-grid');
-      if (grid) {
-        grid.querySelectorAll('.card-text').forEach(c => { c.style.display = 'none'; });
-        const btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
-        const label = document.documentElement.lang === 'en' ? 'Show' : '显示';
-        btns.forEach(b => {
-          b.textContent = label;
-          b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-        });
-      }
-    }
-  }
-
-  initCardTagToggle();
-  document.addEventListener('astro:page-load', initCardTagToggle);
 </script>
