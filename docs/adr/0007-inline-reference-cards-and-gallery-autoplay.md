@@ -1,10 +1,10 @@
 # ADR 0007：行内引用卡片、外链新标签页与画廊自动播放（多条目合集）
 
 - 状态：已采纳并验收（2026-06-24）
-- 范围：新增 `::blog` / `::appreciation` 行内引用卡片、search-index 数据补全、Markdown 外链新标签页、画廊大图自动播放、首页随机鉴赏卡片、`^text{color}^` 颜色高亮语法、评论预览扩展语法、音乐/专辑卡片半透明、播放器 insertNext UI 刷新
+- 范围：新增 `::blog` / `::appreciation` 行内引用卡片、search-index 数据补全、Markdown 外链新标签页、画廊大图自动播放、首页随机鉴赏卡片、`^text{color}^` 颜色高亮语法、评论预览扩展语法、音乐/专辑卡片半透明、播放器 insertNext UI 刷新、画廊卡片文字隐藏（纯图模式）、AND/OR 筛选模式 localStorage 持久化
 - 相关代码：
   - 新建：`src/plugins/rehype-component-blog-card.mjs`、`src/plugins/rehype-component-appreciation-card.mjs`
-  - 修改：`src/pages/search-index.json.ts`、`astro.config.mjs`、`src/styles/markdown.css`、`src/content/blog/guide/zh-cn.md`、`src/pages/[...locale]/appreciation/gallery/[author].astro`、`src/pages/[...locale]/[...page].astro`、`src/plugins/remark-combined.mjs`、`src/utils/markdown.ts`、`src/components/comment/CommentItem.svelte`、`src/components/comment/QAList.svelte`、`src/components/misc/GlobalMusicPlayer.astro`、`src/layouts/Layout.astro`
+  - 修改：`src/pages/search-index.json.ts`、`astro.config.mjs`、`src/styles/markdown.css`、`src/content/blog/guide/zh-cn.md`、`src/pages/[...locale]/appreciation/gallery/[author].astro`、`src/pages/[...locale]/appreciation/gallery/tags.astro`、`src/pages/[...locale]/appreciation/gallery.astro`、`src/pages/[...locale]/[...page].astro`、`src/plugins/remark-combined.mjs`、`src/utils/markdown.ts`、`src/components/comment/CommentItem.svelte`、`src/components/comment/QAList.svelte`、`src/components/ArchivePanel.svelte`、`src/components/misc/GlobalMusicPlayer.astro`、`src/layouts/Layout.astro`、`src/styles/global.css`
   - 依赖：`rehype-external-links@3.0.0`
 
 ---
@@ -242,5 +242,39 @@ Markdown 不支持特定颜色字体。已有的 `==彩虹渐变==` 是炫彩渐
 **在 Astro 组件中做 DOM 显隐，别走 CSS class 路由。** Scoped style + 动态 class 是一组经典不兼容组合——CSS 在编译期锁定作用域，class 在运行时改变，两者靠不到一起去。直接 `el.style.display = 'none'` 是最短路径。
 
 **模块脚本 ≠ 全局脚本。** Astro 的 `<script>` 块是 ES 模块，`onclick="fn()"` 拿不到模块顶层函数。要么用 `window.fn =` 暴露，要么用 `addEventListener` + 确保元素存在。前者简单粗暴但有效。
+
+**SPA 状态持久化的可靠模式。** 经过 8 次迭代才总结出有效模式：Layout.astro `<head>` 设 `<html>` class（防 FOUC）+ `global.css` 写显隐规则 + 底部模块脚本 `astro:page-load` 恢复状态 + `addEventListener` 绑定按钮。`?v=` 等缓存破坏参数会打破 SPA URL 稳定性，直接断状态。现存系统中所有 `?v=` 和 `cacheVersion` 已清理。
+
+**参考已有稳定实现。** AND/OR 的 localStorage 持久化是本条目开发的参照基准——其 `addEventListener` + 模块脚本 + `astro:page-load` 组合在 SPA 下可靠。未知模式下不要独创，先找系统中已验证的同类模式照搬。
+
+---
+
+## 0007-12：AND/OR 筛选模式 localStorage 持久化（全站统一）
+
+### 背景
+
+画廊、博客归档、鉴赏文章归档三处的 AND/OR 筛选模式在页面跳转后重置为 AND，需每次重新切换。
+
+### 决策
+
+- 画廊页沿用 `momo-gallery-filter-mode` key
+- `ArchivePanel.svelte` 按 `baseUrl` 派生独立 key（`momo-filter-mode-blog` / `momo-filter-mode-appreciation-articles`），与画廊互不干扰
+- 初始化从 localStorage 读取，点击时写入；按钮文字和底色与 AND/OR 状态同步
+
+### 教训
+
+不同内容上下文的用户偏好应独立存储——画廊的 OR 模式不代表博客归档也要 OR。用同一 key 会导致意外的跨页面"联动"。按 baseUrl 或页面路径派生 key 是最简方案。
+
+---
+
+## 0007-13：综合评估（最终版）
+
+| 维度 | 决策 |
+|---|---|
+| 不走"大重构" | 不拆组件、不改目录结构，纯加功能/加样式/修 bug |
+| 新依赖 | `rehype-external-links` — 成熟库 |
+| DOM 操作原则 | 优先用 `style.display` 或 `<html>` class + CSS，避免 Astro scoped style 兼容问题 |
+| SPA 持久化 | Layout.astro head + global.css + 模块脚本 astro:page-load |
+| 缓存破坏 | 已清理全部 `?v=` 和 `cacheVersion` 死代码——在 SPA 站上有害无益 |
 
 **功能开发要"先跑通、再打磨"。** 本条目经历了 CSS → classList → style → onclick scope 四次推倒重来，每次都是技术选型问题而非需求问题。如果一开始就用 `style.display` + `window.fn`，一次就能过。
