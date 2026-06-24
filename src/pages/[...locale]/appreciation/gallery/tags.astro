@@ -103,7 +103,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
         <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
         <span id="selected-count-mobile" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
         <div class="ml-auto flex items-center gap-1">
-          <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">隐藏</button>
+          <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="toggleCardText(this);event.preventDefault(); event.stopPropagation();">显示</button>
           <button id="filter-mode-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
         </div>
       </summary>
@@ -180,7 +180,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
             <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
           </h3>
           <div class="flex items-center gap-1">
-            <button id="tag-hide-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">隐藏</button>
+            <button id="tag-hide-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors" onclick="toggleCardText(this);event.stopPropagation()">显示</button>
             <button id="filter-mode-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
           </div>
         </div>
@@ -417,34 +417,19 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
   document.addEventListener('astro:page-load', initTagFilter);
 
   function initCardTagToggle() {
-    const STORAGE_KEY = 'momo-gallery-hide-card-tags';
-    const grid = document.getElementById('gallery-grid');
-    if (!grid) return;
-    const btns = [document.getElementById('tag-hide-toggle-desktop'), document.getElementById('tag-hide-toggle-mobile')].filter(Boolean);
-
-    function updateUI(hidden) {
-      const cards = grid.querySelectorAll('.card-text');
-      cards.forEach(c => { c.style.display = hidden ? 'none' : ''; });
-      const label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
-      btns.forEach(b => {
-        b.textContent = label;
-        b.classList.toggle('bg-[var(--link-color)]', hidden);
-        b.classList.toggle('text-white', hidden);
-        b.classList.toggle('border-[var(--link-color)]', hidden);
-      });
+    const hidden = localStorage.getItem('momo-gallery-hide-card-tags') === 'true';
+    if (hidden) {
+      const grid = document.getElementById('gallery-grid');
+      if (grid) {
+        grid.querySelectorAll('.card-text').forEach(c => { c.style.display = 'none'; });
+        const btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
+        const label = document.documentElement.lang === 'en' ? 'Show' : '显示';
+        btns.forEach(b => {
+          b.textContent = label;
+          b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+        });
+      }
     }
-
-    const hidden = localStorage.getItem(STORAGE_KEY) === 'true';
-    updateUI(hidden);
-
-    btns.forEach(b => {
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const now = [...grid.querySelectorAll('.card-text')].some(c => c.style.display === 'none');
-        localStorage.setItem(STORAGE_KEY, String(!now));
-        updateUI(!now);
-      });
-    });
   }
 
   initCardTagToggle();

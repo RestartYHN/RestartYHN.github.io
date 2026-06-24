@@ -127,7 +127,7 @@ const cacheVersion = Date.now().toString()
           <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
           <span id="selected-count" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
           <div class="ml-auto flex items-center gap-1">
-            <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">隐藏</button>
+            <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="toggleCardText(this);event.preventDefault();event.stopPropagation();">显示</button>
             <button id="filter-mode-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
           </div>
         </summary>
@@ -165,7 +165,7 @@ const cacheVersion = Date.now().toString()
             {normalizedLang === 'en' ? 'Tags' : '标签'}
           </h3>
           <div class="flex items-center gap-1">
-            <button id="tag-hide-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">隐藏</button>
+            <button id="tag-hide-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors" onclick="toggleCardText(this);event.stopPropagation()">显示</button>
             <button id="filter-mode-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
           </div>
         </div>
@@ -634,35 +634,37 @@ const cacheVersion = Date.now().toString()
   document.addEventListener('DOMContentLoaded', initBioToggle);
   document.addEventListener('astro:page-load', initBioToggle);
 
-  function initCardTagToggle() {
-    const STORAGE_KEY = 'momo-gallery-hide-card-tags';
+  function toggleCardText(btn) {
     const grid = document.getElementById('gallery-grid');
     if (!grid) return;
-    const btns = [document.getElementById('tag-hide-toggle'), document.getElementById('tag-hide-toggle-mobile')].filter(Boolean);
-
-    function updateUI(hidden) {
-      const cards = grid.querySelectorAll('.card-text');
-      cards.forEach(c => { c.style.display = hidden ? 'none' : ''; });
-      const label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
-      btns.forEach(b => {
-        b.textContent = label;
-        b.classList.toggle('bg-[var(--link-color)]', hidden);
-        b.classList.toggle('text-white', hidden);
-        b.classList.toggle('border-[var(--link-color)]', hidden);
-      });
-    }
-
-    const hidden = localStorage.getItem(STORAGE_KEY) === 'true';
-    updateUI(hidden);
-
+    const cards = grid.querySelectorAll('.card-text');
+    const hidden = cards.length > 0 && cards[0].style.display === 'none';
+    cards.forEach(c => { c.style.display = hidden ? '' : 'none'; });
+    const btns = document.querySelectorAll('#tag-hide-toggle, #tag-hide-toggle-mobile');
+    const label = document.documentElement.lang === 'en' ? (!hidden ? 'Hide' : 'Show') : (!hidden ? '隐藏' : '显示');
     btns.forEach(b => {
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const now = [...grid.querySelectorAll('.card-text')].some(c => c.style.display === 'none');
-        localStorage.setItem(STORAGE_KEY, String(!now));
-        updateUI(!now);
-      });
+      b.textContent = label;
+      b.classList.toggle('bg-[var(--link-color)]', !hidden);
+      b.classList.toggle('text-white', !hidden);
+      b.classList.toggle('border-[var(--link-color)]', !hidden);
     });
+    localStorage.setItem('momo-gallery-hide-card-tags', String(!hidden));
+  }
+
+  function initCardTagToggle() {
+    const hidden = localStorage.getItem('momo-gallery-hide-card-tags') === 'true';
+    if (hidden) {
+      const grid = document.getElementById('gallery-grid');
+      if (grid) {
+        grid.querySelectorAll('.card-text').forEach(c => { c.style.display = 'none'; });
+        const btns = document.querySelectorAll('#tag-hide-toggle, #tag-hide-toggle-mobile');
+        const label = document.documentElement.lang === 'en' ? 'Show' : '显示';
+        btns.forEach(b => {
+          b.textContent = label;
+          b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
+        });
+      }
+    }
   }
 
   initCardTagToggle();
