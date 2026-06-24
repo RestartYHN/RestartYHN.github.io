@@ -1149,6 +1149,8 @@ import { musicConfig } from '@/data/music';
         target = (Number.isFinite(state.currentIndex) ? state.currentIndex : -1) + 1;
         state.tracks = state.tracks.slice(0, target).concat([track], state.tracks.slice(target));
       }
+      renderPlaylistModal();
+      refreshBoundUI();
       emitChange();
       return target;
     }
