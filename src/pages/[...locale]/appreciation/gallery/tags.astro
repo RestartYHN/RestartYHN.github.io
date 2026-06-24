@@ -85,40 +85,32 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
   <script is:inline>
-    (function() {
-      var STORAGE_KEY = 'momo-gallery-hide-card-tags';
-      window.toggleCardText = function(btn) {
-        var grid = document.getElementById('gallery-grid');
-        if (!grid) return;
-        var cards = grid.querySelectorAll('.card-text');
-        var isHidden = cards.length > 0 && cards[0].style.display === 'none';
-        for (var i = 0; i < cards.length; i++) cards[i].style.display = isHidden ? '' : 'none';
-        var next = !isHidden;
-        localStorage.setItem(STORAGE_KEY, String(next));
-        updateBtns(next);
-      };
-      function updateBtns(hidden) {
-        var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
-        var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
-        for (var j = 0; j < btns.length; j++) {
-          btns[j].textContent = label;
-          btns[j].classList.toggle('bg-[var(--link-color)]', hidden);
-          btns[j].classList.toggle('text-white', hidden);
-          btns[j].classList.toggle('border-[var(--link-color)]', hidden);
-        }
+    if (localStorage.getItem('momo-gallery-hide-cards') === 'true') {
+      document.documentElement.classList.add('gallery-hide-cards');
+    }
+    window.toggleCardText = function() {
+      var hidden = document.documentElement.classList.toggle('gallery-hide-cards');
+      localStorage.setItem('momo-gallery-hide-cards', String(hidden));
+      var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
+      var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
+      for (var j = 0; j < btns.length; j++) {
+        btns[j].textContent = label;
+        btns[j].classList.toggle('bg-[var(--link-color)]', hidden);
+        btns[j].classList.toggle('text-white', hidden);
+        btns[j].classList.toggle('border-[var(--link-color)]', hidden);
       }
-      function init() {
-        var hidden = localStorage.getItem(STORAGE_KEY) === 'true';
-        var grid = document.getElementById('gallery-grid');
-        if (!grid) { requestAnimationFrame(init); return; }
-        if (hidden) {
-          var cards = grid.querySelectorAll('.card-text');
-          for (var i = 0; i < cards.length; i++) cards[i].style.display = 'none';
-        }
-        updateBtns(hidden);
+    };
+    setTimeout(function() {
+      var hidden = document.documentElement.classList.contains('gallery-hide-cards');
+      var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
+      var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
+      for (var j = 0; j < btns.length; j++) {
+        btns[j].textContent = label;
+        btns[j].classList.toggle('bg-[var(--link-color)]', hidden);
+        btns[j].classList.toggle('text-white', hidden);
+        btns[j].classList.toggle('border-[var(--link-color)]', hidden);
       }
-      requestAnimationFrame(init);
-    })();
+    }, 0);
   </script>
   <div class="mx-auto w-full max-w-[var(--page-width)]">
     <div class="mb-4">
@@ -139,7 +131,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
         <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
         <span id="selected-count-mobile" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
         <div class="ml-auto flex items-center gap-1">
-          <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="toggleCardText(this);event.preventDefault(); event.stopPropagation();">显示</button>
+          <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="toggleCardText();event.preventDefault();event.stopPropagation();">显示</button>
           <button id="filter-mode-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
         </div>
       </summary>
@@ -216,7 +208,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
             <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
           </h3>
           <div class="flex items-center gap-1">
-            <button id="tag-hide-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors" onclick="toggleCardText(this);event.stopPropagation()">显示</button>
+            <button id="tag-hide-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors" onclick="toggleCardText()">显示</button>
             <button id="filter-mode-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
           </div>
         </div>
@@ -452,3 +444,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
   document.addEventListener('DOMContentLoaded', initTagFilter);
   document.addEventListener('astro:page-load', initTagFilter);
 </script>
+
+<style is:global>
+  .gallery-hide-cards .card-text { display: none !important; }
+</style>
