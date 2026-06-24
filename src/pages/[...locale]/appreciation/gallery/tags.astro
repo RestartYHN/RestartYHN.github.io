@@ -423,7 +423,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
     function updateUI(hidden) {
       grid.classList.toggle('hide-card-tags', hidden);
-      const label = document.documentElement.lang === 'en' ? (hidden ? 'Show' : 'Hide') : (hidden ? '显示' : '隐藏');
+      const label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
       btns.forEach(b => {
         b.textContent = label;
         b.classList.toggle('bg-[var(--link-color)]', hidden);
