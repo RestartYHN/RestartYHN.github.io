@@ -6,7 +6,7 @@ export function remarkCombined() {
     if (!text) return [];
 
     // 关键修复：每个层级使用独立的正则实例，避免 lastIndex 冲突
-    const regex = /\{(.+?)\}\((.+?)\)|!!(.+?)!!|==(.+?)==|\+\+(.+?)\+\+/g;
+    const regex = /\{(.+?)\}\((.+?)\)|!!(.+?)!!|==(.+?)==|\+\+(.+?)\+\+|\^(.+?)\^/g;
     const nodes = [];
     let lastIndex = 0;
     let match;
@@ -60,6 +60,11 @@ export function remarkCombined() {
         // --- Underline (++...++) 逻辑 ---
         nodes.push({ type: 'html', value: '<span class="underline-text">' });
         nodes.push(...processText(match[5])); // 递归处理
+        nodes.push({ type: 'html', value: '</span>' });
+      } else if (match[6]) {
+        // --- Highlight (^...^) 逻辑 ---
+        nodes.push({ type: 'html', value: '<span class="highlight-mark">' });
+        nodes.push(...processText(match[6])); // 递归处理
         nodes.push({ type: 'html', value: '</span>' });
       }
 
