@@ -586,16 +586,21 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
     const allBtns = containers.flatMap(c => [...c.querySelectorAll<HTMLElement>('.tag-filter-btn')]);
     const articles = document.querySelectorAll<HTMLElement>('#gallery-grid article');
     const selected = new Set();
-    let useOr = false;
+    let useOr = localStorage.getItem('momo-gallery-filter-mode') === 'or';
     const modeToggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-desktop')].filter(Boolean) as HTMLElement[];
 
     modeToggles.forEach(t => {
       t.addEventListener('click', () => {
         useOr = !useOr;
+        localStorage.setItem('momo-gallery-filter-mode', useOr ? 'or' : 'and');
         modeToggles.forEach(b => { b.textContent = useOr ? 'OR' : 'AND'; b.classList.toggle('bg-[var(--link-color)]', useOr); b.classList.toggle('text-white', useOr); b.classList.toggle('border-[var(--link-color)]', useOr); });
         applyFilter();
       });
     });
+
+    if (useOr) {
+      modeToggles.forEach(b => { b.textContent = 'OR'; b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]'); });
+    }
 
     function applyFilter() {
       containers.forEach(filterBar => {
