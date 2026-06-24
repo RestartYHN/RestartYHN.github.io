@@ -91,9 +91,11 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
         var grid = document.getElementById('gallery-grid');
         if (!grid) return;
         var cards = grid.querySelectorAll('.card-text');
-        var hidden = cards.length > 0 && cards[0].style.display === 'none';
-        for (var i = 0; i < cards.length; i++) cards[i].style.display = hidden ? '' : 'none';
-        updateBtns(!hidden);
+        var isHidden = cards.length > 0 && cards[0].style.display === 'none';
+        for (var i = 0; i < cards.length; i++) cards[i].style.display = isHidden ? '' : 'none';
+        var next = !isHidden;
+        localStorage.setItem(STORAGE_KEY, String(next));
+        updateBtns(next);
       };
       function updateBtns(hidden) {
         var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
@@ -104,18 +106,18 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
           btns[j].classList.toggle('text-white', hidden);
           btns[j].classList.toggle('border-[var(--link-color)]', hidden);
         }
-        localStorage.setItem(STORAGE_KEY, String(hidden));
       }
-      deferInit();
-      function deferInit() {
-        var grid = document.getElementById('gallery-grid');
-        if (!grid) { setTimeout(deferInit, 10); return; }
+      function init() {
         var hidden = localStorage.getItem(STORAGE_KEY) === 'true';
+        var grid = document.getElementById('gallery-grid');
+        if (!grid) { requestAnimationFrame(init); return; }
         if (hidden) {
-          grid.querySelectorAll('.card-text').forEach(function(c) { c.style.display = 'none'; });
+          var cards = grid.querySelectorAll('.card-text');
+          for (var i = 0; i < cards.length; i++) cards[i].style.display = 'none';
         }
         updateBtns(hidden);
       }
+      requestAnimationFrame(init);
     })();
   </script>
   <div class="mx-auto w-full max-w-[var(--page-width)]">
