@@ -63,7 +63,7 @@ const appData = appreciationEntries.map(e => ({
   <HomePostCards />
   {
     appData.length > 0 && (
-      <section id="random-appreciation" class="mx-auto mt-6 mb-8 w-full max-w-[var(--page-width)]">
+      <section id="random-appreciation" data-appreciation={JSON.stringify(appData)} class="mx-auto mt-6 mb-8 w-full max-w-[var(--page-width)]">
         <div class="mb-4 flex items-end justify-between gap-3 border-b border-[var(--button-border-color)] pb-3">
           <div>
             <h2 class="text-2xl font-bold text-[var(--text-color)]">
@@ -97,13 +97,11 @@ const appData = appreciationEntries.map(e => ({
   <FabMenu showBackBottom={true} />
 </MainPageLayout>
 
-<script type="application/json" id="appreciation-data">{JSON.stringify(appData)}</script>
-
 <script is:inline>
   function initRandomAppreciation() {
-    var raw = document.getElementById('appreciation-data');
-    if (!raw) return;
-    try { var appData = JSON.parse(raw.textContent); } catch(e) { return; }
+    var section = document.getElementById('random-appreciation');
+    if (!section) return;
+    try { var appData = JSON.parse(section.dataset.appreciation); } catch(e) { return; }
     if (!appData || !appData.length) return;
     var lastIdx = -1;
 
