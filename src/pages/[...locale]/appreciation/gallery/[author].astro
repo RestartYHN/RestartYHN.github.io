@@ -94,6 +94,24 @@ const cacheVersion = Date.now().toString()
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
+  <script is:inline>
+    window.toggleCardText = function(btn) {
+      var grid = document.getElementById('gallery-grid');
+      if (!grid) return;
+      var cards = grid.querySelectorAll('.card-text');
+      var hidden = cards.length > 0 && cards[0].style.display === 'none';
+      for (var i = 0; i < cards.length; i++) cards[i].style.display = hidden ? '' : 'none';
+      var btns = document.querySelectorAll('#tag-hide-toggle, #tag-hide-toggle-mobile');
+      var label = document.documentElement.lang === 'en' ? (!hidden ? 'Hide' : 'Show') : (!hidden ? '隐藏' : '显示');
+      for (var j = 0; j < btns.length; j++) {
+        btns[j].textContent = label;
+        btns[j].classList.toggle('bg-[var(--link-color)]', !hidden);
+        btns[j].classList.toggle('text-white', !hidden);
+        btns[j].classList.toggle('border-[var(--link-color)]', !hidden);
+      }
+      localStorage.setItem('momo-gallery-hide-card-tags', String(!hidden));
+    };
+  </script>
   <div class="mx-auto w-full max-w-[var(--page-width)]" data-pagefind-body>
     <div class="mb-4">
       <a href={`${getRelativeLocaleUrl(currentLang, '/appreciation/gallery/')}?v=${cacheVersion}`} class="text-sm text-[var(--link-color)] hover:underline">
@@ -633,23 +651,6 @@ const cacheVersion = Date.now().toString()
 
   document.addEventListener('DOMContentLoaded', initBioToggle);
   document.addEventListener('astro:page-load', initBioToggle);
-
-  window.toggleCardText = function(btn) {
-    const grid = document.getElementById('gallery-grid');
-    if (!grid) return;
-    const cards = grid.querySelectorAll('.card-text');
-    const hidden = cards.length > 0 && cards[0].style.display === 'none';
-    cards.forEach(c => { c.style.display = hidden ? '' : 'none'; });
-    const btns = document.querySelectorAll('#tag-hide-toggle, #tag-hide-toggle-mobile');
-    const label = document.documentElement.lang === 'en' ? (!hidden ? 'Hide' : 'Show') : (!hidden ? '隐藏' : '显示');
-    btns.forEach(b => {
-      b.textContent = label;
-      b.classList.toggle('bg-[var(--link-color)]', !hidden);
-      b.classList.toggle('text-white', !hidden);
-      b.classList.toggle('border-[var(--link-color)]', !hidden);
-    });
-    localStorage.setItem('momo-gallery-hide-card-tags', String(!hidden));
-  }
 
   function initCardTagToggle() {
     const hidden = localStorage.getItem('momo-gallery-hide-card-tags') === 'true';
