@@ -207,4 +207,40 @@ Markdown 不支持特定颜色字体。已有的 `==彩虹渐变==` 是炫彩渐
 | 不走"大重构" | 不拆组件、不改目录结构，纯加功能/加样式/修 bug |
 | 新依赖 | `rehype-external-links` — 成熟库 |
 | 数据层改动 | search-index.json 扩字段，向下兼容 |
-| 风险 | 各改动均为独立模块：卡片复用已有端点、语法处理有 4 层覆盖验证、播放器 UI 修复有判空保护 |
+| 风险 | 各改动均为独立模块 |
+| DOM 操作原则 | 优先用 `style.display` 而非 CSS class，避免 Astro scoped style 兼容问题 |
+| 脚本作用域 | 需要从 HTML 属性调用的函数挂 `window`，Astro 的 `<script>` 是 ES 模块 |
+
+---
+
+## 0007-11：画廊卡片文字隐藏（纯图模式）
+
+### 背景
+
+鉴赏画廊的卡片下方显示标题、年份、标签，浏览大量作品时文字信息占据视觉空间。用户需要一键切换为纯图瀑布流模式。
+
+### 弯路（本条目最大的教训）
+
+这个功能迭代了 **7 次 commit**，踩了三个坑：
+
+**坑 1：CSS class 在 Astro scoped style 中不生效。** 最初用 `.hide-card-tags .card-text { display: none }` 写在组件 `<style>` 块中。但 Astro 的 scoped CSS 会给选择器加 `[data-astro-cid-xxx]` 后缀，而 `.hide-card-tags` 是通过 JS 动态添加的 class —— 与 scoped 属性选择器组合后无法命中。
+
+**坑 2：`addEventListener('click', ...)` 在模块作用域内绑定不可靠。** `initCardTagToggle()` 中通过 `addEventListener` 给按钮绑定点击事件。但函数在 `<script>` 模块内定义，依赖于 `DOMContentLoaded` 或 `astro:page-load` 时机。首次直接调用时元素可能未渲染、事件注册后页面状态不同步。
+
+**坑 3：`onclick="fn()"` 在 ES 模块脚本中找不到函数。** 尝试用 HTML 属性 `onclick` 绕过事件绑定时机问题，但 Astro 的 `<script>` 块默认编译为 ES 模块，模块顶层函数不在全局作用域。最终用 `window.toggleCardText = function(){}` 挂到 window 才解决问题。
+
+### 决策
+
+- 按钮跟随 AND/OR 模式：行内 `onclick` + 全局函数 → 按钮文字显示当前**状态**（「显示」「隐藏」）而非操作
+- 隐藏状态下按钮亮色（`bg-[var(--link-color)]`），与 AND → OR 高亮一致
+- 直接操作 `element.style.display` 而非依赖 CSS class —— 绕开 Astro scoped CSS 作用域
+- `localStorage` 持久化偏好，跨页面生效
+- 两端按钮（桌面侧栏 + 移动端折叠面板）同步，同一组按钮 ID 统一用 `querySelectorAll` 批量操作
+
+### 教训
+
+**在 Astro 组件中做 DOM 显隐，别走 CSS class 路由。** Scoped style + 动态 class 是一组经典不兼容组合——CSS 在编译期锁定作用域，class 在运行时改变，两者靠不到一起去。直接 `el.style.display = 'none'` 是最短路径。
+
+**模块脚本 ≠ 全局脚本。** Astro 的 `<script>` 块是 ES 模块，`onclick="fn()"` 拿不到模块顶层函数。要么用 `window.fn =` 暴露，要么用 `addEventListener` + 确保元素存在。前者简单粗暴但有效。
+
+**功能开发要"先跑通、再打磨"。** 本条目经历了 CSS → classList → style → onclick scope 四次推倒重来，每次都是技术选型问题而非需求问题。如果一开始就用 `style.display` + `window.fn`，一次就能过。
