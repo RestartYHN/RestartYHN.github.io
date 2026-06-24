@@ -47,6 +47,9 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
         } else {
             document.documentElement.classList.remove('dark');
         }
+        if (localStorage.getItem('momo-gallery-hide-cards') === 'true') {
+            document.documentElement.classList.add('gallery-hide-cards');
+        }
 
         // 开场动画状态判断
         if (sessionStorage.getItem('splashShown')) {

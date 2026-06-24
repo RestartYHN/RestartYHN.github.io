@@ -57,5 +57,7 @@
     background-color: var(--selection-bg-color);
     color: var(--selection-text-color);
   }
+}
+.gallery-hide-cards .card-text { display: none !important; }
 
 }
