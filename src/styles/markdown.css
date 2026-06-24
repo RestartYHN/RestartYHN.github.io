@@ -378,7 +378,7 @@
     max-width: 400px;
     margin: 1.5rem auto;
     border-radius: 12px;
-    /* box-shadow: 0 4px 12px var(--shadow-color); */
+    background: color-mix(in oklab, var(--bg-color) 45%, transparent);
     text-decoration: none;
     transition: all 0.8s ease !important; 
     border: 1px solid var(--button-border-color);
@@ -481,6 +481,7 @@
     max-width: 420px;
     margin: 1.5rem auto;
     border-radius: 12px;
+    background: color-mix(in oklab, var(--bg-color) 45%, transparent);
     text-decoration: none;
     transition: all 0.3s ease;
     border: 1px solid var(--button-border-color);
