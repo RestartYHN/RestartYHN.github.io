@@ -6,6 +6,11 @@ import HomePostCards from '@components/misc/HomePostCards.astro';
 import FabMenu from '@components/control/FabMenu.astro';
 import MusicStatsCard from '@components/misc/MusicStatsCard.astro';
 
+import { getAppreciationEntrySort } from '@utils/content-utils';
+import { blogCoverUrl, getRelativeLocaleUrl } from '@utils/url-utils';
+import { formatFullDate } from '@/utils/time';
+import ImageModule from '@components/misc/ImageModule.astro';
+
 import zhCN from '@i18n/language/zh-cn';
 import en from '@i18n/language/en';
 
@@ -49,6 +54,42 @@ const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
   />
   <FindMeCard />
   <HomePostCards />
+  {
+    randomApp && (
+      <section class="mx-auto mt-6 mb-8 w-full max-w-[var(--page-width)]">
+        <div class="mb-4 flex items-end justify-between gap-3 border-b border-[var(--button-border-color)] pb-3">
+          <div>
+            <h2 class="text-2xl font-bold text-[var(--text-color)]">
+              {currentLang === 'en' ? 'Random Appreciation' : '随机鉴赏'}
+            </h2>
+            <p class="mt-1 text-sm text-[var(--text-color-70)]">
+              {currentLang === 'en' ? 'Discover an appreciation article' : '发现一篇鉴赏文章'}
+            </p>
+          </div>
+          <a href={getRelativeLocaleUrl(currentLang, '/appreciation/articles/')} class="text-sm text-[var(--text-color-70)] transition-colors hover:text-[var(--link-color)]">
+            {currentLang === 'en' ? 'View all' : '查看全部'} →
+          </a>
+        </div>
+        <a
+          href={appUrl}
+          class="group block overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[color-mix(in_oklab,var(--bg-color)_92%,transparent)] shadow-[0_6px_16px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)] p-5"
+        >
+          <div class="mb-2 flex items-center justify-between gap-2 text-xs text-[var(--text-color-70)]">
+            <span>{formatFullDate(randomApp.data.pubDate, currentLang)}</span>
+            <span class="rounded-full bg-[var(--button-hover-color)] px-1.5 py-0.5 text-[11px]">
+              {randomApp.data.category || ''}
+            </span>
+          </div>
+          <h3 class="mb-1.5 text-base font-bold leading-snug text-[var(--text-color)] transition-colors group-hover:text-[var(--link-color)]">
+            {randomApp.data.title}
+          </h3>
+          <p class="text-xs leading-5 text-[var(--text-color-70)] line-clamp-2">
+            {randomApp.data.description}
+          </p>
+        </a>
+      </section>
+    )
+  }
   <MusicStatsCard />
   <FabMenu showBackBottom={true} />
 </MainPageLayout>
