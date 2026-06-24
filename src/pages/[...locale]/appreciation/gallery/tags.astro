@@ -85,6 +85,9 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
   <script is:inline>
+    if (localStorage.getItem('momo-gallery-hide-cards') === 'true') {
+      document.documentElement.classList.add('gallery-hide-cards');
+    }
     window.toggleCardText = function() {
       var hidden = document.documentElement.classList.toggle('gallery-hide-cards');
       localStorage.setItem('momo-gallery-hide-cards', String(hidden));
