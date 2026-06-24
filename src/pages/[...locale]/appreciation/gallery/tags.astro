@@ -84,32 +84,13 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
   <script is:inline>
-    if (localStorage.getItem('momo-gallery-hide-cards') === 'true') {
-      document.documentElement.classList.add('gallery-hide-cards');
-    }
     window.toggleCardText = function() {
       var hidden = document.documentElement.classList.toggle('gallery-hide-cards');
       localStorage.setItem('momo-gallery-hide-cards', String(hidden));
       var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
       var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
-      for (var j = 0; j < btns.length; j++) {
-        btns[j].textContent = label;
-        btns[j].classList.toggle('bg-[var(--link-color)]', hidden);
-        btns[j].classList.toggle('text-white', hidden);
-        btns[j].classList.toggle('border-[var(--link-color)]', hidden);
-      }
+      for (var j = 0; j < btns.length; j++) { btns[j].textContent = label; btns[j].classList.toggle('bg-[var(--link-color)]', hidden); btns[j].classList.toggle('text-white', hidden); btns[j].classList.toggle('border-[var(--link-color)]', hidden); }
     };
-    setTimeout(function() {
-      var hidden = document.documentElement.classList.contains('gallery-hide-cards');
-      var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
-      var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
-      for (var j = 0; j < btns.length; j++) {
-        btns[j].textContent = label;
-        btns[j].classList.toggle('bg-[var(--link-color)]', hidden);
-        btns[j].classList.toggle('text-white', hidden);
-        btns[j].classList.toggle('border-[var(--link-color)]', hidden);
-      }
-    }, 0);
   </script>
   <div class="mx-auto w-full max-w-[var(--page-width)]">
     <div class="mb-4">
@@ -447,8 +428,19 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
   document.addEventListener('DOMContentLoaded', initTagFilter);
   document.addEventListener('astro:page-load', initTagFilter);
-</script>
 
-<style is:global>
-  .gallery-hide-cards .card-text { display: none !important; }
-</style>
+  function initGalleryHide() {
+    var hidden = localStorage.getItem('momo-gallery-hide-cards') === 'true';
+    document.documentElement.classList.toggle('gallery-hide-cards', hidden);
+    var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
+    var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].textContent = label;
+      btns[j].classList.toggle('bg-[var(--link-color)]', hidden);
+      btns[j].classList.toggle('text-white', hidden);
+      btns[j].classList.toggle('border-[var(--link-color)]', hidden);
+    }
+  }
+  initGalleryHide();
+  document.addEventListener('astro:page-load', initGalleryHide);
+</script>

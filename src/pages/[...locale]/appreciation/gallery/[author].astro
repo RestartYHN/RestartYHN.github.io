@@ -94,7 +94,6 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
   <script is:inline>
-    if (localStorage.getItem('momo-gallery-hide-cards') === 'true') document.documentElement.classList.add('gallery-hide-cards');
     window.toggleCardText = function() {
       var hidden = document.documentElement.classList.toggle('gallery-hide-cards');
       localStorage.setItem('momo-gallery-hide-cards', String(hidden));
@@ -102,13 +101,6 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
       var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
       for (var j = 0; j < btns.length; j++) { btns[j].textContent = label; btns[j].classList.toggle('bg-[var(--link-color)]', hidden); btns[j].classList.toggle('text-white', hidden); btns[j].classList.toggle('border-[var(--link-color)]', hidden); }
     };
-    setTimeout(function() {
-      var hidden = document.documentElement.classList.contains('gallery-hide-cards');
-      var btns = document.querySelectorAll('#tag-hide-toggle, #tag-hide-toggle-mobile');
-      if (!btns.length) return;
-      var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
-      for (var j = 0; j < btns.length; j++) { btns[j].textContent = label; btns[j].classList.toggle('bg-[var(--link-color)]', hidden); btns[j].classList.toggle('text-white', hidden); btns[j].classList.toggle('border-[var(--link-color)]', hidden); }
-    }, 0);
   </script>
   <script is:inline>
     if (localStorage.getItem('momo-gallery-hide-cards') === 'true') {
@@ -682,4 +674,19 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
 
   document.addEventListener('DOMContentLoaded', initBioToggle);
   document.addEventListener('astro:page-load', initBioToggle);
+
+  function initGalleryHide() {
+    var hidden = localStorage.getItem('momo-gallery-hide-cards') === 'true';
+    document.documentElement.classList.toggle('gallery-hide-cards', hidden);
+    var btns = document.querySelectorAll('#tag-hide-toggle, #tag-hide-toggle-mobile');
+    var label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].textContent = label;
+      btns[j].classList.toggle('bg-[var(--link-color)]', hidden);
+      btns[j].classList.toggle('text-white', hidden);
+      btns[j].classList.toggle('border-[var(--link-color)]', hidden);
+    }
+  }
+  initGalleryHide();
+  document.addEventListener('astro:page-load', initGalleryHide);
 </script>
