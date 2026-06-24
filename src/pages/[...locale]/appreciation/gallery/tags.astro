@@ -102,7 +102,10 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
       <summary class="flex items-center gap-2 text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
         <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
         <span id="selected-count-mobile" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
-        <button id="filter-mode-toggle-mobile" class="ml-auto px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
+        <div class="ml-auto flex items-center gap-1">
+          <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">隐藏</button>
+          <button id="filter-mode-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
+        </div>
       </summary>
       <div class="mt-2 max-h-[50vh] overflow-y-auto">
         <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
@@ -143,7 +146,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
                 class="w-full h-auto object-contain cursor-zoom-in"
                 loading="lazy" decoding="async"
               />
-              <div class="p-3">
+              <div class="card-text p-3">
                 <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title['zh-cn']}</h3>
                 {authorInfo && (
                   <a href={`${getRelativeLocaleUrl(currentLang, `/appreciation/gallery/${authorInfo.slug}/`)}?v=${cacheVersion}`} class="inline-block mt-1 text-sm text-[var(--link-color)] hover:underline">
@@ -176,7 +179,10 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
             {normalizedLang === 'en' ? 'Tags' : '标签'}
             <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
           </h3>
-          <button id="filter-mode-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
+          <div class="flex items-center gap-1">
+            <button id="tag-hide-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">隐藏</button>
+            <button id="filter-mode-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
+          </div>
         </div>
         <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
           {normalizedLang === 'en' ? 'All' : '全部'} ({works.length})
@@ -409,4 +415,34 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 
   document.addEventListener('DOMContentLoaded', initTagFilter);
   document.addEventListener('astro:page-load', initTagFilter);
+
+  function initCardTagToggle() {
+    const STORAGE_KEY = 'momo-gallery-hide-card-tags';
+    const grid = document.getElementById('gallery-grid');
+    const btns = [document.getElementById('tag-hide-toggle-desktop'), document.getElementById('tag-hide-toggle-mobile')].filter(Boolean);
+
+    function updateUI(hidden) {
+      grid.classList.toggle('hide-card-tags', hidden);
+      const label = document.documentElement.lang === 'en' ? (hidden ? 'Tags' : 'Hide') : (hidden ? '标签' : '隐藏');
+      btns.forEach(b => b.textContent = label);
+    }
+
+    const hidden = localStorage.getItem(STORAGE_KEY) === 'true';
+    updateUI(hidden);
+
+    btns.forEach(b => {
+      b.addEventListener('click', () => {
+        const now = !grid.classList.contains('hide-card-tags');
+        localStorage.setItem(STORAGE_KEY, String(now));
+        updateUI(now);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initCardTagToggle);
+  document.addEventListener('astro:page-load', initCardTagToggle);
 </script>
+
+<style>
+  .hide-card-tags .card-text { display: none; }
+</style>

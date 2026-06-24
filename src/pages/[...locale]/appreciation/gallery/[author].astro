@@ -126,7 +126,10 @@ const cacheVersion = Date.now().toString()
         <summary class="flex items-center gap-2 text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
           <span>{normalizedLang === 'en' ? 'Tags' : '标签'}</span>
           <span id="selected-count" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
-          <button id="filter-mode-toggle" class="ml-auto px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
+          <div class="ml-auto flex items-center gap-1">
+            <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">隐藏</button>
+            <button id="filter-mode-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
+          </div>
         </summary>
         <div class="mt-2 max-h-[50vh] overflow-y-auto">
           <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
@@ -161,7 +164,10 @@ const cacheVersion = Date.now().toString()
           <h3 class="text-sm font-semibold text-[var(--text-color)]">
             {normalizedLang === 'en' ? 'Tags' : '标签'}
           </h3>
-          <button id="filter-mode-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
+          <div class="flex items-center gap-1">
+            <button id="tag-hide-toggle" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">隐藏</button>
+            <button id="filter-mode-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
+          </div>
         </div>
         <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
           {normalizedLang === 'en' ? 'All' : '全部'}
@@ -198,11 +204,11 @@ const cacheVersion = Date.now().toString()
             class="w-full h-auto object-contain cursor-zoom-in"
             loading="lazy" decoding="async"
           />
-          <div class="p-3">
+          <div class="card-text p-3">
             <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title['zh-cn']}</h3>
             <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
             {item.tags?.length > 0 && (
-              <div class="mt-2 flex flex-wrap gap-1">
+              <div class="card-tags mt-2 flex flex-wrap gap-1">
                 {item.tags.map((tag) => {
                   const [dim, val] = parseTag(tag);
                   return (
@@ -627,4 +633,34 @@ const cacheVersion = Date.now().toString()
 
   document.addEventListener('DOMContentLoaded', initBioToggle);
   document.addEventListener('astro:page-load', initBioToggle);
+
+  function initCardTagToggle() {
+    const STORAGE_KEY = 'momo-gallery-hide-card-tags';
+    const grid = document.getElementById('gallery-grid');
+    const btns = [document.getElementById('tag-hide-toggle'), document.getElementById('tag-hide-toggle-mobile')].filter(Boolean);
+
+    function updateUI(hidden) {
+      grid.classList.toggle('hide-card-tags', hidden);
+      const label = document.documentElement.lang === 'en' ? (hidden ? 'Tags' : 'Hide') : (hidden ? '标签' : '隐藏');
+      btns.forEach(b => b.textContent = label);
+    }
+
+    const hidden = localStorage.getItem(STORAGE_KEY) === 'true';
+    updateUI(hidden);
+
+    btns.forEach(b => {
+      b.addEventListener('click', () => {
+        const now = !grid.classList.contains('hide-card-tags');
+        localStorage.setItem(STORAGE_KEY, String(now));
+        updateUI(now);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initCardTagToggle);
+  document.addEventListener('astro:page-load', initCardTagToggle);
 </script>
+
+<style>
+  .hide-card-tags .card-text { display: none; }
+</style>
