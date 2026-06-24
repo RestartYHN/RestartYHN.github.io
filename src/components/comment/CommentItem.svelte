@@ -34,7 +34,7 @@
 
         function processEnhancements(text: string): string {
                 if (!text) return '';
-                const regex = /\{(.+?)\}\((.+?)\)|!!(.+?)!!|==(.+?)==|\+\+(.+?)\+\+/g;
+                const regex = /\{(.+?)\}\((.+?)\)|!!(.+?)!!|==(.+?)==|\+\+(.+?)\+\+|\^(.+?)\{(.+?)\}\^|\^(.+?)\^/g;
                 const parts: string[] = [];
                 let lastIndex = 0;
 		let match: RegExpExecArray | null;
@@ -68,6 +68,12 @@
                         } else if (match[5]) {
                                 const inner = processEnhancements(match[5]);
                                 parts.push(`<span class="underline-text">${inner}</span>`);
+                        } else if (match[6]) {
+                                const inner = processEnhancements(match[6]);
+                                parts.push(`<span style="color:${match[7]}">${inner}</span>`);
+                        } else if (match[8]) {
+                                const inner = processEnhancements(match[8]);
+                                parts.push(`<span class="highlight-mark">${inner}</span>`);
                         }
 
                         lastIndex = regex.lastIndex;
