@@ -15,7 +15,7 @@
   export let subTitle = "";
 
   let selectedCategories: string[] = [];
-  let useOr = false;
+  let useOr = localStorage.getItem('momo-gallery-filter-mode') === 'or';
   const t = i18nit(currentLang);
 
   $: flatCategories = [...new Set(sortedPosts.flatMap(p => p.data?.categories || []))].sort((a, b) => a.localeCompare(b, 'zh-u-co-pinyin'));
@@ -168,7 +168,7 @@
                 class:bg-[var(--link-color)]={useOr}
                 class:text-white={useOr}
                 class:border-[var(--link-color)]={useOr}
-                on:click|preventDefault={() => { useOr = !useOr; toggleCategory(null); }}
+                on:click|preventDefault={() => { useOr = !useOr; localStorage.setItem('momo-gallery-filter-mode', useOr ? 'or' : 'and'); toggleCategory(null); }}
             >
                 {useOr ? 'OR' : 'AND'}
             </button>
@@ -280,7 +280,7 @@
                 class:border-[var(--button-border-color)]={!useOr}
                 class:text-[var(--text-color-70)]={!useOr}
                 class:hover:border-[var(--link-color)]={!useOr}
-                on:click={() => { useOr = !useOr; toggleCategory(null); }}
+                on:click={() => { useOr = !useOr; localStorage.setItem('momo-gallery-filter-mode', useOr ? 'or' : 'and'); toggleCategory(null); }}
             >
                 {useOr ? 'OR' : 'AND'}
             </button>
