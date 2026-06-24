@@ -38,7 +38,7 @@ const pageTitle = `${coverTitle} - ${t("header.appreciation")} - ${siteConfig.ti
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         {normalizedLang === 'en' ? 'Back' : '返回鉴赏'}
       </a>
-      <a href={`${getRelativeLocaleUrl(currentLang, '/appreciation/gallery/tags/')}?v=${cacheVersion}`} class="inline-flex items-center gap-1 px-4 py-2 text-sm rounded-lg border border-[var(--button-border-color)] text-[var(--text-color)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] transition-colors">
+      <a href={`${getRelativeLocaleUrl(currentLang, '/appreciation/gallery/tags/')}`} class="inline-flex items-center gap-1 px-4 py-2 text-sm rounded-lg border border-[var(--button-border-color)] text-[var(--text-color)] hover:border-[var(--link-color)] hover:text-[var(--link-color)] transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
         {normalizedLang === 'en' ? 'Gallery Overview' : '画廊总览'}
       </a>
@@ -47,7 +47,7 @@ const pageTitle = `${coverTitle} - ${t("header.appreciation")} - ${siteConfig.ti
     <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
       {authors.map((author) => (
         <a
-          href={`${getRelativeLocaleUrl(currentLang, `/appreciation/gallery/${author.slug}/`)}?v=${cacheVersion}`}
+          href={`${getRelativeLocaleUrl(currentLang, `/appreciation/gallery/${author.slug}/`)}`}
           class="group flex items-center gap-4 rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70 p-4 hover:border-[var(--link-color)] transition-colors"
         >
           <img src={author.avatar} alt={author.name[normalizedLang]} class="w-16 h-16 rounded-full object-cover bg-black/5 flex-shrink-0" loading="lazy" decoding="async" />
