@@ -637,10 +637,12 @@ const cacheVersion = Date.now().toString()
   function initCardTagToggle() {
     const STORAGE_KEY = 'momo-gallery-hide-card-tags';
     const grid = document.getElementById('gallery-grid');
+    if (!grid) return;
     const btns = [document.getElementById('tag-hide-toggle'), document.getElementById('tag-hide-toggle-mobile')].filter(Boolean);
 
     function updateUI(hidden) {
-      grid.classList.toggle('hide-card-tags', hidden);
+      const cards = grid.querySelectorAll('.card-text');
+      cards.forEach(c => { c.style.display = hidden ? 'none' : ''; });
       const label = document.documentElement.lang === 'en' ? (hidden ? 'Hide' : 'Show') : (hidden ? '隐藏' : '显示');
       btns.forEach(b => {
         b.textContent = label;
@@ -654,10 +656,11 @@ const cacheVersion = Date.now().toString()
     updateUI(hidden);
 
     btns.forEach(b => {
-      b.addEventListener('click', () => {
-        const now = !grid.classList.contains('hide-card-tags');
-        localStorage.setItem(STORAGE_KEY, String(now));
-        updateUI(now);
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const now = [...grid.querySelectorAll('.card-text')].some(c => c.style.display === 'none');
+        localStorage.setItem(STORAGE_KEY, String(!now));
+        updateUI(!now);
       });
     });
   }
@@ -665,7 +668,3 @@ const cacheVersion = Date.now().toString()
   initCardTagToggle();
   document.addEventListener('astro:page-load', initCardTagToggle);
 </script>
-
-<style>
-  .hide-card-tags .card-text { display: none; }
-</style>
