@@ -634,7 +634,7 @@ const cacheVersion = Date.now().toString()
   document.addEventListener('DOMContentLoaded', initBioToggle);
   document.addEventListener('astro:page-load', initBioToggle);
 
-  function toggleCardText(btn) {
+  window.toggleCardText = function(btn) {
     const grid = document.getElementById('gallery-grid');
     if (!grid) return;
     const cards = grid.querySelectorAll('.card-text');
