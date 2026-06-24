@@ -90,7 +90,6 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
   result.sort((a, b) => a.dim.localeCompare(b.dim, 'zh-u-co-pinyin'));
   return result;
 })()
-const cacheVersion = Date.now().toString()
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang} noCache={true}>
