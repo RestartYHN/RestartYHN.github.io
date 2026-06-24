@@ -97,28 +97,36 @@ const appData = appreciationEntries.map(e => ({
   <FabMenu showBackBottom={true} />
 </MainPageLayout>
 
+<script type="application/json" id="appreciation-data">{JSON.stringify(appData)}</script>
+
 <script is:inline>
-  const appData = {JSON.stringify(appData)};
-  let lastIdx = -1;
+  function initRandomAppreciation() {
+    var raw = document.getElementById('appreciation-data');
+    if (!raw) return;
+    try { var appData = JSON.parse(raw.textContent); } catch(e) { return; }
+    if (!appData || !appData.length) return;
+    var lastIdx = -1;
 
-  function pickOne() {
-    if (appData.length === 0) return null;
-    if (appData.length === 1) return appData[0];
-    let i;
-    do { i = Math.floor(Math.random() * appData.length); } while (i === lastIdx && appData.length > 1);
-    lastIdx = i;
-    return appData[i];
+    function pickOne() {
+      if (appData.length === 1) return appData[0];
+      var i;
+      do { i = Math.floor(Math.random() * appData.length); } while (i === lastIdx && appData.length > 1);
+      lastIdx = i;
+      return appData[i];
+    }
+
+    function renderCard(d) {
+      document.getElementById('app-card-title').textContent = d.title;
+      document.getElementById('app-card-desc').textContent = d.description;
+      document.getElementById('app-card-date').textContent = d.date;
+      document.getElementById('app-card-cat').textContent = d.category;
+      document.getElementById('app-card').href = d.url;
+    }
+
+    renderCard(pickOne());
+    document.getElementById('app-shuffle-btn').addEventListener('click', function() { renderCard(pickOne()); });
   }
 
-  function renderCard(d) {
-    document.getElementById('app-card-title').textContent = d.title;
-    document.getElementById('app-card-desc').textContent = d.description;
-    document.getElementById('app-card-date').textContent = d.date;
-    document.getElementById('app-card-cat').textContent = d.category;
-    document.getElementById('app-card').href = d.url;
-  }
-
-  renderCard(pickOne());
-  document.getElementById('app-shuffle-btn').addEventListener('click', () => renderCard(pickOne()));
-  document.addEventListener('astro:page-load', () => renderCard(pickOne()));
+  document.addEventListener('DOMContentLoaded', initRandomAppreciation);
+  document.addEventListener('astro:page-load', initRandomAppreciation);
 </script>
