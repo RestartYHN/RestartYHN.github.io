@@ -7,9 +7,7 @@ import FabMenu from '@components/control/FabMenu.astro';
 import MusicStatsCard from '@components/misc/MusicStatsCard.astro';
 
 import { getAppreciationEntrySort } from '@utils/content-utils';
-import { blogCoverUrl, getRelativeLocaleUrl } from '@utils/url-utils';
-import { formatFullDate } from '@/utils/time';
-import ImageModule from '@components/misc/ImageModule.astro';
+import { getRelativeLocaleUrl } from '@utils/url-utils';
 
 import zhCN from '@i18n/language/zh-cn';
 import en from '@i18n/language/en';
@@ -45,6 +43,12 @@ export const getStaticPaths = (async ({ paginate }) => {
 
 const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
 
+const appreciationEntries = await getAppreciationEntrySort(currentLang);
+const randomApp = appreciationEntries.length > 0
+  ? appreciationEntries[Math.floor(Math.random() * appreciationEntries.length)]
+  : null;
+const appUrl = randomApp ? getRelativeLocaleUrl(currentLang, `/appreciation/articles/${randomApp.id}`) : '';
+
 ---
 
 <MainPageLayout title={pageTitle} lang={currentLang}>
@@ -75,7 +79,7 @@ const pageTitle = `${siteConfig.title} - ${siteConfig.subTitle}`;
           class="group block overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[color-mix(in_oklab,var(--bg-color)_92%,transparent)] shadow-[0_6px_16px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)] p-5"
         >
           <div class="mb-2 flex items-center justify-between gap-2 text-xs text-[var(--text-color-70)]">
-            <span>{formatFullDate(randomApp.data.pubDate, currentLang)}</span>
+            <span>{randomApp.data.pubDate.toISOString().substring(0, 10)}</span>
             <span class="rounded-full bg-[var(--button-hover-color)] px-1.5 py-0.5 text-[11px]">
               {randomApp.data.category || ''}
             </span>
