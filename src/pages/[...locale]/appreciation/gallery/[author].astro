@@ -640,8 +640,10 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
     if (bioToggle.dataset.bound === 'true') return;
     bioToggle.dataset.bound = 'true';
 
-    const isLong = bioContent.textContent !== null && bioContent.textContent.trim().length > 120;
-    if (!isLong) return;
+    bioContent.style.webkitLineClamp = '3';
+    var overflowed = bioContent.scrollHeight > bioContent.clientHeight;
+    bioContent.style.webkitLineClamp = '';
+    if (!overflowed) return;
 
     bioContent.classList.add('is-collapsed');
     bioToggle.classList.remove('hidden');
