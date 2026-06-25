@@ -280,14 +280,17 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
   .artist-bio-content {
     overflow: hidden;
     transition: all 220ms ease;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
   }
 
   .artist-bio-content.is-collapsed {
-    overflow: hidden;
+    -webkit-line-clamp: 3;
   }
 
   .artist-bio-content.is-expanded {
-    overflow: visible;
+    display: block;
+    -webkit-line-clamp: unset;
   }
 
   .artist-bio-toggle {
@@ -637,15 +640,10 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
     if (bioToggle.dataset.bound === 'true') return;
     bioToggle.dataset.bound = 'true';
 
-    var lineHeight = parseFloat(getComputedStyle(bioContent).lineHeight);
-    var clampPx = lineHeight * 4;
-    bioContent.style.maxHeight = clampPx + 'px';
-    var overflowed = bioContent.scrollHeight > bioContent.clientHeight;
-    bioContent.style.maxHeight = '';
-    if (!overflowed) return;
+    const isLong = bioContent.textContent !== null && bioContent.textContent.trim().length > 120;
+    if (!isLong) return;
 
     bioContent.classList.add('is-collapsed');
-    bioContent.style.maxHeight = clampPx + 'px';
     bioToggle.classList.remove('hidden');
 
     bioToggle.addEventListener('click', () => {
@@ -656,11 +654,9 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
         : (document.documentElement.lang === 'en' ? 'Show less' : '收起');
 
       if (expanded) {
-        bioContent.style.maxHeight = clampPx + 'px';
         bioContent.classList.add('is-collapsed');
         bioContent.classList.remove('is-expanded');
       } else {
-        bioContent.style.maxHeight = '';
         bioContent.classList.remove('is-collapsed');
         bioContent.classList.add('is-expanded');
       }
