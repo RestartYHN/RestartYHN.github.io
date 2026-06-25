@@ -80,7 +80,7 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
         {isExternalAvatar ? (
           <img src={externalAvatarSrc ?? ""} alt={profileConfig.name} class="splash-avatar" />
         ) : (
-          <Image src={headerAvatar} alt={profileConfig.name} quality={90} format="webp" loading="eager" class="splash-avatar" />
+          <Image src={headerAvatar} alt={profileConfig.name} quality={90} format="webp" loading="eager" fetchpriority="high" class="splash-avatar" />
         )}
         <h1 class="splash-name">{profileConfig.name}</h1>
       </div>
@@ -251,6 +251,7 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
     object-fit: cover;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     animation: scaleUp 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    will-change: transform, opacity;
   }
 
   .splash-name {
@@ -260,6 +261,7 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
     margin: 0;
     opacity: 0;
     animation: slideUpFade 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
+    will-change: transform, opacity;
   }
 
   [data-theme="dark"] .splash-avatar {

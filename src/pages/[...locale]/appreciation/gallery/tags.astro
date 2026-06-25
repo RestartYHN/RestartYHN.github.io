@@ -137,7 +137,7 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
         {works.map((item) => {
           const authorInfo = authors.find(a => a.slug.toLowerCase() === item.author.toLowerCase())
           return (
-            <article data-tags={JSON.stringify([...(item.tags || []), `年份:${item.year}`])} class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70">
+            <article data-tags={JSON.stringify([...(item.tags || []), `年份:${item.year}`])} class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70" style="content-visibility: auto; contain-intrinsic-size: auto 300px">
               <img
                 src={item.image}
                 alt={item.title['zh-cn']}
