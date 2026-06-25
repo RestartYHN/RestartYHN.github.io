@@ -7,6 +7,7 @@ type LocaleCode = "zh-cn" | "en"
 export interface GalleryAuthor {
   slug: string
   name: Record<LocaleCode, string>
+  country: Record<LocaleCode, string>
   description: Record<LocaleCode, string>
   avatar: string
   order: number
@@ -30,6 +31,7 @@ export interface GalleryWork {
 interface GalleryMetaAuthor {
   slug: string
   name?: Partial<Record<LocaleCode, string>>
+  country?: Partial<Record<LocaleCode, string>>
   description?: Partial<Record<LocaleCode, string>>
   avatar?: string
   order?: number
@@ -99,6 +101,7 @@ export function loadGalleryData(): { authors: GalleryAuthor[]; works: GalleryWor
       .map((a, i) => ({
         slug: a.slug,
         name: asLocaleName(a.name, a.slug),
+        country: asLocaleName(a.country, ''),
         description: asLocaleText(a.description, '这里是画师简介。', 'Artist bio.'),
         avatar: a.avatar || '',
         order: a.order || i + 1,
@@ -121,7 +124,7 @@ export function loadGalleryData(): { authors: GalleryAuthor[]; works: GalleryWor
         link: w.link || w.image || '',
       }))
       .sort((a, b) => a.order - b.order)
-    return { authors, works }
+    return { authors, works: enrichWorksWithCountry(works, authors) }
   }
 
   const meta = galleryMeta as GalleryMetaFile
@@ -176,6 +179,7 @@ export function loadGalleryData(): { authors: GalleryAuthor[]; works: GalleryWor
     return {
       slug,
       name: asLocaleName(metaAuthor?.name, slug),
+      country: asLocaleName(metaAuthor?.country, ''),
       description: asLocaleText(metaAuthor?.description, "这里是画师简介。", "Artist bio."),
       avatar: metaAuthor?.avatar || fallbackAvatar,
       order: metaAuthor?.order || index + 1,
@@ -188,10 +192,23 @@ export function loadGalleryData(): { authors: GalleryAuthor[]; works: GalleryWor
     authors: authors
       .filter((a) => a.enabled !== false)
       .sort((a, b) => a.order - b.order),
-    works: works
-      .filter((w) => w.enabled !== false)
-      .sort((a, b) => a.order - b.order),
+    works: enrichWorksWithCountry(
+      works.filter((w) => w.enabled !== false).sort((a, b) => a.order - b.order),
+      authors,
+    ),
   }
+}
+
+function enrichWorksWithCountry(works: GalleryWork[], authors: GalleryAuthor[]): GalleryWork[] {
+  const authorMap = new Map(authors.map(a => [normalizeKey(a.slug), a]))
+  return works.map(w => {
+    const author = authorMap.get(normalizeKey(w.author))
+    if (!author || !author.country['zh-cn']) return w
+    const countryTag = `国家:${author.country['zh-cn']}`
+    return w.tags.some(t => normalizeKey(t) === normalizeKey(countryTag))
+      ? w
+      : { ...w, tags: [countryTag, ...w.tags] }
+  })
 }
 
 export function getAuthorWorks(authorSlug: string): GalleryWork[] {

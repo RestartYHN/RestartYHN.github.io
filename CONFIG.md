@@ -30,9 +30,9 @@ categories: [作者:村上春树, 国家:日本, 文学体裁:小说, 类型:赏
 "tags": ["IP:初音未来"]
 ```
 > 画师由作品的 `author` 字段关联（对应 `authors` 注册），无需写 `画师:` 标签；`title` 仅填中文。
-3. 新画师需在 `authors` 数组注册，也可用脚本：
+3. 新画师需在 `authors` 数组注册（含 `name`, `country`, `description`, `avatar`, `order`），也可用脚本：
 ```bash
-pnpm newauthor slug "中文名" "English Name" "头像R2链接" "中文简介" "English description"
+pnpm newauthor slug "中文名" "English Name" "头像R2链接" "中文简介" "English description" "中国" "China"
 ```
 4. `src/utils/gallery-utils.ts` 的 `R2_BASE` 指向你的 R2 自定义域
 

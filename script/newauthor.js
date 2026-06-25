@@ -4,11 +4,11 @@ import { fileURLToPath } from 'url';
 
 const args = process.argv.slice(2);
 if (args.length < 6) {
-  console.error('Usage: pnpm newauthor <slug> <nameZh> <nameEn> <avatarUrl> <descZh> <descEn>');
+  console.error('Usage: pnpm newauthor <slug> <nameZh> <nameEn> <avatarUrl> <descZh> <descEn> [countryZh] [countryEn]');
   process.exit(1);
 }
 
-const [slug, nameZh, nameEn, avatarUrl, descZh, descEn] = args;
+const [slug, nameZh, nameEn, avatarUrl, descZh, descEn, countryZh = '', countryEn = ''] = args;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,6 +27,7 @@ const maxOrder = data.authors.reduce((max, a) => Math.max(max, a.order || 0), 0)
 data.authors.push({
   slug,
   name: { 'zh-cn': nameZh, en: nameEn },
+  country: countryZh ? { 'zh-cn': countryZh, en: countryEn || countryZh } : undefined,
   description: { 'zh-cn': descZh, en: descEn },
   avatar: avatarUrl,
   order: maxOrder + 1,
