@@ -153,9 +153,9 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
                   </a>
                 )}
                 <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
-                {item.tags?.length > 0 && (
+                {item.tags?.filter(t => !t.startsWith('国家:')).length > 0 && (
                   <div class="mt-2 flex flex-wrap gap-1">
-                    {item.tags.map((tag) => {
+                    {item.tags.filter(t => !t.startsWith('国家:')).map((tag) => {
                       const [dim, val] = parseTag(tag);
                       return (
                         <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">

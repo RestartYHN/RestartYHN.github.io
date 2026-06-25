@@ -234,9 +234,9 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
           <div class="card-text p-3">
             <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title['zh-cn']}</h3>
             <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
-            {item.tags?.length > 0 && (
-              <div class="mt-2 flex flex-wrap gap-1">
-                {item.tags.map((tag) => {
+             {item.tags?.filter(t => !t.startsWith('国家:')).length > 0 && (
+              <div class="card-tags mt-2 flex flex-wrap gap-1">
+                {item.tags.filter(t => !t.startsWith('国家:')).map((tag) => {
                   const [dim, val] = parseTag(tag);
                   return (
                     <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">
@@ -640,10 +640,9 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
     if (bioToggle.dataset.bound === 'true') return;
     bioToggle.dataset.bound = 'true';
 
-    const isLong = bioContent.textContent !== null && bioContent.textContent.trim().length > 120;
-    if (!isLong) return;
-
     bioContent.classList.add('is-collapsed');
+    const overflowed = bioContent.scrollHeight > bioContent.clientHeight;
+    if (!overflowed) { bioContent.classList.remove('is-collapsed'); return; }
     bioToggle.classList.remove('hidden');
 
     bioToggle.addEventListener('click', () => {
