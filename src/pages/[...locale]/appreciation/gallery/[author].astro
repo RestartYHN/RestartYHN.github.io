@@ -283,7 +283,7 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
   }
 
   .artist-bio-content.is-collapsed {
-    max-height: 4.8em;
+    max-height: 6.5em;
   }
 
   .artist-bio-content.is-expanded {
@@ -638,12 +638,13 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
     if (bioToggle.dataset.bound === 'true') return;
     bioToggle.dataset.bound = 'true';
 
-    bioContent.style.maxHeight = '4.8em';
+    bioContent.style.maxHeight = '6.5em';
     var overflowed = bioContent.scrollHeight > bioContent.clientHeight;
     bioContent.style.maxHeight = '';
     if (!overflowed) return;
 
     bioContent.classList.add('is-collapsed');
+    bioContent.style.maxHeight = '6.5em';
     bioToggle.classList.remove('hidden');
 
     bioToggle.addEventListener('click', () => {
@@ -654,9 +655,11 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
         : (document.documentElement.lang === 'en' ? 'Show less' : '收起');
 
       if (expanded) {
+        bioContent.style.maxHeight = '6.5em';
         bioContent.classList.add('is-collapsed');
         bioContent.classList.remove('is-expanded');
       } else {
+        bioContent.style.maxHeight = '';
         bioContent.classList.remove('is-collapsed');
         bioContent.classList.add('is-expanded');
       }
