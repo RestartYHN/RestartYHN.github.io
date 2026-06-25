@@ -280,17 +280,15 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
   .artist-bio-content {
     overflow: hidden;
     transition: all 220ms ease;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
   }
 
   .artist-bio-content.is-collapsed {
-    -webkit-line-clamp: 3;
+    max-height: 4.8em;
   }
 
   .artist-bio-content.is-expanded {
-    display: block;
-    -webkit-line-clamp: unset;
+    max-height: none;
+    overflow: visible;
   }
 
   .artist-bio-toggle {
@@ -640,8 +638,7 @@ const dimGroups: { dim: string, letters: { key: string, values: { val: string, f
     if (bioToggle.dataset.bound === 'true') return;
     bioToggle.dataset.bound = 'true';
 
-    var lineHeight = parseFloat(getComputedStyle(bioContent).lineHeight) || 22;
-    bioContent.style.maxHeight = (lineHeight * 3) + 'px';
+    bioContent.style.maxHeight = '4.8em';
     var overflowed = bioContent.scrollHeight > bioContent.clientHeight;
     bioContent.style.maxHeight = '';
     if (!overflowed) return;
