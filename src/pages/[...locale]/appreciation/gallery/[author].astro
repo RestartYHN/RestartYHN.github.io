@@ -47,7 +47,7 @@ const pageTitle = `${authorInfo.name[normalizedLang]} - ${t('header.gallery')} -
 const coverSubTitle = normalizedLang === 'en'
   ? `${authorWorks.length} works`
   : `共 ${authorWorks.length} 幅作品`
-const allTags = [...new Set(authorWorks.flatMap(w => [...(w.tags || []), `年份:${w.year}`]))]
+const allTags = [...new Set(authorWorks.flatMap(w => [...(w.tags || []).filter(t => !t.startsWith('国家:')), `年份:${w.year}`]))]
 function parseTag(tag: string): [string, string] {
   const idx = tag.indexOf(':');
   if (idx === -1) return ['', tag];
