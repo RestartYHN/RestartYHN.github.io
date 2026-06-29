@@ -1,6 +1,6 @@
 # ADR 0001：音乐播放采用 CDN 直连而非服务器代理
 
-- 状态：已采纳并验收（2026-06-21）
+- 状态：已采纳并验收（2026-06-21），增量加固（2026-06-29）
 - 范围：本 ADR 是整条「音乐播放器修复与优化」的单一记录——既含核心架构决策，也含随之落地的全部修复/功能与基础设施改动。
 - 相关代码：
   - 后端 `Momo-Backend/nodejs/src/api/music/qr-check.ts`（元数据缓存 + 每次现取 https 直链）、`middleware/routes.ts`（已删除 `stream.ts` 及 `/api/music/stream` 路由）
@@ -70,7 +70,6 @@
 
 ## 已知盲点 / 已接受不做
 
-- **stalled 而非 error**：真实过期若表现为卡住而非 `error` 事件，`onError` 不触发、自愈不启动。当前实测会报 error；若日后遇到纯 stalled 卡死，需补"卡顿看门狗"（播放中无进度超过数秒则重取续播）。
 - **music 页极限快速连点**：底部条已有 `playToken` 守卫；音乐页未补同款。实测一次切 4-5 首无碍，极限连点视为可接受边角，**不做**。
 
 ## 单一真源（SSOT）重构
@@ -90,3 +89,38 @@
 - **P4**（统一播放绑定：GlobalPlayer 在音乐页也全权绑定，删 `music.astro` 重复的播放逻辑）：两边 `updateNowPlaying` 更新不同 DOM（底部条 vs 封面+歌词），统一需把封面/歌词改成事件驱动 + 重划 audio 事件归属——**高风险，且刚修好这块绑定**（`musicBind` 早退 bug），边际收益低，**不做**。
 
 **残留技术债（运行时无害，维护时务必注意）**：`music.astro` 与 `GlobalPlayer` 仍**各存一份** `getNextIndex/getPrevIndex/shuffle 历史/onError 自愈/updatePlayButtonState/audio 绑定`。它们**按页面互斥、不会同时跑**（音乐页用前者、他页用后者），所以不是运行时冲突，而是**代码重复**——**以后改播放逻辑要两边都改，否则 drift**。彻底消除需做 P4（已评估不划算）。
+
+## 增量加固（2026-06-29）
+
+自愈上线后运转稳定，但发现四个小缝：
+
+**1. 音乐页 onError 不同步到 GlobalPlayer**
+
+音乐页自愈成功后更新了本地的 `tracks[currentIndex].audio`，但未调 `syncToGlobalPlayer()`。导致切到其他页面时 GlobalPlayer 仍持有过期 URL，必然多触发一轮 error + 自愈。对比 `onPrev/onNext/onEnded` 都调了，唯独 `onError` 遗漏。
+
+- **修法**：`music.astro` onError 自愈成功后加一行 `syncToGlobalPlayer()`。
+
+**2. GlobalPlayer onError 不清 localStorage**
+
+GlobalPlayer 的 `loadTrack` 每次都实时请求，不读不写缓存。但音乐页的 `getTrackCache` 在 3 分钟 TTL 内仍会命中过期 URL。GlobalPlayer 自愈后用户回到音乐页点同一首歌 → 命中旧缓存 → 又炸一轮。
+
+- **修法**：`GlobalMusicPlayer.astro` onError 自愈前加 `localStorage.removeItem('music-track-cache-v3:' + cur.id)`，对齐音乐页行为。
+
+**3. stalled 看门狗（原"已知盲点"的补丁）**
+
+ADR 初版将"stalled 不触发 error"列为已接受盲点。现补一个低代价看门狗：`timeupdate` 事件监控播放进度，8 秒内进度不动且非暂停状态 → 视为卡死 → 直接复用 `onError` 自愈流程。
+
+- 两播放器各加一个 `timeupdate` 监听器，`pause`/`ended` 事件清定时器防止误触发。
+- 自愈进行中（`audio.load()` 等）不会触发误判——timeupdate 在 load 期间不发射。
+
+**4. initMusicPage 三重启动去重**
+
+`initMusicPage` 被调用三次：模块顶层执行一次 + `astro:page-load` + `astro:after-swap`。导致首屏三套冗余 API 请求（`loadPlaylistSongs`、`loadRecentSongs`、`loadAlbums` 等），虽 `loadVersion` 能取消 playlist 加载，但其他操作无版本守卫。
+
+- **修法**：用 `setTimeout(0)` debounce 包装，多次同步/准同步调用折叠为一次执行。
+
+**5. music-state-change 不刷新弹出列表**
+
+SSOT 事件 `music-state-change` 触发时只更新了轨道列表和位置计数，未调用 `syncPlaylistModalIfOpen()`。若用户打开了音乐页的弹出播放列表时从外部（GlobalPlayer modal）增删曲目，弹出列表保持陈旧。
+
+- **修法**：handler 末尾加一句 `syncPlaylistModalIfOpen()`。
