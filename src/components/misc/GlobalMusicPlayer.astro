@@ -821,20 +821,28 @@ import { musicConfig } from '@/data/music';
       const current = state.tracks[idx];
       if (!current) return null;
       if (current.audio) return current;
-      const full = await loadTrack(current.id);
-      if (!full) return current;
-      const keepTitle = current.title && current.title !== `Song ${current.id}` && current.title !== 'Unknown';
-      const keepArtist = current.artist && current.artist !== 'Unknown Artist' && current.artist !== 'Unknown';
-      const keepCover = Boolean(current.cover);
-      const merged = {
-        ...current,
-        ...full,
-        title: keepTitle ? current.title : full.title,
-        artist: keepArtist ? current.artist : full.artist,
-        cover: keepCover ? current.cover : full.cover,
-      };
-      state.tracks[idx] = merged;
-      return merged;
+      const MAX_ATTEMPTS = 3;
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        const full = await loadTrack(current.id);
+        if (full && full.audio) {
+          const keepTitle = current.title && current.title !== `Song ${current.id}` && current.title !== 'Unknown';
+          const keepArtist = current.artist && current.artist !== 'Unknown Artist' && current.artist !== 'Unknown';
+          const keepCover = Boolean(current.cover);
+          const merged = {
+            ...current,
+            ...full,
+            title: keepTitle ? current.title : full.title,
+            artist: keepArtist ? current.artist : full.artist,
+            cover: keepCover ? current.cover : full.cover,
+          };
+          state.tracks[idx] = merged;
+          return merged;
+        }
+        if (attempt < MAX_ATTEMPTS - 1) {
+          await new Promise((r) => setTimeout(r, 600));
+        }
+      }
+      return current;
     }
 
     var marqueeTimer = null;

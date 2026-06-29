@@ -2023,28 +2023,40 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   async function hydrateTrack(track) {
     const needsHydrate = isPlaceholderTrack(track) || !track.audio;
     if (!track?.id || !needsHydrate) return track;
-    try {
-      const fresh = await loadTrack(track.id);
-      if (fresh && fresh.id) {
-        const keepTitle = track.title && track.title !== `Song ${track.id}` && track.title !== 'Unknown';
-        const keepArtist = track.artist && track.artist !== 'Unknown Artist' && track.artist !== 'Unknown';
-        const keepCover = Boolean(track.cover);
-        const keepLyric = Boolean(track.lyric);
-        return {
-          ...track,
-          ...fresh,
-          title: keepTitle ? track.title : fresh.title,
-          artist: keepArtist ? track.artist : fresh.artist,
-          cover: keepCover ? track.cover : fresh.cover,
-          lyric: keepLyric ? track.lyric : fresh.lyric,
-          tlyric: keepLyric ? track.tlyric : fresh.tlyric,
-          unavailable: !fresh.audio,
-        };
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        const fresh = await loadTrack(track.id);
+        if (fresh && fresh.id) {
+          if (fresh.audio) {
+            const keepTitle = track.title && track.title !== `Song ${track.id}` && track.title !== 'Unknown';
+            const keepArtist = track.artist && track.artist !== 'Unknown Artist' && track.artist !== 'Unknown';
+            const keepCover = Boolean(track.cover);
+            const keepLyric = Boolean(track.lyric);
+            return {
+              ...track,
+              ...fresh,
+              title: keepTitle ? track.title : fresh.title,
+              artist: keepArtist ? track.artist : fresh.artist,
+              cover: keepCover ? track.cover : fresh.cover,
+              lyric: keepLyric ? track.lyric : fresh.lyric,
+              tlyric: keepLyric ? track.tlyric : fresh.tlyric,
+              unavailable: false,
+            };
+          }
+          // No audio — cache layer already drops empty entries; retry after delay.
+          if (attempt < MAX_ATTEMPTS - 1) {
+            await new Promise((r) => setTimeout(r, 600));
+          }
+        }
+      } catch (error) {
+        console.warn("[music] hydrate track failed", track?.id, error);
+        if (attempt < MAX_ATTEMPTS - 1) {
+          await new Promise((r) => setTimeout(r, 600));
+        }
       }
-    } catch (error) {
-      console.warn("[music] hydrate track failed", track?.id, error);
     }
-    return track;
+    return { ...track, unavailable: true };
   }
 
   function dedupeIds(ids) {
