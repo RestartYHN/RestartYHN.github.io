@@ -2850,6 +2850,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
         const pos = Number(audio.currentTime) || 0;
         cur.audio = newUrl;
         tracks[currentIndex] = { ...cur, audio: newUrl };
+        syncToGlobalPlayer();
         audio.src = newUrl;
         audio.load();
         const restore = () => {
@@ -2908,6 +2909,12 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     btnPrev.addEventListener("click", _musicHandlers.onPrev);
     btnNext.addEventListener("click", _musicHandlers.onNext);
     progressEl.addEventListener("input", _musicHandlers.onProgressInput);
+    let _wdTimer = null; let _wdLastTime = 0; var WATCHDOG_SEC = 8;
+    _musicHandlers.onWdTick = () => { clearTimeout(_wdTimer); if (audio.paused) return; _wdLastTime = audio.currentTime; _wdTimer = setTimeout(() => { if (!audio.paused && Math.abs(audio.currentTime - _wdLastTime) < 0.3) { console.warn('[music] stalled detected, self-healing'); _musicHandlers.onError(); } }, WATCHDOG_SEC * 1000); };
+    _musicHandlers.onWdClear = () => clearTimeout(_wdTimer);
+    audio.addEventListener('timeupdate', _musicHandlers.onWdTick);
+    audio.addEventListener('pause', _musicHandlers.onWdClear);
+    audio.addEventListener('ended', _musicHandlers.onWdClear);
   }
 
   function musicUnbind() {
@@ -2919,6 +2926,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     if (_musicHandlers.onLoadedMetadata) audio?.removeEventListener("loadedmetadata", _musicHandlers.onLoadedMetadata);
     if (_musicHandlers.onEnded) audio?.removeEventListener("ended", _musicHandlers.onEnded);
     if (_musicHandlers.onError) audio?.removeEventListener("error", _musicHandlers.onError);
+    if (_musicHandlers.onWdTick) audio?.removeEventListener("timeupdate", _musicHandlers.onWdTick);
+    if (_musicHandlers.onWdClear) { audio?.removeEventListener("pause", _musicHandlers.onWdClear); audio?.removeEventListener("ended", _musicHandlers.onWdClear); }
     if (_musicHandlers.onPrev) btnPrev?.removeEventListener("click", _musicHandlers.onPrev);
     if (_musicHandlers.onNext) btnNext?.removeEventListener("click", _musicHandlers.onNext);
     if (_musicHandlers.onProgressInput) progressEl?.removeEventListener("input", _musicHandlers.onProgressInput);
@@ -3051,8 +3060,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     renderTrackList();
   }
 
-  // Initialize now and on Astro partial navigation
-  initMusicPage();
+  // Initialize now and on Astro partial navigation (debounced to avoid duplicate calls
+  // from module eval + astro:page-load + astro:after-swap firing in quick succession).
+  let _initTimer = null;
+  const scheduleInit = () => { clearTimeout(_initTimer); _initTimer = setTimeout(() => { _initTimer = null; initMusicPage(); }, 0); };
+  scheduleInit();
+  document.addEventListener('astro:after-swap', scheduleInit);
+  document.addEventListener('astro:page-load', scheduleInit);
   window.addEventListener('music-track-change', async (e) => {
     const idx = e.detail?.index;
     if (idx == null || idx >= tracks.length) return;
@@ -3073,7 +3087,6 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     renderTrackList();
     updatePlayerPosition();
     updatePlaylistCount();
+    syncPlaylistModalIfOpen();
   });
-  document.addEventListener('astro:after-swap', initMusicPage);
-  document.addEventListener('astro:page-load', initMusicPage);
 </script>

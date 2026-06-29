@@ -1029,6 +1029,7 @@ import { musicConfig } from '@/data/music';
         if (state.selfHealCount >= SELF_HEAL_MAX) return;
         state.selfHealCount += 1;
         try {
+          try { localStorage.removeItem('music-track-cache-v3:' + cur.id); } catch {}
           const fresh = await loadTrack(cur.id);
           const newUrl = normalizeAudioUrl(fresh?.audio || '');
           if (!newUrl) return;
@@ -1046,6 +1047,12 @@ import { musicConfig } from '@/data/music';
         }
       };
       audio.addEventListener('error', state.handlers.onError);
+      var _wdTimer = null; var _wdLastTime = 0; var WATCHDOG_SEC = 8;
+      state.handlers.onWdTick = function() { clearTimeout(_wdTimer); if (audio.paused) return; _wdLastTime = audio.currentTime; _wdTimer = setTimeout(function() { if (!audio.paused && Math.abs(audio.currentTime - _wdLastTime) < 0.3) { console.warn('[GlobalPlayer] stalled detected, self-healing'); state.handlers.onError(); } }, WATCHDOG_SEC * 1000); };
+      state.handlers.onWdClear = function() { clearTimeout(_wdTimer); };
+      audio.addEventListener('timeupdate', state.handlers.onWdTick);
+      audio.addEventListener('pause', state.handlers.onWdClear);
+      audio.addEventListener('ended', state.handlers.onWdClear);
       // [Fix] Removed restrictive crossOrigin='anonymous'
       progressEl.addEventListener('input', state.handlers.onProgressInput);
 
@@ -1092,6 +1099,8 @@ import { musicConfig } from '@/data/music';
       if (audio && state.handlers.onLoadedMetadata) audio.removeEventListener('loadedmetadata', state.handlers.onLoadedMetadata);
       if (progressEl && state.handlers.onProgressInput) progressEl.removeEventListener('input', state.handlers.onProgressInput);
       if (audio && state.handlers.onError) audio.removeEventListener('error', state.handlers.onError);
+      if (audio && state.handlers.onWdTick) audio.removeEventListener('timeupdate', state.handlers.onWdTick);
+      if (audio && state.handlers.onWdClear) { audio.removeEventListener('pause', state.handlers.onWdClear); audio.removeEventListener('ended', state.handlers.onWdClear); }
       // play mode toggle removed
       if (btnPlaylist) btnPlaylist.removeEventListener('click', openPlaylistModal);
       if (playlistModalBackdrop) playlistModalBackdrop.removeEventListener('click', closePlaylistModal);
