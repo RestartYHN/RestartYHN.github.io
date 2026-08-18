@@ -51,8 +51,9 @@ export const musicConfig: MusicConfig = {
   // Optional: pin one playlist as your default source in no-login mode.
   defaultPlaylistId: "17446314153",
 
-  // Maximum number of songs loaded from the selected playlist (large for local testing).
-  playlistSongLimit: 100000,
+  // Maximum number of songs loaded from the selected playlist.
+  // Lower this if a playlist (e.g. 我喜欢的音乐) is too large and slows down loading.
+  playlistSongLimit: 200,
 
   // Placeholder cards shown before account-linked data is ready.
   seedTracks: [
