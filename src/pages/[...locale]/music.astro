@@ -2065,10 +2065,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 
   function renderPlaylistList() {
     if (!playlistListEl) return;
-    // NetEase always returns the "我喜欢的音乐" (liked songs) playlist; hide it.
-    const playlists = (Array.isArray(userData?.playlists) ? userData.playlists : []).filter(
-      (pl) => pl.name !== "我喜欢的音乐",
-    );
+    const playlists = Array.isArray(userData?.playlists) ? userData.playlists : [];
     if (!playlists.length) {
       playlistListEl.innerHTML = `<li class="music-empty">${isEn ? "No playlist data yet" : "暂无歌单数据"}</li>`;
       return;
@@ -2320,11 +2317,13 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
           userId: String(profile.userId || musicConfig.neteaseUserId),
           username: profile.nickname || "NetEase User",
           avatarUrl: profile.avatarUrl || "",
-          playlists: playlistsRaw.map((pl) => ({
-            id: pl?.id ? String(pl.id) : "",
-            name: pl?.name || (isEn ? "Playlist" : "歌单"),
-            songCount: Number(pl?.trackCount || 0),
-          })),
+          playlists: playlistsRaw
+            .filter((pl) => Number(pl?.specialType) !== 5)
+            .map((pl) => ({
+              id: pl?.id ? String(pl.id) : "",
+              name: pl?.name || (isEn ? "Playlist" : "歌单"),
+              songCount: Number(pl?.trackCount || 0),
+            })),
           recentSongs: [],
           recentHistory: [],
           favoriteSongs: [],
