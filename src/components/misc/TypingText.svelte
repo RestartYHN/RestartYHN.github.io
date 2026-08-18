@@ -3,18 +3,27 @@
 
     export let lines: string[] = [];
     export let pairs: Array<{ subTitle: string; credit: string }> = [];
-    export let typingSpeed = 90;
-    export let deletingSpeed = 45;
-    export let pauseMs = 2000;
-    export let loopDelay = 180;
 
     let display = '';
     let creditDisplay = '';
-    let timer: number | undefined ;
 
-    const sleep = (ms: number) => new Promise<void>((resolve) => {
-        timer = window.setTimeout(resolve, ms);
-    });
+    const normalizeText = (value: string) => value.replace(/\s*\/\s*/g, '\n');
+
+    const getRandomIndex = (length: number) => Math.floor(Math.random() * length);
+
+    const setInitialContent = () => {
+        if (pairs.length > 0) {
+            display = normalizeText(pairs[0]?.subTitle ?? '');
+            creditDisplay = pairs[0]?.credit ?? '';
+            return;
+        }
+
+        if (lines.length > 0) {
+            display = normalizeText(lines[0] ?? '');
+        }
+    };
+
+    setInitialContent();
 
     onMount(() => {
         const hasPairs = pairs.length > 0;
@@ -23,113 +32,25 @@
             return;
         }
 
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (prefersReducedMotion) {
-            if (hasPairs) {
-                display = pairs[0]?.subTitle ?? '';
-                creditDisplay = pairs[0]?.credit ?? '';
-            } else {
-                display = lines[0] ?? '';
-            }
+        const selectedIndex = hasPairs ? getRandomIndex(pairs.length) : getRandomIndex(lines.length);
+
+        if (hasPairs) {
+            const selectedPair = pairs[selectedIndex];
+            display = normalizeText(selectedPair?.subTitle ?? '');
+            creditDisplay = selectedPair?.credit ?? '';
             return;
         }
 
-        let active = true;
-
-        const run = async () => {
-            while (active) {
-                if (hasPairs) {
-                    for (const pair of pairs) {
-                        if (!active) {
-                            return;
-                        }
-
-                        const current = pair.subTitle ?? '';
-                        const currentCredit = pair.credit ?? '';
-                        const maxLen = Math.max(current.length, currentCredit.length);
-                        display = '';
-                        creditDisplay = '';
-
-                        for (let index = 1; index <= maxLen && active; index += 1) {
-                            display = current.slice(0, index);
-                            creditDisplay = currentCredit.slice(0, index);
-                            await sleep(typingSpeed);
-                        }
-
-                        if (!active) {
-                            return;
-                        }
-
-                        await sleep(pauseMs);
-
-                        for (let index = maxLen - 1; index >= 0 && active; index -= 1) {
-                            display = current.slice(0, index);
-                            creditDisplay = currentCredit.slice(0, index);
-                            await sleep(deletingSpeed);
-                        }
-
-                        if (!active) {
-                            return;
-                        }
-
-                        await sleep(loopDelay);
-                    }
-
-                    continue;
-                }
-
-                for (const line of lines) {
-                    if (!active) {
-                        return;
-                    }
-
-                    const current = line ?? '';
-                    display = '';
-                    creditDisplay = '';
-
-                    for (let index = 1; index <= current.length && active; index += 1) {
-                        display = current.slice(0, index);
-                        await sleep(typingSpeed);
-                    }
-
-                    if (!active) {
-                        return;
-                    }
-
-                    await sleep(pauseMs);
-
-                    for (let index = current.length - 1; index >= 0 && active; index -= 1) {
-                        display = current.slice(0, index);
-                        await sleep(deletingSpeed);
-                    }
-
-                    if (!active) {
-                        return;
-                    }
-
-                    await sleep(loopDelay);
-                }
-            }
-        };
-
-        void run();
-
-        return () => {
-            active = false;
-            if (timer !== undefined) {
-                window.clearTimeout(timer);
-            }
-        };
+        display = normalizeText(lines[selectedIndex] ?? '');
     });
 </script>
 
-<p class="flex min-h-[1.6em] items-center justify-center text-[var(--text-color-70)] text-lg md:text-xl font-semibold tracking-wide text-center">
-    <span aria-live="polite" aria-atomic="true">{display}</span>
-    <span class="ml-1 inline-block select-none text-[var(--link-color)] animate-pulse" aria-hidden="true">|</span>
+<p class="min-h-[1.6em] text-center text-lg md:text-xl font-semibold tracking-wide text-[var(--text-color-70)]">
+    <span class="whitespace-pre-line leading-relaxed" aria-live="polite" aria-atomic="true">{display}</span>
 </p>
 
 {#if pairs.length > 0}
     <p class="min-h-[1.4em] text-sm md:text-base font-medium tracking-wide text-[var(--text-color-70)] opacity-80 text-center">
-        <span aria-live="polite" aria-atomic="true">{creditDisplay}</span>
+        <span class="whitespace-pre-line leading-relaxed" aria-live="polite" aria-atomic="true">{creditDisplay}</span>
     </p>
 {/if}

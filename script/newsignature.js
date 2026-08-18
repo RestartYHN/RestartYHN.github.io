@@ -14,20 +14,49 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const baseDir = join(__dirname, '..', 'src', 'i18n', 'language');
 
+function formatStringLiteral(value) {
+  return JSON.stringify(value);
+}
+
+function appendToArrayBlock(raw, blockName, entryLines) {
+  const lines = raw.split('\n');
+  const blockIndex = lines.findIndex(line => line.trim() === `${blockName}: {`);
+
+  if (blockIndex === -1) {
+    return raw;
+  }
+
+  const homeIndex = lines.findIndex((line, index) => index > blockIndex && line.trim() === 'home: [');
+
+  if (homeIndex === -1) {
+    return raw;
+  }
+
+  const closeIndex = lines.findIndex((line, index) => index > homeIndex && line.trim() === '],');
+
+  if (closeIndex === -1) {
+    return raw;
+  }
+
+  const itemIndent = lines[homeIndex + 1]?.match(/^\s*/)?.[0] ?? '                ';
+  const formattedLines = entryLines.map(line => `${itemIndent}${line}`);
+
+  lines.splice(closeIndex, 0, ...formattedLines);
+  return lines.join('\n');
+}
+
 async function appendToFile(filePath, subtitle, credit) {
   let raw = await readFile(filePath, 'utf-8');
+  const subtitleLiteral = formatStringLiteral(subtitle);
+  const creditLiteral = formatStringLiteral(credit);
 
-  // append to rotatingSubTitle.home array
-  raw = raw.replace(
-    /(rotatingSubTitle:\s*\{\s*home:\s*\[[^\]]*?)(\]\s*,)/s,
-    (_, head, tail) => `${head}    "${subtitle}",\n                ${tail}`
-  );
-
-  // append to rotatingPair.home array
-  raw = raw.replace(
-    /(rotatingPair:\s*\{\s*home:\s*\[[^\]]*?)(\]\s*,)/s,
-    (_, head, tail) => `${head}    { subTitle: "${subtitle}", credit: "${credit}" },\n                ${tail}`
-  );
+  raw = appendToArrayBlock(raw, 'rotatingSubTitle', [`${subtitleLiteral},`]);
+  raw = appendToArrayBlock(raw, 'rotatingPair', [
+    '{',
+    `    subTitle: ${subtitleLiteral},`,
+    `    credit: ${creditLiteral},`,
+    '},',
+  ]);
 
   await writeFile(filePath, raw, 'utf-8');
 }
