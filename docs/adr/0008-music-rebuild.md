@@ -90,3 +90,33 @@ https://api.restartyhn.top   (nginx + certbot)
 - 优点：双通道双引擎收敛为单路单源，N+1 消失，死代码清除；完全契合 3Mbps/小内存与个人博客成本约束。
 - 取舍：放弃 QR 登录与地区解锁鲁棒性（本场景不需要）；`onError` 自愈保留（链接约 20 分钟过期）。
 - 待办：P0 完成后，仓库 2026-08-19 的前后端简化提交仍需**重新部署**到服务器才生效。
+
+## 运维事故与部署注意（2026-09-10）
+
+### 1. 后端构建必须先 `prisma generate` 再 `tsc`
+
+服务器 `/home/ubuntu/momo/backend` 原本只有 `dist/`（无 `src/`），`dist` 是在别处构建后上传的。本次改为**服务器现场构建**，`dist/`、`src/generated/prisma` 均被 `.gitignore` 忽略。正确顺序：
+
+```bash
+npx prisma generate && npx tsc -p tsconfig.json && pm2 restart momo-backend
+```
+
+先 `tsc` 会因缺 Prisma Client 报 13 个 `TS7006/TS2307`（连锁误报）。已记入 `Momo-Backend/doc/update.md`。
+
+### 2. `api.restartyhn.top` 证书过期 → 改用 Cloudflare DNS-01
+
+- 现象：音乐页全部接口 `ERR_CONNECTION_CLOSED` / `ERR_CERT_DATE_INVALID`。
+- 根因一：Let's Encrypt 证书 2026-09-08 过期；`certbot.timer` 虽 active 但 `Trigger: n/a`，约 3 个月未真正触发续签。
+- 根因二：`certbot renew` 的 HTTP-01 校验被腾讯“未备案拦截”页挡下（`https://dnspod.qcloud.com/static/webblock.html`，anycast IP `43.174.224.202` / `43.174.225.201`），**该域名的 80 端口在本机外不可用**；443 正常。
+- 决策：NS 在 Cloudflare，改用 **DNS-01**：
+
+```bash
+sudo apt-get install -y python3-certbot-dns-cloudflare
+# /etc/letsencrypt/cloudflare.ini: dns_cloudflare_api_token = <Edit zone DNS token>
+sudo certbot certonly --dns-cloudflare \
+  --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
+  -d api.restartyhn.top --cert-name api.restartyhn.top --preferred-challenges dns
+sudo systemctl reload nginx
+```
+
+- 教训：`certbot.timer` “active” 不等于会触发；应定期 `certbot renew --dry-run` 验证。国内机器 80 被拦截时优先 DNS-01。
