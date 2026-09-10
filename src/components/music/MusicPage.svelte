@@ -13,22 +13,23 @@
     searchSongs,
   } from "@/lib/music/api";
   import { insertNext, playIndex, playerState, setQueue } from "@/lib/music/player";
+  import { pageCache } from "@/lib/music/pageCache";
   import { buildLyricLines, getActiveLyricIndex, type LyricLine } from "@/lib/music/lyrics";
   import type { AlbumInfo, Playlist, SearchResult, Track, UserProfile } from "@/lib/music/types";
 
   export let isEn = false;
 
   let user: UserProfile | null = null;
-  let playlists: Playlist[] = [];
+  let playlists: Playlist[] = pageCache.playlists ?? [];
   let status = "";
   let loading = false;
 
-  let albums: AlbumInfo[] = [];
-  let recent: Track[] = [];
+  let albums: AlbumInfo[] = pageCache.albums ?? [];
+  let recent: Track[] = pageCache.recent ?? [];
   let podcastRid = "1490741063";
-  let podcastName = "";
-  let podcastCount = 0;
-  let podcastPrograms: any[] = [];
+  let podcastName = pageCache.podcast?.name ?? "";
+  let podcastCount = pageCache.podcast?.count ?? 0;
+  let podcastPrograms: any[] = pageCache.podcast?.programs ?? [];
 
   let query = "";
   let results: SearchResult[] = [];
@@ -67,10 +68,12 @@
   });
 
   onMount(async () => {
-    await loadUser();
-    void loadAlbums();
-    void loadPodcast();
-    void loadRecent();
+    // Reuse cached panels; only fetch what is missing, one at a time (a concurrent
+    // burst on the small shared server was making panels load intermittently).
+    if (!pageCache.playlists) await loadUser();
+    if (!pageCache.albums) await loadAlbums();
+    if (!pageCache.podcast) await loadPodcast();
+    if (!pageCache.recent) await loadRecent();
     // No auto-load: the queue persists across navigation; on a fresh visit the
     // user picks a playlist explicitly.
   });
@@ -82,6 +85,7 @@
         user = await fetchPublicUser(musicConfig.neteaseUserId);
       }
       playlists = user?.playlists || [];
+      if (user) pageCache.playlists = playlists;
     } catch (e) {
       console.warn("[music] load user failed", e);
     }
@@ -124,6 +128,7 @@
   async function loadAlbums() {
     try {
       albums = await fetchUserAlbums();
+      pageCache.albums = albums;
     } catch (e) {
       console.warn("[music] load albums failed", e);
     }
@@ -136,6 +141,7 @@
       podcastPrograms = programs;
       podcastName = programs[0]?.radio?.name || (isEn ? "Podcast" : "播客");
       podcastCount = programs.length;
+      pageCache.podcast = { name: podcastName, count: podcastCount, programs };
     } catch (e) {
       console.warn("[music] load podcast failed", e);
     }
@@ -153,6 +159,7 @@
       }
     }
     recent = out;
+    pageCache.recent = out;
   }
 
   function playPodcast() {

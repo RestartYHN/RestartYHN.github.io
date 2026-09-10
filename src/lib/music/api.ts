@@ -45,16 +45,19 @@ function buildUrl(path: string, params: Record<string, string | number | undefin
 }
 
 // Page init can fire a burst of concurrent requests at a small shared server;
-// an occasional dropped connection or upstream timeout makes one fail. Retry once.
-async function getJson<T>(url: string, retried = false): Promise<T> {
+// an occasional dropped connection or upstream timeout makes one fail. Retry a
+// few times with backoff before giving up.
+const MAX_ATTEMPTS = 3;
+
+async function getJson<T>(url: string, attempt = 0): Promise<T> {
   try {
     const res = await fetch(url, { referrerPolicy: "no-referrer" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return (await res.json()) as T;
   } catch (err) {
-    if (retried) throw err;
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    return getJson<T>(url, true);
+    if (attempt >= MAX_ATTEMPTS - 1) throw err;
+    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+    return getJson<T>(url, attempt + 1);
   }
 }
 
