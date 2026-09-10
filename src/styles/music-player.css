@@ -28,19 +28,56 @@
 
 .music-bottom-player {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   bottom: 0.8rem;
+  margin-inline: auto;
   width: min(760px, calc(100vw - 2rem));
   z-index: 60;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.35rem;
   border: 1px solid var(--button-border-color);
   border-radius: 0.9rem;
   background: color-mix(in oklab, var(--bg-color) 70%, transparent);
-  padding: 0.55rem 0.6rem;
+  padding: 0.55rem 0.75rem;
   backdrop-filter: blur(8px);
+}
+
+.mp-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.mp-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.mp-info {
+  min-width: 0;
+}
+
+.mp-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.mp-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .music-bottom-player.player-hidden {
@@ -72,7 +109,8 @@
 }
 
 .music-progress-wrap {
-  margin-top: 0.2rem;
+  width: 100%;
+  margin-top: 0;
   display: grid;
   grid-template-columns: 38px 1fr 38px;
   gap: 0.45rem;
@@ -174,52 +212,29 @@
 
 @media (max-width: 768px) {
   .music-bottom-player {
-    display: grid;
-    grid-template-columns: 54px minmax(0, 1fr) auto auto auto auto auto;
-    grid-template-areas:
-      "cover info mode prev play next list"
-      "progress progress progress progress progress progress progress";
-    gap: 0.45rem 0.5rem;
-    align-items: center;
-    padding: 0.65rem;
     width: calc(100vw - 0.8rem);
     bottom: 0.4rem;
+    padding: 0.5rem 0.6rem;
   }
 
-  .music-bottom-cover {
-    grid-area: cover;
+  .mp-row {
+    gap: 0.45rem;
   }
 
-  .music-bottom-player .min-w-0 {
-    grid-area: info;
-    min-width: 0;
-  }
-
-  #music-mode-btn {
-    grid-area: mode;
-  }
-  #music-prev {
-    grid-area: prev;
-  }
-  #music-main-play {
-    grid-area: play;
-  }
-  #music-next {
-    grid-area: next;
-  }
-  #music-playlist-btn {
-    grid-area: list;
+  .mp-center {
+    gap: 0.3rem;
   }
 
   .music-position-info {
     display: none;
   }
 
+  .music-bottom-cover {
+    width: 40px;
+    height: 40px;
+  }
+
   .music-progress-wrap {
-    grid-area: progress;
-    grid-column: 1 / -1;
-    margin-top: 0.2rem;
-    padding: 0;
     grid-template-columns: 34px 1fr 34px;
     gap: 0.35rem;
   }
@@ -229,8 +244,8 @@
     height: 34px;
   }
   .music-control.primary {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
 }
 

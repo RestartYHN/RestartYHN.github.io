@@ -62,60 +62,68 @@
 >
 
 <div class="music-bottom-player" id="music-bottom-player" class:player-hidden={!barVisible}>
-  <div
-    class="music-bottom-cover"
-    id="music-bottom-cover"
-    style={current?.cover ? `background-image:url(${current.cover})` : ""}
-  ></div>
-  <div class="min-w-0 flex-1">
-    <p id="music-bottom-title" class="music-bottom-text">{current?.title || "-"}</p>
-    <p id="music-bottom-artist" class="music-bottom-text music-bottom-sub">{current?.artist || "-"}</p>
-    <div class="music-progress-wrap">
-      <span id="music-current-time" class="music-time">{formatClock(state.currentTime)}</span>
-      <input
-        id="music-progress"
-        class="music-progress"
-        type="range"
-        min="0"
-        max="1000"
-        step="1"
-        value={progress}
-        on:input={onSeek}
-      />
-      <span id="music-total-time" class="music-time">{formatClock(state.duration)}</span>
+  <div class="mp-row">
+    <div class="mp-left">
+      <div
+        class="music-bottom-cover"
+        id="music-bottom-cover"
+        style={current?.cover ? `background-image:url(${current.cover})` : ""}
+      ></div>
+      <div class="mp-info">
+        <p id="music-bottom-title" class="music-bottom-text">{current?.title || "-"}</p>
+        <p id="music-bottom-artist" class="music-bottom-text music-bottom-sub">{current?.artist || "-"}</p>
+      </div>
+    </div>
+    <div class="mp-center">
+      <button
+        id="music-mode-btn"
+        class="music-control music-mode-btn"
+        type="button"
+        aria-label="Play mode"
+        title={modeLabel}
+        on:click={cyclePlayMode}>{modeIcon}</button
+      >
+      <button id="music-prev" class="music-control" type="button" aria-label="Prev" on:click={() => prev()}>◀</button>
+      <button
+        id="music-main-play"
+        class="music-control primary music-control-play"
+        class:playing={state.playing}
+        type="button"
+        aria-label="Play"
+        on:click={toggle}
+      >
+        <span class="music-control-icon music-control-icon-play hidden" class:hidden={state.playing} aria-hidden="true">▶</span>
+        <span class="music-control-icon music-control-icon-pause hidden" class:hidden={!state.playing} aria-hidden="true">❚❚</span>
+      </button>
+      <button id="music-next" class="music-control" type="button" aria-label="Next" on:click={() => next()}>▶</button>
+    </div>
+    <div class="mp-right">
+      <span id="music-player-position" class="music-position-info">
+        {state.tracks.length ? `${state.currentIndex + 1} / ${state.tracks.length}` : "-"}
+      </span>
+      <button
+        id="music-playlist-btn"
+        class="music-control music-playlist-btn"
+        type="button"
+        aria-label="Playlist"
+        on:click={() => (queueOpen = !queueOpen)}>☰</button
+      >
     </div>
   </div>
-  <span id="music-player-position" class="music-position-info">
-    {state.tracks.length ? `${state.currentIndex + 1} / ${state.tracks.length}` : "-"}
-  </span>
-  <button
-    id="music-mode-btn"
-    class="music-control music-mode-btn"
-    type="button"
-    aria-label="Play mode"
-    title={modeLabel}
-    on:click={cyclePlayMode}>{modeIcon}</button
-  >
-  <button id="music-prev" class="music-control" type="button" aria-label="Prev" on:click={() => prev()}>◀</button>
-  <button
-    id="music-main-play"
-    class="music-control primary music-control-play"
-    class:playing={state.playing}
-    type="button"
-    aria-label="Play"
-    on:click={toggle}
-  >
-    <span class="music-control-icon music-control-icon-play hidden" class:hidden={state.playing} aria-hidden="true">▶</span>
-    <span class="music-control-icon music-control-icon-pause hidden" class:hidden={!state.playing} aria-hidden="true">❚❚</span>
-  </button>
-  <button id="music-next" class="music-control" type="button" aria-label="Next" on:click={() => next()}>▶</button>
-  <button
-    id="music-playlist-btn"
-    class="music-control music-playlist-btn"
-    type="button"
-    aria-label="Playlist"
-    on:click={() => (queueOpen = !queueOpen)}>☰</button
-  >
+  <div class="music-progress-wrap">
+    <span id="music-current-time" class="music-time">{formatClock(state.currentTime)}</span>
+    <input
+      id="music-progress"
+      class="music-progress"
+      type="range"
+      min="0"
+      max="1000"
+      step="1"
+      value={progress}
+      on:input={onSeek}
+    />
+    <span id="music-total-time" class="music-time">{formatClock(state.duration)}</span>
+  </div>
 </div>
 
 {#if queueOpen}
