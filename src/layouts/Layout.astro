@@ -110,35 +110,24 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
 
     <!-- Page Loading Overlay -->
     <div id="loading-overlay" aria-hidden="true">
-      <img src="/images/transition.gif" alt="loading" class="loading-gif" />
+      <div class="loading-spinner"></div>
     </div>
 
     <slot />
     
     <script is:inline>
         let loaderTimeout;
-        
-        // 在这里配置你准备的多个过场动画 GIF 路径
-        const transitionGifs = [
-            "/images/transition1.gif",
-            "/images/transition2.gif",
-            "/images/transition3.gif", 
-            "/images/transition4.gif"
-        ];
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // 1. 开始准备跳转
         document.addEventListener('astro:before-preparation', () => {
-            // 每次页面跳转前，随机挑选一个过度动画
-            const gifElement = document.querySelector('.loading-gif');
-            if (gifElement) {
-                const randomGif = transitionGifs[Math.floor(Math.random() * transitionGifs.length)];
-                gifElement.src = randomGif;
-            }
+            if (prefersReducedMotion) return;
 
+            // 只在导航变慢时兜底显示，快导航不打断页面
             loaderTimeout = setTimeout(() => {
             const overlay = document.getElementById('loading-overlay');
             if (overlay) overlay.style.display = 'flex';
-            }, 500); 
+            }, 180); 
         });
 
         // 2. 页面内容交换完成（DOM 已更新）
@@ -182,10 +171,22 @@ const externalAvatarSrc = isExternalAvatar ? profileConfig.avatar : undefined;
     to { opacity: 1; }
   }
 
-  .loading-gif {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid color-mix(in oklab, var(--text-color) 20%, transparent);
+    border-top-color: var(--text-color);
+    animation: spinnerRotate 0.8s linear infinite;
+  }
+
+  @keyframes spinnerRotate {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #loading-overlay { animation: none; }
+    .loading-spinner { animation: none; }
   }
 
   /* 开场屏基础样式 */
