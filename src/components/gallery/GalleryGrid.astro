@@ -1,0 +1,52 @@
+---
+import { getRelativeLocaleUrl } from '@utils/url-utils';
+import { parseTag, type GalleryWork, type GalleryAuthor } from '@utils/gallery-utils';
+
+interface Props {
+  works: GalleryWork[];
+  currentLang: string;
+  normalizedLang: 'zh-cn' | 'en';
+  authors?: GalleryAuthor[];
+  showAuthorLinks?: boolean;
+}
+const { works, currentLang, normalizedLang, authors = [], showAuthorLinks = false } = Astro.props;
+const authorMap = new Map(authors.map((a) => [a.slug.toLowerCase(), a]));
+---
+
+<section id="gallery-grid" class="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mb-8">
+  {works.map((item) => {
+    const author = showAuthorLinks ? authorMap.get(item.author.toLowerCase()) : undefined;
+    return (
+      <article data-tags={JSON.stringify([...(item.tags || []), `年份:${item.year}`])} class="break-inside-avoid overflow-hidden rounded-xl border border-[var(--button-border-color)] bg-[var(--bg-color)]/70" style="content-visibility: auto; contain-intrinsic-size: auto 300px">
+        <img
+          src={item.image}
+          alt={item.title['zh-cn']}
+          data-gallery-src={item.image}
+          class="w-full h-auto object-contain cursor-zoom-in"
+          loading="lazy" decoding="async"
+        />
+        <div class="card-text p-3">
+          <h3 class="text-base font-semibold text-[var(--text-color)]">{item.title['zh-cn']}</h3>
+          {author && (
+            <a href={getRelativeLocaleUrl(currentLang, `/appreciation/gallery/${author.slug}/`)} class="inline-block mt-1 text-sm text-[var(--link-color)] hover:underline">
+              {author.name[normalizedLang]}
+            </a>
+          )}
+          <p class="mt-1 text-sm text-[var(--text-color-70)]">{item.year}</p>
+          {item.tags?.filter((t) => !t.startsWith('国家:')).length > 0 && (
+            <div class="card-tags mt-2 flex flex-wrap gap-1">
+              {item.tags.filter((t) => !t.startsWith('国家:')).map((tag) => {
+                const [dim, val] = parseTag(tag);
+                return (
+                  <span class="text-xs px-2 py-1 rounded-md bg-[var(--button-hover-color)] text-[var(--text-color-70)]">
+                    {dim ? <><span class="opacity-50">{dim}·</span>{val}</> : val}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </article>
+    );
+  })}
+</section>

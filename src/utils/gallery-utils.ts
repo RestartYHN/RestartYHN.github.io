@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
+import { pinyin } from "pinyin-pro"
 import galleryMeta from "../data/gallery.template.json"
 
 type LocaleCode = "zh-cn" | "en"
@@ -214,4 +215,67 @@ function enrichWorksWithCountry(works: GalleryWork[], authors: GalleryAuthor[]):
 export function getAuthorWorks(authorSlug: string): GalleryWork[] {
   const { works } = loadGalleryData()
   return works.filter((w) => normalizeKey(w.author) === normalizeKey(authorSlug))
+}
+
+export interface TagDimValue {
+  val: string
+  full: string
+  count: number
+}
+
+export interface TagDimGroup {
+  dim: string
+  letters: { key: string; values: TagDimValue[] }[]
+}
+
+export function parseTag(tag: string): [string, string] {
+  const idx = tag.indexOf(":")
+  if (idx === -1) return ["", tag]
+  return [tag.slice(0, idx), tag.slice(idx + 1)]
+}
+
+function getTagInitial(tag: string): string {
+  const [, val] = parseTag(tag)
+  const ch = val.charAt(0)
+  if (/[a-zA-Z]/.test(ch)) return ch.toUpperCase()
+  if (/[0-9]/.test(ch)) return "#"
+  if (/[\u4e00-\u9fff]/.test(ch)) {
+    const py = pinyin(ch, { pattern: "first", toneType: "none" })
+    return py ? py.toUpperCase() : "#"
+  }
+  return "#"
+}
+
+/**
+ * Groups tag strings into dimension → initial-letter → values, used by the
+ * appreciation tag filter. `full` always carries the original tag string so it
+ * can be matched against each work's `data-tags`.
+ */
+export function buildTagDimGroups(tags: string[]): TagDimGroup[] {
+  const map = new Map<string, Map<string, Map<string, TagDimValue>>>()
+  for (const tag of tags) {
+    const [dim, val] = parseTag(tag)
+    const d = dim || "其他"
+    const init = getTagInitial(val)
+    if (!map.has(d)) map.set(d, new Map())
+    const dm = map.get(d)!
+    if (!dm.has(init)) dm.set(init, new Map())
+    const vm = dm.get(init)!
+    const prev = vm.get(val)
+    vm.set(val, { val, full: tag, count: (prev?.count || 0) + 1 })
+  }
+
+  const result: TagDimGroup[] = []
+  for (const [dim, dm] of map) {
+    const letters: { key: string; values: TagDimValue[] }[] = []
+    for (const [key, vm] of dm) {
+      const values = Array.from(vm.values())
+      values.sort((a, b) => a.val.localeCompare(b.val, "zh-u-co-pinyin"))
+      letters.push({ key, values })
+    }
+    letters.sort((a, b) => a.key.localeCompare(b.key))
+    result.push({ dim, letters })
+  }
+  result.sort((a, b) => a.dim.localeCompare(b.dim, "zh-u-co-pinyin"))
+  return result
 }

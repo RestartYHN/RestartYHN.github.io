@@ -1,0 +1,81 @@
+---
+import type { TagDimGroup } from '@utils/gallery-utils';
+
+interface Props {
+  dimGroups: TagDimGroup[];
+  lang: string;
+  totalCount: number;
+}
+const { dimGroups, lang, totalCount } = Astro.props;
+const isEn = lang === 'en';
+---
+
+<details id="tag-filter-mobile" class="lg:hidden mb-6 border border-[var(--button-border-color)] rounded-xl p-3">
+  <summary class="flex items-center gap-2 text-sm font-semibold text-[var(--text-color)] cursor-pointer select-none">
+    <span>{isEn ? 'Tags' : '标签'}</span>
+    <span id="selected-count-mobile" class="text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+    <div class="ml-auto flex items-center gap-1">
+      <button id="tag-hide-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]">显示</button>
+      <button id="filter-mode-toggle-mobile" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)]" onclick="event.preventDefault(); event.stopPropagation();">AND</button>
+    </div>
+  </summary>
+  <div class="mt-2 max-h-[50vh] overflow-y-auto">
+    <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
+      {isEn ? 'All' : '全部'} ({totalCount})
+    </button>
+    {dimGroups.map((group) => (
+      <div class="tag-dim-group" data-dim={group.dim}>
+        <span class="block text-xs font-bold text-[var(--link-color)] px-2 py-0.5 mt-2 cursor-pointer" data-dim-toggle={group.dim}>{group.dim}</span>
+        <div class="tag-dim-values ml-1 hidden">
+          {group.letters.map((l) => (
+            <div class="tag-letter-group" data-letter={l.key}>
+              <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
+              <div class:list={["tag-letter-values ml-2", { hidden: l.values.length > 3 }]}>
+                {l.values.map((v) => (
+                  <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
+                    {v.val} <span class="opacity-50">({v.count})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</details>
+
+<aside id="tag-filter" class="hidden lg:block absolute left-[var(--toc-offset-left)] top-20 w-44 border-l border-[var(--button-border-color)] pl-4 max-h-[calc(100vh-5rem)] overflow-y-auto z-10">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-sm font-semibold text-[var(--text-color)]">
+      {isEn ? 'Tags' : '标签'}
+      <span id="selected-count" class="ml-1 text-xs font-normal text-[var(--text-color-70)] hidden"></span>
+    </h3>
+    <div class="flex items-center gap-1">
+      <button id="tag-hide-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">显示</button>
+      <button id="filter-mode-toggle-desktop" class="px-1.5 py-0.5 text-[11px] rounded border border-[var(--button-border-color)] text-[var(--text-color-70)] hover:border-[var(--link-color)] transition-colors">AND</button>
+    </div>
+  </div>
+  <button data-tag="" class="tag-filter-btn w-full text-left px-2 py-1.5 text-sm rounded text-[var(--link-color)] font-semibold transition-colors mb-1">
+    {isEn ? 'All' : '全部'} ({totalCount})
+  </button>
+  {dimGroups.map((group) => (
+    <div class="tag-dim-group" data-dim={group.dim}>
+      <span class="block text-xs font-bold text-[var(--link-color)] px-2 py-0.5 mt-2 cursor-pointer" data-dim-toggle={group.dim}>{group.dim}</span>
+      <div class="tag-dim-values ml-1 hidden">
+        {group.letters.map((l) => (
+          <div class="tag-letter-group" data-letter={l.key}>
+            <span class="block text-[11px] text-[var(--text-color-70)] px-2 py-0.5 cursor-pointer" data-letter-toggle={`${group.dim}:${l.key}`}>{l.key}</span>
+            <div class:list={["tag-letter-values ml-2", { hidden: l.values.length > 3 }]}>
+              {l.values.map((v) => (
+                <button data-tag={v.full} class="tag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-[var(--text-color-70)] hover:bg-[var(--button-hover-color)] transition-colors">
+                  {v.val} <span class="opacity-50">({v.count})</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  ))}
+</aside>
