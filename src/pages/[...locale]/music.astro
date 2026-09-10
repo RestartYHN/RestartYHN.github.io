@@ -236,7 +236,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     outline: none;
   }
   .music-search-input:focus { border-color: var(--link-color); }
-  :global(.music-search-results) {
+  .music-search-results {
     position: absolute;
     top: calc(100% + 4px);
     left: 0;
@@ -250,8 +250,8 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     box-shadow: 0 12px 32px rgba(0,0,0,0.18);
     padding: 0.25rem 0;
   }
-  :global(.music-search-results.hidden) { display: none; }
-  :global(.music-search-result-item) {
+  .music-search-results.hidden { display: none; }
+  .music-search-result-item {
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -260,33 +260,33 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
     transition: background-color 0.12s;
   }
-  :global(.music-search-result-item:last-child) { border-bottom: none; }
-  :global(.music-search-result-item:hover) { background: var(--button-hover-color); }
-  :global(.music-search-result-item.active) {
+  .music-search-result-item:last-child { border-bottom: none; }
+  .music-search-result-item:hover { background: var(--button-hover-color); }
+  .music-search-result-item.active {
     background: var(--button-hover-color);
     border-left: 3px solid var(--link-color);
   }
-  :global(.music-search-result-cover) {
+  .music-search-result-cover {
     width: 36px; height: 36px;
     border-radius: 4px;
     background-color: var(--button-hover-color);
     flex-shrink: 0;
     object-fit: cover;
   }
-  :global(.music-search-result-text) {
+  .music-search-result-text {
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
-  :global(.music-search-result-title) {
+  .music-search-result-title {
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-color);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     line-height: 1.35;
   }
-  :global(.music-search-result-artist) {
+  .music-search-result-artist {
     font-size: 0.78rem;
     color: var(--text-color-70);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -406,10 +406,10 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     min-height: 3.2rem;
   }
 
-  :global(.music-track-card) { border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent); }
-  :global(.music-track-card:hover) { background: var(--button-hover-color) !important; border-color: var(--link-color) !important; }
-  :global(.music-playlist-card) { border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent); }
-  :global(.music-playlist-card:hover) { background: var(--button-hover-color) !important; border-color: var(--link-color) !important; }
+  .music-track-card { border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent); }
+  .music-track-card:hover { background: var(--button-hover-color) !important; border-color: var(--link-color) !important; }
+  .music-playlist-card { border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent); }
+  .music-playlist-card:hover { background: var(--button-hover-color) !important; border-color: var(--link-color) !important; }
 
   .music-track-index {
     width: 2rem;
