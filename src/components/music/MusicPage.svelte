@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
+  import { get } from "svelte/store";
   import { musicConfig } from "@/data/music";
   import {
     fetchCookiePlaylistSongs,
@@ -43,12 +44,22 @@
   afterUpdate(() => {
     if (activeLyric === lastScrolledLyric) return;
     lastScrolledLyric = activeLyric;
-    const el = lyricsEl?.querySelector(".lyrics-line.active");
-    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+    // Scroll ONLY the lyrics container (scrollIntoView would also scroll the page).
+    if (!lyricsEl) return;
+    const el = lyricsEl.querySelector(".lyrics-line.active") as HTMLElement | null;
+    if (!el) return;
+    const target = el.offsetTop - lyricsEl.clientHeight / 2 + el.offsetHeight / 2;
+    lyricsEl.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
   });
 
   onMount(async () => {
     await loadUser();
+    // Returning to the page must not clobber the live queue/playback.
+    const s = get(playerState);
+    if (s.loaded && s.tracks.length) {
+      currentPlaylistId = s.queueSource || "";
+      return;
+    }
     const defaultId = musicConfig.defaultPlaylistId || playlists[0]?.id || "";
     if (defaultId) await loadPlaylist(defaultId);
   });
@@ -96,7 +107,7 @@
       return;
     }
     status = "";
-    setQueue(list);
+    setQueue(list, 0, playlistId);
     void playIndex(0);
   }
 

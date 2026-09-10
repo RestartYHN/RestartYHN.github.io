@@ -10,6 +10,7 @@ export interface PlayerState {
   currentTime: number;
   duration: number;
   loaded: boolean;
+  queueSource: string;
 }
 
 const store = writable<PlayerState>({
@@ -19,6 +20,7 @@ const store = writable<PlayerState>({
   currentTime: 0,
   duration: 0,
   loaded: false,
+  queueSource: "",
 });
 
 // Read-only view for components (`$playerState`).
@@ -232,7 +234,7 @@ export function seek(ratio: number) {
   audioEl.currentTime = Math.max(0, Math.min(1, ratio)) * d;
 }
 
-export function setQueue(tracks: Track[], index = 0) {
+export function setQueue(tracks: Track[], index = 0, source = "") {
   const n = tracks.length;
   const safeIndex = n ? Math.max(0, Math.min(index, n - 1)) : 0;
   store.update((s) => ({
@@ -242,6 +244,7 @@ export function setQueue(tracks: Track[], index = 0) {
     currentTime: 0,
     duration: 0,
     loaded: true,
+    queueSource: source,
   }));
   emit();
 }
