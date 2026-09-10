@@ -1,9 +1,12 @@
 # ADR 0008：音乐页彻底重做（薄代理 + 单一真源播放器）
 
-- 状态：已采纳，实施中（2026-09-10）
+- 状态：已完成（2026-09-10）
 - 范围：音乐播放器的前端重写与音乐后端收敛。**不改变音频 CDN 直连的既有决策**（见 ADR 0001）。
 - 相关代码：
-  - 前端 `src/pages/[...locale]/music.astro`、`src/components/misc/GlobalMusicPlayer.astro`、`src/components/misc/MusicStatsCard.astro`、`src/plugins/rehype-component-music-card.mjs`、`src/data/music.ts`
+  - 前端（新）：`src/lib/music/{types,api,lyrics,format,player,pageCache}.ts`、`src/components/music/{MiniPlayer,MusicPage}.svelte`、`src/styles/music-player.css`
+  - 前端（改）：`src/pages/[...locale]/music.astro`（薄壳）、`src/layouts/MainPageLayout.astro`、`src/data/music.ts`
+  - 前端（删）：`src/components/misc/GlobalMusicPlayer.astro`、`worker/music-proxy.js`
+  - 仍相关：`src/components/misc/MusicStatsCard.astro`、`src/plugins/rehype-component-music-card.mjs`（走 `window.__globalMusicBootstrapV1.insertNext`）
   - 后端 `Momo-Backend/nodejs/src/api/music/*`、`middleware/routes.ts`
   - 部署：`/home/ubuntu/momo/backend`（pm2 `momo-backend`，17171）、`/home/ubuntu/momo/ncm-api`（pm2 `ncm-api` = NeteaseCloudMusicAPI Enhanced v4.31.0，3200）、nginx 站点 `momo-api`
 
@@ -120,3 +123,18 @@ sudo systemctl reload nginx
 ```
 
 - 教训：`certbot.timer` “active” 不等于会触发；应定期 `certbot renew --dry-run` 验证。国内机器 80 被拦截时优先 DNS-01。
+
+## 完成记录（2026-09-10）
+
+- **P0**：归档线上基线 `_prod-baseline/2026-09-10/`；删除 QR/token 死代码（后端 −404 行）。
+- **P1**：`/playlist/track/all` 一次返回完整元数据（cap 500）+ 10 分钟缓存；去掉未使用的 `recentSongs`。实测 `public-user` 5.47s → 0.44s。
+- **P2**：新增 `src/lib/music/*` 与 `src/components/music/{MiniPlayer,MusicPage}.svelte`；删除 `GlobalMusicPlayer.astro`（1246 行）与 `music.astro` 内联引擎（约 2000 行），`music.astro` 变为薄壳。
+- **上线后修复**：
+  - 首次点歌歌词不渲染（歌词按内容签名重算，而非仅按曲目 id）；
+  - 歌单高亮改为跟随真实队列来源，随后按反馈**移除卡片金色高亮**以求一致；
+  - 播放方式回归（列表循环 / 随机 / 单曲循环），随机带前后历史窗口；
+  - 歌词颜色加深；
+  - 移动端横向溢出（网格列改 `minmax(0, …)` + 子项 `min-width:0`）；
+  - 搜索结果改回长条、限 5 条（根因：`is:global` 块内 `:global(...)` 未被 Astro 转换，14 条规则失效）；
+  - 面板偶发只加载其一：`getJson` 重试 3 次 + 面板顺序加载 + 会话级缓存。
+- **结果**：前端净删 2000+ 行，单一 `<audio>` 状态源、跨页不断播、回页不重置；后端 N+1 消失；全程**零 nginx/腾讯云路由改动**；音频始终 CDN 直连。
