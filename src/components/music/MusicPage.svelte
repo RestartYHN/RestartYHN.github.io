@@ -38,15 +38,20 @@
   let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
   let lyricLines: LyricLine[] = [];
-  let lastLyricTrackId = "";
+  let lastLyricKey = "";
   let lyricsEl: HTMLElement | null = null;
 
   $: state = $playerState;
   $: currentTrack = state.tracks[state.currentIndex];
   $: {
-    if (currentTrack && currentTrack.id !== lastLyricTrackId) {
-      lastLyricTrackId = currentTrack.id;
-      lyricLines = buildLyricLines(currentTrack.lyric, currentTrack.tlyric);
+    // Lyrics may arrive after the click (metadata is hydrated on play), so key on
+    // the lyric content too — not only on the track id.
+    const key = currentTrack
+      ? `${currentTrack.id}|${currentTrack.lyric?.length ?? 0}|${currentTrack.tlyric?.length ?? 0}`
+      : "";
+    if (key !== lastLyricKey) {
+      lastLyricKey = key;
+      lyricLines = currentTrack ? buildLyricLines(currentTrack.lyric, currentTrack.tlyric) : [];
     }
   }
   $: activeLyric = getActiveLyricIndex(lyricLines, state.currentTime);
