@@ -21,7 +21,6 @@
 
   let user: UserProfile | null = null;
   let playlists: Playlist[] = [];
-  let currentPlaylistId = "";
   let status = "";
   let loading = false;
 
@@ -55,6 +54,10 @@
     }
   }
   $: activeLyric = getActiveLyricIndex(lyricLines, state.currentTime);
+  // Highlight the playlist that is actually playing. Album/podcast/recent queues
+  // carry a `prefix:` source and therefore match no playlist.
+  $: activePlaylistId =
+    state.queueSource && !state.queueSource.includes(":") ? state.queueSource : "";
 
   let lastScrolledLyric = -2;
   afterUpdate(() => {
@@ -77,7 +80,6 @@
     // Returning to the page must not clobber the live queue/playback.
     const s = get(playerState);
     if (s.loaded && s.tracks.length) {
-      currentPlaylistId = s.queueSource || "";
       return;
     }
     const defaultId = musicConfig.defaultPlaylistId || playlists[0]?.id || "";
@@ -98,7 +100,6 @@
 
   async function loadPlaylist(playlistId: string) {
     if (!playlistId) return;
-    currentPlaylistId = playlistId;
     loading = true;
     status = isEn ? "Loading playlist..." : "正在加载歌单...";
 
@@ -339,7 +340,7 @@
           <li>
             <button
               class="music-playlist-card"
-              class:active={String(pl.id) === String(currentPlaylistId)}
+              class:active={String(pl.id) === String(activePlaylistId)}
               type="button"
               on:click={() => loadPlaylist(String(pl.id))}
             >
