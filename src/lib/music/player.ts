@@ -3,6 +3,8 @@ import { musicConfig } from "@/data/music";
 import { fetchTrack, normalizeAudioUrl } from "./api";
 import type { Track } from "./types";
 
+export type PlayMode = "loop" | "shuffle" | "single";
+
 export interface PlayerState {
   tracks: Track[];
   currentIndex: number;
@@ -11,6 +13,7 @@ export interface PlayerState {
   duration: number;
   loaded: boolean;
   queueSource: string;
+  playMode: PlayMode;
 }
 
 const store = writable<PlayerState>({
@@ -21,6 +24,7 @@ const store = writable<PlayerState>({
   duration: 0,
   loaded: false,
   queueSource: "",
+  playMode: "loop",
 });
 
 // Read-only view for components (`$playerState`).
@@ -135,7 +139,7 @@ function bind() {
     });
   handlers.onMeta = () => patch({ duration: Number.isFinite(audio.duration) ? audio.duration : 0 });
   handlers.onEnded = () => {
-    void next();
+    void advance(false);
   };
   handlers.onError = () => {
     void selfHeal();
@@ -209,16 +213,92 @@ export async function playIndex(index: number) {
   }
 }
 
-export async function next() {
+// Shuffle uses a small back/forward history window so "previous" retraces.
+const SHUFFLE_HIST_MAX = 4;
+let shuffleHist: number[] = [];
+let shuffleCursor = -1;
+let shuffleHistMode: PlayMode | null = null;
+let shuffleHistTracksRef: Track[] | null = null;
+
+function shuffleHistGuard(s: PlayerState) {
+  if (s.playMode !== shuffleHistMode || s.tracks !== shuffleHistTracksRef) {
+    shuffleHist = [];
+    shuffleCursor = -1;
+    shuffleHistMode = s.playMode;
+    shuffleHistTracksRef = s.tracks;
+  }
+  if (shuffleCursor < 0 || shuffleHist[shuffleCursor] !== s.currentIndex) {
+    shuffleHist = [s.currentIndex];
+    shuffleCursor = 0;
+  }
+}
+
+function randomShuffleIndex(s: PlayerState): number {
+  let idx = s.currentIndex;
+  while (s.tracks.length > 1 && idx === s.currentIndex) {
+    idx = Math.floor(Math.random() * s.tracks.length);
+  }
+  return idx;
+}
+
+function getNextIndex(s: PlayerState, manual: boolean): number {
+  if (!s.tracks.length) return 0;
+  if (s.playMode === "single" && !manual) return s.currentIndex;
+  if (s.playMode === "shuffle") {
+    shuffleHistGuard(s);
+    if (shuffleCursor < shuffleHist.length - 1) {
+      shuffleCursor += 1;
+      return shuffleHist[shuffleCursor];
+    }
+    const idx = randomShuffleIndex(s);
+    shuffleHist.push(idx);
+    if (shuffleHist.length > SHUFFLE_HIST_MAX) shuffleHist.shift();
+    shuffleCursor = shuffleHist.length - 1;
+    return idx;
+  }
+  return (s.currentIndex + 1) % s.tracks.length;
+}
+
+function getPrevIndex(s: PlayerState, manual: boolean): number {
+  if (!s.tracks.length) return 0;
+  if (s.playMode === "single" && !manual) return s.currentIndex;
+  if (s.playMode === "shuffle") {
+    shuffleHistGuard(s);
+    if (shuffleCursor > 0) {
+      shuffleCursor -= 1;
+      return shuffleHist[shuffleCursor];
+    }
+    return s.currentIndex;
+  }
+  return (s.currentIndex - 1 + s.tracks.length) % s.tracks.length;
+}
+
+async function advance(manual: boolean) {
   const s = get(store);
   if (!s.tracks.length) return;
-  await playIndex((s.currentIndex + 1) % s.tracks.length);
+  await playIndex(getNextIndex(s, manual));
+}
+
+export async function next() {
+  await advance(true);
 }
 
 export async function prev() {
   const s = get(store);
   if (!s.tracks.length) return;
-  await playIndex((s.currentIndex - 1 + s.tracks.length) % s.tracks.length);
+  await playIndex(getPrevIndex(s, true));
+}
+
+export function cyclePlayMode(): PlayMode {
+  const modes: PlayMode[] = ["loop", "shuffle", "single"];
+  let nextMode: PlayMode = "loop";
+  store.update((s) => {
+    const idx = modes.indexOf(s.playMode);
+    nextMode = modes[(idx + 1) % modes.length];
+    return { ...s, playMode: nextMode };
+  });
+  emit();
+  return nextMode;
 }
 
 export function toggle() {
@@ -321,7 +401,7 @@ function installBridge() {
     bootstrap: syncState,
     getState: () => {
       const s = get(store);
-      return { tracks: s.tracks, currentIndex: s.currentIndex, loaded: s.loaded, playMode: "loop" };
+      return { tracks: s.tracks, currentIndex: s.currentIndex, loaded: s.loaded, playMode: s.playMode };
     },
     getTracks: () => get(store).tracks,
     getIndex: () => get(store).currentIndex,
@@ -333,6 +413,7 @@ function installBridge() {
     removeAt,
     next,
     prev,
+    cyclePlayMode,
     onRouteChange: () => {},
     _marqueeSetup: () => {},
     _next: () => {

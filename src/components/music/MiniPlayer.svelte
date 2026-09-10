@@ -1,6 +1,15 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { playerState, attachAudio, toggle, next, prev, seek, playIndex } from "@/lib/music/player";
+  import {
+    playerState,
+    attachAudio,
+    toggle,
+    next,
+    prev,
+    seek,
+    playIndex,
+    cyclePlayMode,
+  } from "@/lib/music/player";
   import { formatClock } from "@/lib/music/format";
 
   export let isEn = false;
@@ -12,6 +21,19 @@
   $: state = $playerState;
   $: current = state.tracks[state.currentIndex];
   $: progress = state.duration > 0 ? Math.round((state.currentTime / state.duration) * 1000) : 0;
+  $: modeIcon = state.playMode === "shuffle" ? "🔀" : state.playMode === "single" ? "🔂" : "🔁";
+  $: modeLabel =
+    state.playMode === "shuffle"
+      ? isEn
+        ? "Shuffle"
+        : "随机播放"
+      : state.playMode === "single"
+        ? isEn
+          ? "Repeat one"
+          : "单曲循环"
+        : isEn
+          ? "List loop"
+          : "列表循环";
 
   onMount(() => {
     attachAudio(audioEl);
@@ -66,6 +88,14 @@
   <span id="music-player-position" class="music-position-info">
     {state.tracks.length ? `${state.currentIndex + 1} / ${state.tracks.length}` : "-"}
   </span>
+  <button
+    id="music-mode-btn"
+    class="music-control music-mode-btn"
+    type="button"
+    aria-label="Play mode"
+    title={modeLabel}
+    on:click={cyclePlayMode}>{modeIcon}</button
+  >
   <button id="music-prev" class="music-control" type="button" aria-label="Prev" on:click={() => prev()}>◀</button>
   <button
     id="music-main-play"
