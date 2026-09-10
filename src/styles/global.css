@@ -30,7 +30,7 @@
     /* Allow per-image or per-theme overlay via --bg-overlay; default for light theme is transparent */
     background-image:
       linear-gradient(var(--bg-overlay, rgba(255,255,255,0)), var(--bg-overlay, rgba(255,255,255,0))),
-      var(--bg-image, url('/cg/xmm.jpg'));
+      var(--bg-image, url('https://img.restartyhn.top/cg/xmm.jpg'));
     background-size: var(--bg-size, cover);
     background-position: var(--bg-position, center);
     background-repeat: no-repeat;
@@ -42,7 +42,7 @@
       /* Dark mode: allow per-image or per-theme overlay via --bg-overlay; default is a dark semi-transparent mask */
       background-image:
         linear-gradient(var(--bg-overlay, rgba(10,10,10,0.3)), var(--bg-overlay, rgba(10,10,10,0.3))),
-        var(--bg-image, url('/cg/dark-cg.jpg'));
+        var(--bg-image, url('https://img.restartyhn.top/cg/dark-cg.jpg'));
     background-position: var(--bg-position, center 20%);
     background-size: var(--bg-size, cover);
   }
