@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
-  import { get } from "svelte/store";
   import { musicConfig } from "@/data/music";
   import {
     fetchAlbum,
@@ -72,14 +71,8 @@
     void loadAlbums();
     void loadPodcast();
     void loadRecent();
-
-    // Returning to the page must not clobber the live queue/playback.
-    const s = get(playerState);
-    if (s.loaded && s.tracks.length) {
-      return;
-    }
-    const defaultId = musicConfig.defaultPlaylistId || playlists[0]?.id || "";
-    if (defaultId) await loadPlaylist(defaultId);
+    // No auto-load: the queue persists across navigation; on a fresh visit the
+    // user picks a playlist explicitly.
   });
 
   async function loadUser() {

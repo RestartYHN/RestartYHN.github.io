@@ -48,8 +48,9 @@ export const musicConfig: MusicConfig = {
   // Optional: fill your NetEase user id later.
   neteaseUserId: "2112672342",
 
-  // Optional: pin one playlist as your default source in no-login mode.
-  defaultPlaylistId: "17446314153",
+  // Optional: pin one playlist as the first auto-loaded source. Empty = use the
+  // first playlist returned by the account.
+  defaultPlaylistId: "",
 
   // Maximum number of songs loaded from the selected playlist.
   // Lower this if a playlist (e.g. 我喜欢的音乐) is too large and slows down loading.
