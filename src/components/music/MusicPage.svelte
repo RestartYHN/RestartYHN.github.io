@@ -3,15 +3,19 @@
   import { get } from "svelte/store";
   import { musicConfig } from "@/data/music";
   import {
+    fetchAlbum,
     fetchCookiePlaylistSongs,
     fetchCookieUser,
+    fetchPodcastPrograms,
     fetchPublicPlaylistSongs,
     fetchPublicUser,
+    fetchTrack,
+    fetchUserAlbums,
     searchSongs,
   } from "@/lib/music/api";
   import { insertNext, playIndex, playerState, setQueue } from "@/lib/music/player";
   import { buildLyricLines, getActiveLyricIndex, type LyricLine } from "@/lib/music/lyrics";
-  import type { Playlist, SearchResult, Track, UserProfile } from "@/lib/music/types";
+  import type { AlbumInfo, Playlist, SearchResult, Track, UserProfile } from "@/lib/music/types";
 
   export let isEn = false;
 
@@ -20,6 +24,13 @@
   let currentPlaylistId = "";
   let status = "";
   let loading = false;
+
+  let albums: AlbumInfo[] = [];
+  let recent: Track[] = [];
+  let podcastRid = "1490741063";
+  let podcastName = "";
+  let podcastCount = 0;
+  let podcastPrograms: any[] = [];
 
   let query = "";
   let results: SearchResult[] = [];
@@ -54,6 +65,10 @@
 
   onMount(async () => {
     await loadUser();
+    void loadAlbums();
+    void loadPodcast();
+    void loadRecent();
+
     // Returning to the page must not clobber the live queue/playback.
     const s = get(playerState);
     if (s.loaded && s.tracks.length) {
@@ -109,6 +124,94 @@
     status = "";
     setQueue(list, 0, playlistId);
     void playIndex(0);
+  }
+
+  async function loadAlbums() {
+    try {
+      albums = await fetchUserAlbums();
+    } catch (e) {
+      console.warn("[music] load albums failed", e);
+    }
+  }
+
+  async function loadPodcast() {
+    try {
+      const programs = await fetchPodcastPrograms(podcastRid);
+      if (!programs.length) return;
+      podcastPrograms = programs;
+      podcastName = programs[0]?.radio?.name || (isEn ? "Podcast" : "播客");
+      podcastCount = programs.length;
+    } catch (e) {
+      console.warn("[music] load podcast failed", e);
+    }
+  }
+
+  async function loadRecent() {
+    const history = (user?.recentHistory || []).slice(0, 3);
+    const out: Track[] = [];
+    for (const h of history) {
+      try {
+        const t = await fetchTrack(String(h.id));
+        if (t) out.push({ ...t, playedAt: h.playedAt });
+      } catch {
+        /* skip */
+      }
+    }
+    recent = out;
+  }
+
+  function playPodcast() {
+    const tracks: Track[] = podcastPrograms
+      .map((p) => {
+        const id = String(p?.mainTrackId || p?.id || "");
+        return {
+          id,
+          title: p?.name || p?.title || `Song ${id}`,
+          artist: p?.dj?.nickname || p?.radio?.name || "Unknown Artist",
+          cover: p?.coverUrl || p?.radio?.picUrl || "",
+          audio: "",
+          lyric: p?.description || "",
+          tlyric: "",
+          unavailable: false,
+        };
+      })
+      .filter((t) => t.id);
+    if (!tracks.length) return;
+    setQueue(tracks, 0, `podcast:${podcastRid}`);
+    void playIndex(0);
+  }
+
+  async function playAlbum(id: string) {
+    status = isEn ? "Loading album..." : "正在加载专辑...";
+    try {
+      const album = await fetchAlbum(id);
+      const tracks: Track[] = (album?.tracks || []).map((t) => ({
+        id: t.id,
+        title: t.title,
+        artist: t.artist,
+        cover: t.cover || album?.cover || "",
+        audio: "",
+        lyric: "",
+        tlyric: "",
+        unavailable: false,
+      }));
+      if (!tracks.length) {
+        status = isEn ? "Album is empty." : "专辑为空。";
+        return;
+      }
+      status = "";
+      setQueue(tracks, 0, `album:${id}`);
+      void playIndex(0);
+    } catch (e) {
+      console.warn("[music] load album failed", e);
+      status = isEn ? "Failed to load album." : "专辑加载失败。";
+    }
+  }
+
+  function playRecent(index: number) {
+    if (!recent.length) return;
+    setQueue(recent, index, "recent");
+    void playIndex(index);
   }
 
   function onSearchInput() {
@@ -274,5 +377,82 @@
         {/each}
       </ul>
     </section>
+
+    <section class="music-panel music-album-section">
+      <div class="mb-3 flex items-end justify-between gap-3">
+        <h2 class="music-panel-title">{isEn ? "Albums" : "收藏专辑"}</h2>
+        <span class="music-panel-subtitle"
+          >{albums.length ? `${albums.length} ${isEn ? "albums" : "张"}` : ""}</span
+        >
+      </div>
+      <ul class="music-playlist-list">
+        {#if !albums.length}
+          <li class="music-empty">{isEn ? "No albums" : "暂无收藏专辑"}</li>
+        {/if}
+        {#each albums as a, idx (a.id)}
+          <li>
+            <button class="music-playlist-card" type="button" on:click={() => playAlbum(String(a.id))}>
+              <div class="music-playlist-index">{String(idx + 1).padStart(2, "0")}</div>
+              <div class="min-w-0 flex-1">
+                <p class="music-playlist-name truncate">{a.name}</p>
+                <p class="music-playlist-meta">
+                  {a.artist}{a.size ? ` · ${a.size} ${isEn ? "tracks" : "首"}` : ""}
+                </p>
+              </div>
+            </button>
+          </li>
+        {/each}
+      </ul>
+    </section>
+
+    <div class="music-col-tight">
+      <section class="music-panel music-mini-section">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <h2 class="music-panel-title">{isEn ? "Podcasts" : "播客"}</h2>
+          <span class="music-panel-subtitle"
+            >{podcastCount ? `${podcastCount} ${isEn ? "episodes" : "集"}` : ""}</span
+          >
+        </div>
+        <ul class="music-playlist-list">
+          {#if !podcastName}
+            <li class="music-empty">{isEn ? "No podcast" : "暂无播客"}</li>
+          {/if}
+          {#if podcastName}
+            <li>
+              <button class="music-playlist-card" type="button" on:click={playPodcast}>
+                <div class="music-playlist-index">01</div>
+                <div class="min-w-0 flex-1">
+                  <p class="music-playlist-name truncate">{podcastName}</p>
+                  <p class="music-playlist-meta">{podcastCount} {isEn ? "episodes" : "集"}</p>
+                </div>
+              </button>
+            </li>
+          {/if}
+        </ul>
+      </section>
+
+      <section class="music-panel music-mini-section">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <h2 class="music-panel-title">{isEn ? "Recent" : "最近播放"}</h2>
+          <span class="music-panel-subtitle">{recent.length ? (isEn ? "recent" : "最近") : ""}</span>
+        </div>
+        <ul class="music-track-list">
+          {#if !recent.length}
+            <li class="music-empty">{isEn ? "No recent plays" : "暂无最近播放"}</li>
+          {/if}
+          {#each recent as t, idx (t.id + "-" + idx)}
+            <li>
+              <button class="music-track-card" type="button" on:click={() => playRecent(idx)}>
+                <div class="music-track-index">{String(idx + 1).padStart(2, "0")}</div>
+                <div class="min-w-0 flex-1">
+                  <p class="music-track-title truncate">{t.title}</p>
+                  <p class="music-track-artist truncate">{t.artist}</p>
+                </div>
+              </button>
+            </li>
+          {/each}
+        </ul>
+      </section>
+    </div>
   </div>
 </div>
