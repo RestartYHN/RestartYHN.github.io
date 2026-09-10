@@ -100,7 +100,6 @@ export default defineConfig({
         clientFiles: [
           "src/layouts/Layout.astro",
           "src/components/Header.astro",
-          "src/components/misc/GlobalMusicPlayer.astro",
           "src/components/misc/Search.astro",
           "src/components/control/ThemeIcon.astro",
         ],
