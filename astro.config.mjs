@@ -23,11 +23,12 @@ import { remarkReadingTime } from './src/plugins/remark-reading-time.mjs';
 import { remarkLqip } from './src/plugins/remark-lqip.js';
 
 import svelte from "@astrojs/svelte";
+import sitemap from "@astrojs/sitemap";
 
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://restartyhn.github.io', // Root URL of site
+  site: 'https://www.restartyhn.top', // Root URL of site (custom domain, see CNAME)
   i18n: {
     locales: ['zh-cn', 'en'],
     defaultLocale: 'zh-cn',
@@ -44,7 +45,7 @@ export default defineConfig({
       "vscode-icons": ["*"],
       "material-symbols": ["*"]
     }
-  }), svelte()],
+  }), svelte(), sitemap()],
   markdown: {
     shikiConfig: {
       theme: 'one-dark-pro',
@@ -109,7 +110,7 @@ export default defineConfig({
       cssCodeSplit: true,
       assetsInlineLimit: 4096,
     },
-    esbuildOptions: {
+    esbuild: {
       drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
     },
   }
