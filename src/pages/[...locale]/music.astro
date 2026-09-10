@@ -987,5 +987,26 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     width: 16px;
     height: 16px;
   }
+
+  /* Svelte rewrite: cards are <button> now; normalize + scrollable lyrics. */
+  .music-track-card,
+  .music-playlist-card,
+  .music-search-result-item {
+    width: 100%;
+    text-align: left;
+    font: inherit;
+  }
+
+  .lyrics-container.is-scroll {
+    overflow-y: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+    scroll-behavior: smooth;
+  }
+
+  .lyrics-container.is-scroll .lyrics-track {
+    position: relative;
+    transform: none !important;
+  }
 </style>
 

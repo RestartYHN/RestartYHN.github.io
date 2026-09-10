@@ -157,9 +157,8 @@
   line-height: 1;
 }
 
-.music-control-icon.hidden,
-.hidden {
-  display: none !important;
+.music-control-icon.hidden {
+  display: none;
 }
 
 .music-position-info {

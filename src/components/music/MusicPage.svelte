@@ -39,9 +39,11 @@
   }
   $: activeLyric = getActiveLyricIndex(lyricLines, state.currentTime);
 
+  let lastScrolledLyric = -2;
   afterUpdate(() => {
-    if (!lyricsEl) return;
-    const el = lyricsEl.querySelector(".lyrics-line.active");
+    if (activeLyric === lastScrolledLyric) return;
+    lastScrolledLyric = activeLyric;
+    const el = lyricsEl?.querySelector(".lyrics-line.active");
     if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
   });
 
@@ -187,7 +189,7 @@
     </section>
 
     <section class="music-lyrics-panel">
-      <div class="lyrics-container" bind:this={lyricsEl}>
+      <div class="lyrics-container is-scroll" bind:this={lyricsEl}>
         <div class="lyrics-track">
           {#if !lyricLines.length}
             <p class="lyrics-line lyrics-placeholder">{isEn ? "No lyric available" : "暂无歌词"}</p>
