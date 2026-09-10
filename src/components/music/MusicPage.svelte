@@ -226,7 +226,7 @@
     }
     searchTimer = setTimeout(async () => {
       try {
-        results = await searchSongs(q);
+        results = (await searchSongs(q)).slice(0, 5);
         searchOpen = results.length > 0;
       } catch {
         results = [];

@@ -567,6 +567,20 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     font: inherit;
   }
 
+  /* Search result rows: reset native button chrome so they look like the old bars. */
+  button.music-search-result-item {
+    border: none;
+    border-bottom: 1px solid color-mix(in oklab, var(--button-border-color) 40%, transparent);
+    background: transparent;
+    color: inherit;
+    appearance: none;
+    border-radius: 0;
+  }
+
+  button.music-search-result-item:last-child {
+    border-bottom: none;
+  }
+
   .lyrics-container.is-scroll {
     overflow-y: auto;
     -webkit-mask-image: none;
