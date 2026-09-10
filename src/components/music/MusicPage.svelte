@@ -54,10 +54,6 @@
     }
   }
   $: activeLyric = getActiveLyricIndex(lyricLines, state.currentTime);
-  // Highlight the playlist that is actually playing. Album/podcast/recent queues
-  // carry a `prefix:` source and therefore match no playlist.
-  $: activePlaylistId =
-    state.queueSource && !state.queueSource.includes(":") ? state.queueSource : "";
 
   let lastScrolledLyric = -2;
   afterUpdate(() => {
@@ -340,7 +336,6 @@
           <li>
             <button
               class="music-playlist-card"
-              class:active={String(pl.id) === String(activePlaylistId)}
               type="button"
               on:click={() => loadPlaylist(String(pl.id))}
             >
