@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
-import { dirname, join } from 'path';
+import { basename, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 // 获取命令行参数
@@ -40,11 +40,11 @@ try {
 // 默认的 Markdown 内容
 const defaultContent = `---
 title: new post
-date: ${new Date().toISOString().split('T')[0]}
+pubDate: ${new Date().toISOString().split('T')[0]}
 description: Some description here
 image: ""
 draft: false
-slug: ${folderPath}
+slugId: ${basename(folderPath)}
 ---
 
 ## Title
