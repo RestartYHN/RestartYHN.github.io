@@ -7,150 +7,33 @@
   import EmojiPicker from './EmojiPicker.svelte';
   import { previewImageStore } from './previewStore';
   import { parseMarkdown } from '@utils/markdown';
+  import { createLightbox, type LightboxHandle } from '@/lib/ui/lightbox';
 
-  let overlayEl: HTMLDivElement | null = null;
+  let lightbox: LightboxHandle | null = null;
 
   onMount(() => {
     const unsub = previewImageStore.subscribe(url => {
-      if (url && !overlayEl) {
+      if (url) {
         if (url.includes('/emoji')) return;
-        document.documentElement.style.touchAction = 'none';
-        const imgs = Array.from(document.querySelectorAll('.comment-content img')).filter((img: any) => !img.src.includes('/emoji')).map((img: any) => img.src);
+        if (lightbox) return;
+        const imgs = Array.from(document.querySelectorAll('.comment-content img'))
+          .filter((el): el is HTMLImageElement => !el.src.includes('/emoji'))
+          .map((el) => el.src);
         let currentIndex = imgs.indexOf(url);
-        if(currentIndex === -1) currentIndex = 0;
-
-        overlayEl = document.createElement('div');
-        overlayEl.className = 'fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden';
-        overlayEl.onclick = (e) => { if (e.target === overlayEl) previewImageStore.set(null); };
-
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'absolute top-4 right-4 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer';
-        closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-        closeBtn.onclick = (e) => { e.stopPropagation(); previewImageStore.set(null); };
-        overlayEl.appendChild(closeBtn);
-
-        const zoomInBtn = document.createElement('button');
-        zoomInBtn.className = 'absolute top-4 right-16 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer text-lg';
-        zoomInBtn.textContent = '+';
-        zoomInBtn.onclick = (e) => { e.stopPropagation(); scale = Math.min(5, scale + 0.5); updateTransform(); };
-        overlayEl.appendChild(zoomInBtn);
-
-        const zoomOutBtn = document.createElement('button');
-        zoomOutBtn.className = 'absolute top-4 right-[7.5rem] z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer text-lg';
-        zoomOutBtn.textContent = '−';
-        zoomOutBtn.onclick = (e) => { e.stopPropagation(); scale = Math.max(0.5, scale - 0.5); updateTransform(); };
-        overlayEl.appendChild(zoomOutBtn);
-
-        const prevBtn = document.createElement('button');
-        prevBtn.className = 'absolute left-2 sm:left-4 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer shadow-md';
-        prevBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>';
-
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'absolute right-2 sm:right-4 z-[100] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer shadow-md';
-        nextBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
-
-        let scale = 1, posX = 0, posY = 0, dragging = false, lastX = 0, lastY = 0;
-
-        const img = document.createElement('img');
-        img.src = imgs[currentIndex];
-        img.className = 'max-w-full max-h-full object-contain rounded shadow-2xl select-none';
-        img.style.transition = 'transform 0.1s ease-out';
-        img.style.cursor = 'grab';
-        img.draggable = false;
-
-        const updateTransform = () => {
-          img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-        };
-        const resetTransform = () => { scale = 1; posX = 0; posY = 0; updateTransform(); };
-
-        const updateImage = (index: number) => {
-            if(index < 0) index = imgs.length - 1;
-            if(index >= imgs.length) index = 0;
-            currentIndex = index;
-            img.src = imgs[currentIndex];
-            resetTransform();
-        };
-
-        prevBtn.onclick = (e) => { e.stopPropagation(); updateImage(currentIndex - 1); };
-        nextBtn.onclick = (e) => { e.stopPropagation(); updateImage(currentIndex + 1); };
-        
-        if(imgs.length > 1) {
-            overlayEl.appendChild(prevBtn);
-            overlayEl.appendChild(nextBtn);
-        }
-
-        overlayEl.addEventListener('wheel', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const delta = e.deltaY > 0 ? -0.1 : 0.1;
-          scale = Math.max(0.5, Math.min(5, scale + delta));
-          updateTransform();
-        }, { passive: false });
-
-        img.addEventListener('mousedown', (e) => {
-          dragging = true;
-          lastX = e.clientX;
-          lastY = e.clientY;
-          img.style.cursor = 'grabbing';
-          img.style.transition = 'none';
+        if (currentIndex === -1) currentIndex = 0;
+        lightbox = createLightbox({
+          getImages: () => imgs,
+          startIndex: currentIndex,
+          variant: 'comment',
+          zoomControls: true,
+          touchDrag: true,
+          lockScroll: true,
+          mount: document.body,
+          onClose: () => previewImageStore.set(null),
         });
-
-        window.addEventListener('mousemove', (e) => {
-          if (!dragging) return;
-          posX += e.clientX - lastX;
-          posY += e.clientY - lastY;
-          lastX = e.clientX;
-          lastY = e.clientY;
-          updateTransform();
-        });
-
-        window.addEventListener('mouseup', () => {
-          if (dragging) {
-            dragging = false;
-            img.style.cursor = 'grab';
-            img.style.transition = 'transform 0.1s ease-out';
-          }
-        });
-
-        img.addEventListener('dblclick', () => { resetTransform(); });
-
-        let touchStartX = 0, touchStartY = 0, touchDragging = false, touchLastX = 0, touchLastY = 0;
-        img.addEventListener('touchstart', (e) => {
-          if (e.touches.length === 1) {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchLastX = touchStartX;
-            touchLastY = touchStartY;
-            touchDragging = true;
-          }
-        }, { passive: true });
-        img.addEventListener('touchmove', (e) => {
-          if (!touchDragging || e.touches.length !== 1) return;
-          e.preventDefault();
-          posX += e.touches[0].clientX - touchLastX;
-          posY += e.touches[0].clientY - touchLastY;
-          touchLastX = e.touches[0].clientX;
-          touchLastY = e.touches[0].clientY;
-          updateTransform();
-        }, { passive: false });
-        img.addEventListener('touchend', () => { touchDragging = false; });
-
-        overlayEl.appendChild(img);
-        document.body.appendChild(overlayEl);
-        const onKey = (e: KeyboardEvent) => { 
-            if (e.key === 'Escape') previewImageStore.set(null); 
-            if (imgs.length > 1) {
-                if (e.key === 'ArrowLeft') updateImage(currentIndex - 1);
-                if (e.key === 'ArrowRight') updateImage(currentIndex + 1);
-            }
-        };
-        document.addEventListener('keydown', onKey);
-        (overlayEl as any).__keyHandler = onKey;
-      } else if (!url && overlayEl) {
-        document.removeEventListener('keydown', (overlayEl as any).__keyHandler);
-        document.documentElement.style.touchAction = '';
-        overlayEl.remove();
-        overlayEl = null;
+      } else if (lightbox) {
+        lightbox.close();
+        lightbox = null;
       }
     });
     return () => unsub();

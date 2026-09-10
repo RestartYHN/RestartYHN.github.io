@@ -211,97 +211,37 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
 </MainPageLayout>
 
 <script>
-  let overlayEl: HTMLDivElement | null = null;
+  import { createLightbox, type LightboxHandle } from "@/lib/ui/lightbox";
+  import { initTagFilter } from "@/lib/ui/tag-filter";
+  import { initGalleryHide } from "@/lib/ui/gallery-hide";
+
+  let galleryLightbox: LightboxHandle | null = null;
 
   function closeOverlay() {
-    if (overlayEl) {
-      document.removeEventListener('keydown', (overlayEl as any).__keyHandler);
-      overlayEl.remove();
-      overlayEl = null;
-    }
+    galleryLightbox?.close();
+    galleryLightbox = null;
   }
 
   function openGalleryPreview(imageSrc: string) {
     closeOverlay();
 
     const visibleArticles = document.querySelectorAll('#gallery-grid article:not([style*="display: none"])');
-    const imgs = Array.from(visibleArticles).map(article => {
-      const img = article.querySelector<HTMLElement>('img[data-gallery-src]');
-      return img ? img.dataset.gallerySrc : null;
-    }).filter(src => src) as string[];
+    const imgs = Array.from(visibleArticles)
+      .map((article) => {
+        const img = article.querySelector<HTMLElement>('img[data-gallery-src]');
+        return img ? img.dataset.gallerySrc : null;
+      })
+      .filter((src): src is string => Boolean(src));
 
     let currentIndex = imgs.indexOf(imageSrc);
     if (currentIndex === -1) currentIndex = 0;
 
-    overlayEl = document.createElement('div');
-    overlayEl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;overflow:hidden';
-    overlayEl.className = 'relative';
-    overlayEl.onclick = (e) => { if (e.target === overlayEl) closeOverlay(); };
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors cursor-pointer';
-    closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-    closeBtn.onclick = (e) => { e.stopPropagation(); closeOverlay(); };
-    overlayEl.appendChild(closeBtn);
-
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'absolute left-2 sm:left-8 z-10 w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/30 transition-colors cursor-pointer md:flex shadow-md';
-    prevBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 sm:w-10 sm:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>';
-
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'absolute right-2 sm:right-8 z-10 w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/30 transition-colors cursor-pointer md:flex shadow-md';
-    nextBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 sm:w-10 sm:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>';
-
-    let scale = 1, posX = 0, posY = 0, dragging = false, lastX = 0, lastY = 0;
-
-    const img = document.createElement('img');
-    img.src = imgs[currentIndex] || imageSrc;
-    img.className = 'max-w-full max-h-full object-contain rounded shadow-2xl select-none';
-    img.style.transition = 'transform 0.1s ease-out';
-    img.style.cursor = 'grab';
-    img.draggable = false;
-
-    const updateTransform = () => { img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`; };
-    const resetTransform = () => { scale = 1; posX = 0; posY = 0; updateTransform(); };
-
-    const updateImage = (index: number) => {
-      if(index < 0) index = imgs.length - 1;
-      if(index >= imgs.length) index = 0;
-      currentIndex = index;
-      img.src = imgs[currentIndex];
-      resetTransform();
-    };
-
-    prevBtn.onclick = (e) => { e.stopPropagation(); updateImage(currentIndex - 1); };
-    nextBtn.onclick = (e) => { e.stopPropagation(); updateImage(currentIndex + 1); };
-
-    if(imgs.length > 1) {
-        overlayEl.appendChild(prevBtn);
-        overlayEl.appendChild(nextBtn);
-    }
-
-    overlayEl.addEventListener('wheel', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      scale = Math.max(0.5, Math.min(5, scale + (e.deltaY > 0 ? -0.1 : 0.1)));
-      updateTransform();
-    }, { passive: false });
-
-    img.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; img.style.cursor = 'grabbing'; img.style.transition = 'none'; });
-    window.addEventListener('mousemove', (e) => { if (!dragging) return; posX += e.clientX - lastX; posY += e.clientY - lastY; lastX = e.clientX; lastY = e.clientY; updateTransform(); });
-    window.addEventListener('mouseup', () => { if (dragging) { dragging = false; img.style.cursor = 'grab'; img.style.transition = 'transform 0.1s ease-out'; } });
-    img.addEventListener('dblclick', () => { resetTransform(); });
-
-    overlayEl.appendChild(img);
-    (document.body.parentElement || document.documentElement).appendChild(overlayEl);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeOverlay();
-      if (imgs.length > 1) {
-        if (e.key === 'ArrowLeft') updateImage(currentIndex - 1);
-        if (e.key === 'ArrowRight') updateImage(currentIndex + 1);
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    (overlayEl as any).__keyHandler = onKey;
+    galleryLightbox = createLightbox({
+      getImages: () => imgs,
+      startIndex: currentIndex,
+      variant: "gallery",
+      onClose: closeOverlay,
+    });
   }
 
   function initGalleryPreview() {
@@ -315,137 +255,20 @@ const pageTitle = `${normalizedLang === 'en' ? 'Gallery Overview' : '画廊总�
   document.addEventListener('DOMContentLoaded', initGalleryPreview);
   document.addEventListener('astro:page-load', initGalleryPreview);
 
-  function initTagFilter() {
-    const containers = [document.getElementById('tag-filter'), document.getElementById('tag-filter-mobile')].filter(Boolean) as HTMLElement[];
-    if (containers.length === 0) return;
-    if (containers.every(c => c.dataset.bound === 'true')) return;
-
-    const unbound = containers.filter(c => c.dataset.bound !== 'true');
-    unbound.forEach(c => { c.dataset.bound = 'true'; });
-
-    unbound.forEach(filterBar => {
-      filterBar.querySelectorAll<HTMLElement>('[data-dim-toggle]').forEach(toggle => {
-        toggle.addEventListener('click', () => {
-          const dim = toggle.dataset.dimToggle;
-          const cls = filterBar.id === 'tag-filter-mobile' ? '.tag-dim-group-mobile' : '.tag-dim-group';
-          const values = filterBar.querySelector(`${cls}[data-dim="${dim}"] .tag-dim-values, ${cls}[data-dim="${dim}"] .tag-dim-values-mobile`);
-          if (values) values.classList.toggle('hidden');
-        });
-      });
-
-      filterBar.querySelectorAll('[data-letter-toggle]').forEach(toggle => {
-        toggle.addEventListener('click', () => {
-          const parent = toggle.closest('.tag-letter-group, .tag-letter-group-mobile');
-          if (parent) {
-            const values = parent.querySelector('.tag-letter-values, .tag-letter-values-mobile');
-            if (values) values.classList.toggle('hidden');
-          }
-        });
-      });
-    });
-
-    const allBtns = containers.flatMap(c => [...c.querySelectorAll<HTMLElement>('.tag-filter-btn')]);
-    const articles = document.querySelectorAll<HTMLElement>('#gallery-grid article');
-    const selected = new Set();
-    let useOr = localStorage.getItem('momo-gallery-filter-mode') === 'or';
-    const countEls = [document.getElementById('selected-count'), document.getElementById('selected-count-mobile')].filter(Boolean) as HTMLElement[];
-    const modeToggles = [document.getElementById('filter-mode-toggle'), document.getElementById('filter-mode-toggle-mobile')].filter(Boolean) as HTMLElement[];
-
-    if (useOr) {
-      modeToggles.forEach(b => { b.textContent = 'OR'; b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]'); });
-    }
-
-    modeToggles.forEach(t => {
-      t.addEventListener('click', () => {
-        useOr = !useOr;
-        localStorage.setItem('momo-gallery-filter-mode', useOr ? 'or' : 'and');
-        modeToggles.forEach(b => { b.textContent = useOr ? 'OR' : 'AND'; b.classList.toggle('bg-[var(--link-color)]', useOr); b.classList.toggle('text-white', useOr); b.classList.toggle('border-[var(--link-color)]', useOr); });
-        applyFilter();
-      });
-    });
-
-    function applyFilter() {
-      containers.forEach(filterBar => {
-        const allBtn = filterBar.querySelector('[data-tag=""]');
-        const tagBtns = filterBar.querySelectorAll<HTMLElement>('[data-tag]:not([data-tag=""])');
-        if (!allBtn) return;
-
-        if (selected.size === 0) {
-          allBtn.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-          allBtn.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        } else {
-          allBtn.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-          allBtn.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-        }
-
-        tagBtns.forEach(b => {
-          if (selected.size > 0 && selected.has(b.dataset.tag)) {
-            b.classList.add('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-            b.classList.remove('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-          } else {
-            b.classList.remove('bg-[var(--link-color)]', 'text-white', 'border-[var(--link-color)]');
-            b.classList.add('border-[var(--button-border-color)]', 'text-[var(--text-color-70)]');
-          }
-        });
-      });
-
-      countEls.forEach(el => {
-        el.classList.toggle('hidden', selected.size === 0);
-        if (selected.size > 0) el.textContent = `· ${selected.size} ${document.documentElement.lang === 'en' ? 'selected' : '已选'}`;
-      });
-
-      articles.forEach(article => {
-        if (selected.size === 0) {
-          article.style.display = '';
-        } else {
-          const tags = JSON.parse(article.dataset.tags || '[]');
-          article.style.display = useOr
-            ? selected.values().some(t => tags.includes(t)) ? '' : 'none'
-            : [...selected].every(t => tags.includes(t)) ? '' : 'none';
-        }
-      });
-    }
-
-    allBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tag = btn.dataset.tag;
-        if (!tag) { selected.clear(); }
-        else if (selected.has(tag)) { selected.delete(tag); }
-        else { selected.add(tag); }
-        applyFilter();
-      });
-    });
+  const tagFilterOptions = {
+    containerIds: ['tag-filter', 'tag-filter-mobile'],
+    modeToggleIds: ['filter-mode-toggle', 'filter-mode-toggle-mobile'],
+    selectedCountIds: ['selected-count', 'selected-count-mobile'],
+  };
+  function runTagFilter() {
+    initTagFilter(tagFilterOptions);
   }
+  document.addEventListener('DOMContentLoaded', runTagFilter);
+  document.addEventListener('astro:page-load', runTagFilter);
 
-  document.addEventListener('DOMContentLoaded', initTagFilter);
-  document.addEventListener('astro:page-load', initTagFilter);
-
-  function initGalleryHide() {
-    var btns = document.querySelectorAll('#tag-hide-toggle-desktop, #tag-hide-toggle-mobile');
-    if (!btns.length) return;
-    var hidden = localStorage.getItem('momo-gallery-hide-cards') === 'true';
-    document.documentElement.classList.toggle('gallery-hide-cards', hidden);
-    function syncUI(h) {
-      var label = document.documentElement.lang === 'en' ? (h ? 'Hide' : 'Show') : (h ? '隐藏' : '显示');
-      btns.forEach(function(b) {
-        b.textContent = label;
-        b.classList.toggle('bg-[var(--link-color)]', h);
-        b.classList.toggle('text-white', h);
-        b.classList.toggle('border-[var(--link-color)]', h);
-      });
-    }
-    syncUI(hidden);
-    btns.forEach(function(b) {
-      b.onclick = function(e) {
-        e.stopPropagation();
-        if (b.closest('summary')) e.preventDefault();
-        var now = !document.documentElement.classList.contains('gallery-hide-cards');
-        document.documentElement.classList.toggle('gallery-hide-cards', now);
-        localStorage.setItem('momo-gallery-hide-cards', String(now));
-        syncUI(now);
-      };
-    });
+  function runGalleryHide() {
+    initGalleryHide({ buttonIds: ['#tag-hide-toggle-desktop', '#tag-hide-toggle-mobile'] });
   }
-  initGalleryHide();
-  document.addEventListener('astro:page-load', initGalleryHide);
+  runGalleryHide();
+  document.addEventListener('astro:page-load', runGalleryHide);
 </script>
