@@ -47,16 +47,21 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
 <style is:global>
   .music-main-grid {
     display: grid;
-    /* Fixed column widths: left (playlist/hero) and right (lyrics/tracks) */
-    grid-template-columns: 360px 420px;
+    /* minmax(0, …) lets columns shrink below their content; otherwise long titles
+       force the grid wider than the viewport on mobile. */
+    grid-template-columns: minmax(0, 360px) minmax(0, 420px);
     grid-template-rows: auto auto auto auto auto auto;
     gap: 1rem;
     margin-bottom: 1rem;
   }
 
+  .music-main-grid > * {
+    min-width: 0;
+  }
+
   @media (max-width: 1024px) {
     .music-main-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
@@ -180,6 +185,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-color);
+    overflow-wrap: anywhere;
   }
 
   .music-artist,
