@@ -357,7 +357,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   .lyrics-line {
     text-align: center;
     padding: 0.45rem 1rem;
-    opacity: 0.25;
+    opacity: 0.65;
     transition: opacity 0.35s ease, font-size 0.35s ease, color 0.35s ease;
     cursor: pointer;
     user-select: none;
@@ -372,7 +372,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   }
 
   .lyrics-line.near {
-    opacity: 0.55;
+    opacity: 0.88;
     font-size: 0.96rem;
   }
 
@@ -383,7 +383,7 @@ const pageTitle = `${t('header.music')} - ${siteConfig.title}`;
   .lyrics-trans {
     margin-top: 0.15rem;
     font-size: 0.86rem;
-    color: color-mix(in oklab, var(--text-color-70) 85%, transparent);
+    color: var(--text-color-70);
   }
 
   .lyrics-line.active .lyrics-main {
