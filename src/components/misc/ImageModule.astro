@@ -23,13 +23,14 @@ const isLocal = !(
 
 let imageLoad: ImageMetadata | undefined;
 if (isLocal) {
-    const images = import.meta.glob<ImageMetadata>("../../**/*", {import: "default" });
-    let imagePath = path.normalize(path.join("../../", "/", src)).replace(/\\/g, "/");
+    const images = import.meta.glob<ImageMetadata>("../../**/*.{avif,gif,jpeg,jpg,png,svg,webp}", {import: "default" });
+    const imagePath = path.normalize(path.join("../../", "/", src)).replace(/\\/g, "/");
     const image = images[imagePath];
-    if(!image) {
+    if (image) {
+        imageLoad = await image();
+    } else {
         console.error(`\n[ERROR] Image file not found: ${imagePath.replace('../../', 'src/')}`);
     }
-    imageLoad = await image()
 }
 ---
 <!-- <div class={className}> -->
