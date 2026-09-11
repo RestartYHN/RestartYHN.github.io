@@ -24,6 +24,8 @@
     "@expressive-code/plugin-collapsible-sections": "^0.43.1",
     "@expressive-code/plugin-line-numbers": "^0.43.1",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource/eb-garamond": "^5.3.0",
+    "@fontsource/noto-serif-sc": "^5.3.0",
     "@iconify/svelte": "^5.2.1",
     "@myriaddreamin/typst-ts-node-compiler": "0.7.0-rc2",
     "@myriaddreamin/typst.ts": "0.7.0-rc2",

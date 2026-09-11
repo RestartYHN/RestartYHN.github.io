@@ -3,6 +3,9 @@
 @import "./special.css";
 @import "./scrollbar.css";
 @import "@chinese-fonts/lxgwwenkaibright/dist/LXGWBright-Medium/result.css";
+@import "@fontsource/noto-serif-sc/400.css";
+@import "@fontsource/noto-serif-sc/700.css";
+@import "@fontsource/eb-garamond/400.css";
 
 @layer base {
 

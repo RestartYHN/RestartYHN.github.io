@@ -29,6 +29,12 @@ importers:
       '@fontsource-variable/jetbrains-mono':
         specifier: ^5.2.8
         version: 5.2.8
+      '@fontsource/eb-garamond':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/noto-serif-sc':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@iconify/svelte':
         specifier: ^5.2.1
         version: 5.2.1(svelte@5.46.0)
@@ -479,6 +485,12 @@ packages:
 
   '@fontsource-variable/jetbrains-mono@5.2.8':
     resolution: {integrity: sha512-WBA9elru6Jdp5df2mES55wuOO0WIrn3kpXnI4+W2ek5u3ZgLS9XS4gmIlcQhiZOWEKl95meYdvK7xI+ETLCq/Q==}
+
+  '@fontsource/eb-garamond@5.3.0':
+    resolution: {integrity: sha512-VplwHpB8FLuzl+4G5LDci1b3Z4SghiuXH8XEgaxjnOb5aue5mEt1njmDKeO6iyLeGa73LffU7PC7hzncLRx0ZA==}
+
+  '@fontsource/noto-serif-sc@5.3.0':
+    resolution: {integrity: sha512-0/zaEFkidiWldE62rTeD74x8ygUsQvejiSNtO0LQxQk3qpaHnlMZ3w4C7yH80B4KTIg8VKeFP4oSgwWMchY9+g==}
 
   '@iconify-json/fa6-brands@1.2.6':
     resolution: {integrity: sha512-twL3X4KWcxAhbc1vz/mIDsVr+CAItk1/EIfxKUVQtpv6O4eydk5KNYqTZWdvJNHGInUgd6vKg21aWfVgb5DXEg==}
@@ -3303,6 +3315,10 @@ snapshots:
       '@expressive-code/core': 0.43.1
 
   '@fontsource-variable/jetbrains-mono@5.2.8': {}
+
+  '@fontsource/eb-garamond@5.3.0': {}
+
+  '@fontsource/noto-serif-sc@5.3.0': {}
 
   '@iconify-json/fa6-brands@1.2.6':
     dependencies:
