@@ -4,6 +4,7 @@
 
 <script>
   const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let cursorStyleEl: HTMLStyleElement | null = null;
   const CURSOR_STORAGE_KEY = 'momo-cursor-enabled';
@@ -33,7 +34,14 @@
   }
 
   function isTrailEnabled(): boolean {
+    if (prefersReducedMotion) return false;
     return localStorage.getItem(CURSOR_STORAGE_KEY) !== 'false';
+  }
+
+  function clearCanvas() {
+    const canvas = document.getElementById('cursor-trail') as HTMLCanvasElement | null;
+    const ctx = canvas?.getContext('2d');
+    if (canvas && ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   function applyState() {
@@ -49,10 +57,6 @@
   }
 
   applyState();
-
-  window.addEventListener('momo-cursor-toggle', () => {
-    applyState();
-  });
 
   class Particle {
     x: number;
@@ -428,7 +432,20 @@
     };
   }
 
-  document.addEventListener("astro:page-load", initCursorTrail);
-  document.addEventListener("astro:page-load", applyState);
+  function refreshTrail() {
+    applyState();
+    if (isTrailEnabled()) {
+      initCursorTrail();
+    } else {
+      if (cleanup) {
+        cleanup();
+        cleanup = null;
+      }
+      clearCanvas();
+    }
+  }
+
+  window.addEventListener('momo-cursor-toggle', refreshTrail);
+  document.addEventListener("astro:page-load", refreshTrail);
 </script>
 

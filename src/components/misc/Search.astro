@@ -3,6 +3,7 @@ import type { SearchResult } from "@/global"
 import { baseUrl } from "@utils/url-utils";
 import { i18n } from "astro:config/client";
 import i18nit from "@i18n/translation";
+import fuseUrl from "fuse.js/min?url";
 
 
 
@@ -162,7 +163,7 @@ document.addEventListener('astro:after-swap', initSearchModal);
   }
 </style>
 
-<script define:vars={{ fakeResult, translations }}>
+<script define:vars={{ fakeResult, translations, fuseUrl }}>
 let fuseByLang = {};
 let fuseLoading = false;
 let fuseError = false;
@@ -188,7 +189,7 @@ async function getFuse(lang) {
 
   try {
     const [{ default: Fuse }, resp] = await Promise.all([
-      import('https://cdn.jsdelivr.net/npm/fuse.js@7.3.0/dist/fuse.min.mjs'),
+      import(/* @vite-ignore */ fuseUrl),
       fetch('/search-index.json'),
     ]);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
