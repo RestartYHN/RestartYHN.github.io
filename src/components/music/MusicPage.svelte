@@ -153,7 +153,8 @@
     for (const h of history) {
       try {
         const t = await fetchTrack(String(h.id));
-        if (t) out.push({ ...t, playedAt: h.playedAt });
+        // Cache metadata only; the signed audio URL is resolved fresh at play time.
+        if (t) out.push({ ...t, audio: "", playedAt: h.playedAt });
       } catch {
         /* skip */
       }

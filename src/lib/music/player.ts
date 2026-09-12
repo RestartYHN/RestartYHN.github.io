@@ -30,7 +30,7 @@ const store = writable<PlayerState>({
 // Read-only view for components (`$playerState`).
 export const playerState = { subscribe: store.subscribe };
 
-const SELF_HEAL_MAX = 3;
+const SELF_HEAL_MAX = 5;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let audioEl: HTMLAudioElement | null = null;
@@ -98,8 +98,10 @@ function setAudioSource(track: Track | null) {
 async function hydrateTrack(index: number): Promise<Track | null> {
   const current = get(store).tracks[index];
   if (!current) return null;
-  if (current.audio) return current;
 
+  // Always resolve a fresh playback URL at play time. NetEase playback links are
+  // short-lived, so a cached `audio` (from pageCache or an earlier play this
+  // session) may already be dead and would fail with 403 / ERR_CONNECTION_CLOSED.
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       const fresh = await fetchTrack(current.id);
@@ -137,7 +139,10 @@ function bind() {
       currentTime: audio.currentTime,
       duration: Number.isFinite(audio.duration) ? audio.duration : 0,
     });
-  handlers.onMeta = () => patch({ duration: Number.isFinite(audio.duration) ? audio.duration : 0 });
+  handlers.onMeta = () => {
+    selfHealCount = 0; // successful load resets the self-heal budget
+    patch({ duration: Number.isFinite(audio.duration) ? audio.duration : 0 });
+  };
   handlers.onEnded = () => {
     void advance(false);
   };
@@ -165,6 +170,7 @@ async function selfHeal() {
   }
   if (selfHealCount >= SELF_HEAL_MAX) return;
   selfHealCount += 1;
+  await delay(300 * selfHealCount);
 
   try {
     const fresh = await fetchTrack(cur.id);
