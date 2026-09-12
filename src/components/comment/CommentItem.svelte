@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	import { siteConfig } from '@/config';
 	import CommentItem from './CommentItem.svelte';
 	import i18nit from '../../i18n/translation.ts';
 	import { previewImageStore } from './previewStore';
@@ -22,6 +23,7 @@
 	export let parentCommentId: string | null = null;
 	export let replyingToId: string | null = null;
 	export let maxReplies: number = Infinity;
+	export let onSubmit: ((payload: any) => Promise<boolean>) | undefined = undefined;
 
         function applyMarkdownEnhancements(html: string): string {
                 if (!html) return '';
@@ -190,8 +192,11 @@
     likedByMe = !wasLiked;
     likeCount += likedByMe ? 1 : -1;
     try {
-      const { siteConfig } = await import('@/config');
-      await fetch(`${siteConfig.comments.backendUrl}/api/comments/${c.id}/${wasLiked ? 'unlike' : 'like'}`, { method: 'POST' });
+      const res = await fetch(`${siteConfig.comments.backendUrl}/api/comments/${c.id}/${wasLiked ? 'unlike' : 'like'}`, { method: 'POST' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const d = await res.json().catch(() => null);
+      if (d && typeof d.like_count === 'number') likeCount = d.like_count;
+      if (d && typeof d.liked === 'boolean') likedByMe = d.liked;
     } catch {
       likedByMe = wasLiked;
       likeCount += wasLiked ? 1 : -1;
@@ -199,39 +204,42 @@
       likePending = false;
     }
   }
-
   async function toggleReaction(type: string) {
-		if (reactPending) return;
-		reactPending = true;
-		const had = myReactions.includes(type);
-		if (had) {
-			myReactions = myReactions.filter(r => r !== type);
-			reactions[type] = Math.max(0, (reactions[type] || 1) - 1);
-		} else {
-			myReactions = [...myReactions, type];
-			reactions[type] = (reactions[type] || 0) + 1;
-		}
-		try {
-			const { siteConfig } = await import('@/config');
-			await fetch(`${siteConfig.comments.backendUrl}/api/comments/${c.id}/react`, {
-				method: had ? 'DELETE' : 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ reaction_type: type })
-			});
-		} catch {
-			if (had) {
-				myReactions = [...myReactions, type];
-				reactions[type] = (reactions[type] || 0) + 1;
-			} else {
-				myReactions = myReactions.filter(r => r !== type);
-				reactions[type] = Math.max(0, (reactions[type] || 1) - 1);
-			}
-		} finally {
-			reactPending = false;
-		}
-	}
-
-	function formatFullDate(d: Date, lang: string) {
+    if (reactPending) return;
+    reactPending = true;
+    const had = myReactions.includes(type);
+    if (had) {
+      myReactions = myReactions.filter((r) => r !== type);
+      reactions = { ...reactions, [type]: Math.max(0, (reactions[type] || 1) - 1) };
+    } else {
+      myReactions = [...myReactions, type];
+      reactions = { ...reactions, [type]: (reactions[type] || 0) + 1 };
+    }
+    try {
+      const res = await fetch(`${siteConfig.comments.backendUrl}/api/comments/${c.id}/react`, {
+        method: had ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reaction_type: type }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const d = await res.json().catch(() => null);
+      if (d && d.data) {
+        reactions = d.data.reactions || {};
+        myReactions = d.data.myReactions || [];
+      }
+    } catch {
+      if (had) {
+        myReactions = [...myReactions, type];
+        reactions = { ...reactions, [type]: (reactions[type] || 0) + 1 };
+      } else {
+        myReactions = myReactions.filter((r) => r !== type);
+        reactions = { ...reactions, [type]: Math.max(0, (reactions[type] || 1) - 1) };
+      }
+    } finally {
+      reactPending = false;
+    }
+  }
+  function formatFullDate(d: Date, lang: string) {
 		try {
 			return new Intl.DateTimeFormat(lang?.replace('_', '-') || 'en-US', {
 				year: 'numeric', month: 'short', day: 'numeric',
@@ -390,13 +398,15 @@
 
 		{#if replyingToId === c.id}
 			<div class="mt-4 pl-4 border-l-2 border-gray-200">
-				<form on:submit|preventDefault={() => {
+				<form on:submit|preventDefault={async () => {
 					if (replySubmitting) return;
 					if (!replyAuthor || !replyEmail || !replyContent) { alert(t('comments.fillRequired') || '请填写昵称、邮箱和评论内容'); return; }
 					if (!isContentWithinLimit(replyContent)) { alert(t('comments.contentTooLong') || '评论内容超出限制'); return; }
 					replySubmitting = true;
-					dispatch('submit', { parentId: c.id, author: replyAuthor, email: replyEmail, url: replyUrl, content: replyContent, post_url: window.location.href });
-					replyContent = '';
+					const payload = { parentId: c.id, author: replyAuthor, email: replyEmail, url: replyUrl, content: replyContent, post_url: window.location.href };
+					const ok = onSubmit ? await onSubmit(payload) : true;
+					replySubmitting = false;
+					if (ok) replyContent = '';
 				}} class="space-y-3">
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-2">
 						<div>
@@ -456,7 +466,7 @@
 		<div class="border-l border-[var(--text-color)]/50 space-y-3 w-full pl-2 md:pl-3">
 			{#each limitedReplies as reply, i}
 				<div class="w-full max-w-full overflow-hidden mt-4">
-					<CommentItem c={reply} {postSlug} {author} {email} {url} {language} depth={depth + 1} isFlattened={false} maxReplies={effectiveMax - i - 1} on:reply={(e) => dispatch('reply', e.detail)} on:submit={(e) => dispatch('submit', e.detail)} on:cancel={() => dispatch('cancel')} replyingToId={replyingToId} />
+					<CommentItem c={reply} {postSlug} {author} {email} {url} {language} depth={depth + 1} isFlattened={false} maxReplies={effectiveMax - i - 1} on:reply={(e) => dispatch('reply', e.detail)} onSubmit={onSubmit} on:cancel={() => dispatch('cancel')} replyingToId={replyingToId} />
 				</div>
 			{/each}
 			{#if hasMoreReplies}
@@ -472,7 +482,7 @@
 {#if depth >= 1 && limitedReplies.length > 0}
 <div class="space-y-3 w-full">
 	{#each limitedReplies as reply, i}
-		<CommentItem c={reply} {postSlug} {author} {email} {url} {language} depth={depth + 1} isFlattened={false} maxReplies={effectiveMax - i - 1} on:reply={(e) => dispatch('reply', e.detail)} on:submit={(e) => dispatch('submit', e.detail)} on:cancel={() => dispatch('cancel')} replyingToId={replyingToId} />
+		<CommentItem c={reply} {postSlug} {author} {email} {url} {language} depth={depth + 1} isFlattened={false} maxReplies={effectiveMax - i - 1} on:reply={(e) => dispatch('reply', e.detail)} onSubmit={onSubmit} on:cancel={() => dispatch('cancel')} replyingToId={replyingToId} />
 	{/each}
 </div>
 {/if}

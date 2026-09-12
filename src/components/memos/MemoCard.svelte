@@ -37,6 +37,8 @@
 
   async function toggleReaction(type: string) {
     const had = myReactions.includes(type);
+    const prevR = { ...reactions };
+    const prevMy = [...myReactions];
     if (had) {
       myReactions = myReactions.filter(r => r !== type);
       reactions = { ...reactions, [type]: Math.max(0, (reactions[type] || 1) - 1) };
@@ -45,23 +47,35 @@
       reactions = { ...reactions, [type]: (reactions[type] || 0) + 1 };
     }
     try {
-      await fetch(`${API}/api/memos/${memoId}/react`, {
+      const res = await fetch(`${API}/api/memos/${memoId}/react`, {
         method: had ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reaction_type: type })
       });
-    } catch {}
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const d = await res.json().catch(() => null);
+      if (d && d.reactions) { reactions = d.reactions; myReactions = d.myReactions || []; }
+    } catch {
+      reactions = prevR;
+      myReactions = prevMy;
+    }
   }
 
   async function clearReactions() {
+    const prevR = { ...reactions };
+    const prevMy = [...myReactions];
     reactions = {}; myReactions = [];
     try {
-      await fetch(`${API}/api/memos/${memoId}/react`, {
+      const res = await fetch(`${API}/api/memos/${memoId}/react`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reaction_type: 'all' })
       });
-    } catch {}
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch {
+      reactions = prevR;
+      myReactions = prevMy;
+    }
   }
 
 

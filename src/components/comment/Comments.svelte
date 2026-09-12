@@ -191,20 +191,18 @@
     }
   }
 
-  async function submitComment(parentId: number | null = null, replyData: any = null) {
+    async function submitComment(parentId: number | null = null, replyData: any = null) {
     // 防止重复提交
-    if (submitting) return;
-    
+    if (submitting) return false;
+
     let submitAuthor: string, submitEmail: string, submitUrl: string, submitContent: string;
-    
+
     if (replyData) {
-      // 处理回复评论
       submitAuthor = replyData.author;
       submitEmail = replyData.email;
       submitUrl = replyData.url;
       submitContent = replyData.content;
     } else {
-      // 处理顶层评论
       submitAuthor = author;
       submitEmail = email;
       submitUrl = url;
@@ -213,20 +211,18 @@
 
     if (!submitAuthor || !submitEmail || !submitContent) {
       alert(t('comments.fillRequired') || '请填写昵称、邮箱和评论内容');
-      return;
+      return false;
     }
 
-    // 检查字数限制
     if (!isContentWithinLimit(submitContent)) {
       alert(t('comments.contentTooLong') || '评论内容超出限制：不超过2000汉字或1000单词');
-      return;
+      return false;
     }
 
-    // 只有在提交顶层评论时才设置 submitting 状态
     if (!parentId) {
       submitting = true;
     }
-    
+
     try {
       const res = await fetch(`${apiUrl}/api/comments`, {
         method: 'POST',
@@ -238,27 +234,29 @@
           url: submitUrl || null,
           content: submitContent,
           parent_id: parentId,
-          post_url: window.location.href, // 添加当前页面的URL
+          post_url: window.location.href,
           post_title: postTitle,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.message || t('comments.submitFailed') || '提交失败，请稍后再试');
+        return false;
+      }
       alert(data.message || t('comments.submitSuccess') || '提交成功');
-      
-      // 重置表单
+
+      // 只有成功后才清空表单，失败时保留用户输入
       if (!replyData) {
         content = '';
-        // 保存用户信息到本地存储
         saveUserInfoToStorage();
       }
       replyingToId = null;
-      
-      // 重新加载评论
       await loadComments();
+      return true;
     } catch (err) {
       alert(t('comments.submitFailed') || '提交失败，请稍后再试');
+      return false;
     } finally {
-      // 只有在提交顶层评论时才重置 submitting 状态
       if (!parentId) {
         submitting = false;
       }
@@ -397,7 +395,7 @@
           <CommentItem {c} {postSlug} {author} {email} {url} {language} {qaMode}
             on:reply={(e) => setReplyingTo(e.detail)} 
             on:cancel={() => setReplyingTo(null)}
-            on:submit={async (e) => { await submitComment(e.detail.parentId, e.detail); }}
+            onSubmit={async (p) => submitComment(p.parentId, p)}
             on:delete={handleCommentDelete}
             replyingToId={replyingToId} />
         </div>
@@ -408,9 +406,7 @@
           <CommentItem {c} {postSlug} {author} {email} {url} {language} {qaMode}
             on:reply={(e) => setReplyingTo(e.detail)} 
             on:cancel={() => setReplyingTo(null)}
-            on:submit={async (e) => {
-              await submitComment(e.detail.parentId, e.detail);
-            }}
+            onSubmit={async (p) => submitComment(p.parentId, p)}
             on:delete={handleCommentDelete}
             replyingToId={replyingToId} />
         {/each}

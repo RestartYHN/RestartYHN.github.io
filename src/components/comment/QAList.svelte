@@ -129,7 +129,7 @@
 
   onMount(() => loadItems());
 
-  async function submitQuestion() {
+    async function submitQuestion() {
     if (askSubmitting) return;
     if (!askName || !askEmail || !askContent) {
       alert(t('qa.fillRequired'));
@@ -150,7 +150,11 @@
           post_title: postTitle,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.message || t('qa.submitFailed'));
+        return;
+      }
       alert(data.message || t('qa.submitSuccess'));
       askContent = '';
       askSuccess = true;
