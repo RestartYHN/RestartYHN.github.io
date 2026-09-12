@@ -14,7 +14,14 @@ Based on the [Momo](https://github.com/Motues/Momo) project, this blog has been 
 - **Comment Enhancements**: carousel navigation for images in comments, emoji support, and pagination optimizations.
 - **Music Player**: deployed on a cloud server with Netease Cloud Music API, configured as a global music player, supporting song search, playback mode switching, and more.
 - **Rotating Background**: supports multiple background images in a carousel, adapted to light/dark themes.
-- **Custom Cursor**: adds a Lilith custom cursor, with new click and trailing effects.
+- **Custom Cursor**: a toggleable Lilith custom cursor.
 - **R2 Image Hosting**: gallery and background images migrated to Cloudflare R2 with custom domain CDN, reducing repo size.
 - **Animation Effects**: added customizable splash screen animation and loading animation.
 - **Q&A**: supports Q&A submissions, with backend-managed responses.
+
+## Keyboard Shortcuts
+
+- **Music player**: `Ctrl/⌘ + ←/→` previous / next, `Ctrl + Alt + Space` play / pause
+- **Image preview**: `←/→` switch image, `Esc` close
+- **Search**: `Esc` close the search overlay
+- **Comments / Q&A**: `Enter` submit, `Shift + Enter` newline
