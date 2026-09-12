@@ -288,11 +288,11 @@
     if (!ta) return;
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = '__emoji_inject_btn';
+    btn.className = 'comment-btn comment-btn--tool __emoji_inject_btn';
     btn.textContent = t('comments.emoji') || '表情';
-    btn.style.cssText = 'padding:2px 8px;font-size:12px;border-radius:4px;border:1px solid var(--button-border-color);background:transparent;color:var(--text-color);cursor:pointer;margin-left:8px;transition:all .15s ease';
-    btn.onmouseenter = () => { btn.style.background = 'var(--button-hover-color)'; btn.style.color = 'var(--link-color)'; };
-    btn.onmouseleave = () => { btn.style.background = 'transparent'; btn.style.color = 'var(--text-color)'; };
+    btn.style.marginLeft = '8px';
+    
+    
     btn.addEventListener('click', () => {
       const taEl = ta as HTMLTextAreaElement;
       // 使用统一的全局 picker（openPicker），避免与旧的 fallback portal 冲突
@@ -349,19 +349,19 @@
     <form on:submit|preventDefault={() => submitComment()} class="space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="">
-          <label for="author" class="block text-sm text-[var(--text-color)] mb-1">{t('comments.name')}<span class="text-red-500">*</span></label>
+          <label for="author" class="comment-label">{t('comments.name')}<span class="text-red-500">*</span></label>
           <input id="author" type="text" placeholder={t('comments.required')} bind:value={author}
-            class="rounded w-full text-[var(--text-color)] border border-[var(--button-border-color)]  focus:outline-none focus:border-[var(--link-color)] text-sm p-2" />
+            class="comment-input" />
         </div>
         <div class="">
-          <label for="email" class="block text-sm text-[var(--text-color)] mb-1">{t('comments.email')}<span class="text-red-500">*</span></label>
+          <label for="email" class="comment-label">{t('comments.email')}<span class="text-red-500">*</span></label>
           <input id="email" type="email" placeholder={t('comments.required')} bind:value={email}
-            class="rounded w-full text-[var(--text-color)] border border-[var(--button-border-color)]  focus:outline-none focus:border-[var(--link-color)] text-sm p-2" />
+            class="comment-input" />
         </div>
         <div class="">
-          <label for="url" class="block text-sm text-[var(--text-color)] mb-1">{t('comments.site')}</label>
+          <label for="url" class="comment-label">{t('comments.site')}</label>
           <input id="url" type="url" placeholder={t('comments.optional')} bind:value={url}
-            class="rounded w-full text-[var(--text-color)] border border-[var(--button-border-color)]  focus:outline-none focus:border-[var(--link-color)] text-sm p-2" />
+            class="comment-input" />
         </div>
       </div>
 
@@ -376,7 +376,7 @@
           </div>
         {:else}
         <textarea placeholder={t('comments.welcome')}
-          class="rounded w-full border text-[var(--text-color)] border-[var(--button-border-color)]  focus:outline-none focus:border-[var(--link-color)] text-sm p-3 min-h-[100px]"
+          class="comment-input"
           on:paste={handlePaste}
           on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(); } }}
           bind:value={content} bind:this={contentArea}></textarea>
@@ -386,12 +386,12 @@
           <div class="flex items-center gap-2">
             <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" bind:this={fileInput} on:change={handleFileSelect} />
             <button type="button" on:click={() => fileInput?.click()} disabled={uploadingImage}
-              class="text-xs text-[var(--text-color)] inline-flex items-center gap-1 px-2 py-1 rounded border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors">
+              class="comment-btn comment-btn--tool">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               {uploadingImage ? (t('comments.uploadingImage') || '上传中...') : (t('comments.image') || '图片')}
             </button>
             <button type="button" id="top-emoji-btn"
-              class="__emoji_inject_btn text-xs text-[var(--text-color)] inline-flex items-center gap-1 px-2 py-1 rounded border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors"
+              class="__emoji_inject_btn comment-btn comment-btn--tool"
               on:click={(e) => { e.preventDefault(); openPicker((emoji, target) => insertEmojiToTextarea(contentArea!, emoji), contentArea); }}>
                {t('comments.emoji') || '表情'}
             </button>
@@ -405,11 +405,11 @@
 
       <div class="flex justify-end gap-3">
         <button type="button" on:click={togglePreview}
-          class="rounded px-4 py-2 text-sm font-medium text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">
+          class="comment-btn comment-btn--md">
           {showPreview ? t('comments.write') || '撰写' : t('comments.preview') || '预览'}
         </button>
         <button type="submit" disabled={submitting || !isContentWithinLimit(content)}
-          class="rounded px-4 py-2 text-sm font-medium text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] disabled:opacity-50">
+          class="comment-btn comment-btn--md">
           {submitting ? t('comments.sending') : t('comments.send')}
         </button>
       </div>
@@ -469,13 +469,13 @@
       {#if totalPage > 1}
         <div data-aos="fade-up" class="flex justify-center items-center gap-1 mt-6">
           <button on:click={() => { if (page > 1) { page--; loadComments(); } }} disabled={page <= 1}
-            class="px-2 py-1 text-xs rounded border border-[var(--button-border-color)] disabled:opacity-30 hover:bg-[var(--button-hover-bg-color)]">‹</button>
+            class="comment-page-btn">‹</button>
           {#each Array(totalPage) as _, i}
             <button on:click={() => { page = i + 1; loadComments(); }}
-              class="w-7 h-7 text-xs rounded {page === i + 1 ? 'bg-[var(--link-color)] text-white' : 'border border-[var(--button-border-color)] hover:bg-[var(--button-hover-bg-color)]'}">{i + 1}</button>
+              class="comment-page-btn" class:is-active={page === i + 1}>{i + 1}</button>
           {/each}
           <button on:click={() => { if (page < totalPage) { page++; loadComments(); } }} disabled={page >= totalPage}
-            class="px-2 py-1 text-xs rounded border border-[var(--button-border-color)] disabled:opacity-30 hover:bg-[var(--button-hover-bg-color)]">›</button>
+            class="comment-page-btn">›</button>
         </div>
       {/if}
     {/if}
@@ -483,25 +483,3 @@
   <EmojiPicker {language} />
 </div>
 
-<style>
-  .__emoji_inject_btn {
-    padding: 2px 8px;
-    font-size: 12px;
-    border-radius: 4px;
-    border: 1px solid var(--button-border-color);
-    background: transparent;
-    color: var(--text-color);
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .__emoji_inject_btn:hover {
-    background: var(--button-hover-color);
-    color: var(--link-color);
-  }
-  .comment-preview :global(a) { color: var(--link-color); }
-  .comment-preview :global(p) { margin-bottom: 0.5rem; }
-  .comment-preview :global(code) { background: color-mix(in srgb, var(--text-color) 10%, transparent); padding: 0.15rem 0.3rem; border-radius: 3px; font-size: 0.85rem; }
-  .comment-preview :global(pre) { background: color-mix(in srgb, var(--text-color) 8%, transparent); padding: 0.75rem; border-radius: 4px; overflow-x: auto; }
-  .comment-preview :global(blockquote) { border-left: 3px solid var(--link-color); padding-left: 0.75rem; opacity: 0.85; }
-  .comment-preview :global(img) { max-width: 100%; border-radius: 4px; }
-</style>

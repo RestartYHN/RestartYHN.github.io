@@ -176,26 +176,26 @@
     <form on:submit|preventDefault={submitQuestion} class="space-y-3">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label for="qa-name" class="block text-xs text-[var(--text-color)] mb-1">{t('qa.name')}<span class="text-red-500">*</span></label>
+          <label for="qa-name" class="comment-label">{t('qa.name')}<span class="text-red-500">*</span></label>
           <input id="qa-name" type="text" bind:value={askName}
-            class="rounded w-full text-[var(--text-color)] border border-[var(--button-border-color)] focus:outline-none focus:border-[var(--link-color)] text-sm p-2 bg-transparent" />
+            class="comment-input" />
         </div>
         <div>
-          <label for="qa-email" class="block text-xs text-[var(--text-color)] mb-1">{t('qa.email')}<span class="text-red-500">*</span></label>
+          <label for="qa-email" class="comment-label">{t('qa.email')}<span class="text-red-500">*</span></label>
           <input id="qa-email" type="email" bind:value={askEmail}
-            class="rounded w-full text-[var(--text-color)] border border-[var(--button-border-color)] focus:outline-none focus:border-[var(--link-color)] text-sm p-2 bg-transparent" />
+            class="comment-input" />
         </div>
       </div>
       <div>
         <textarea bind:value={askContent} placeholder={t('qa.questionPlaceholder')} rows="3"
-          class="rounded w-full border text-[var(--text-color)] border-[var(--button-border-color)] focus:outline-none focus:border-[var(--link-color)] text-sm p-3 bg-transparent resize-y"
+          class="comment-input"
           on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitQuestion(); } }}
         ></textarea>
       </div>
       <div class="flex justify-between items-center">
         <span class="text-xs text-[var(--text-color)]/50">{t('qa.pending')}</span>
         <button type="submit" disabled={askSubmitting}
-          class="rounded px-4 py-2 text-sm font-medium text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] disabled:opacity-50 transition-colors">
+          class="comment-btn comment-btn--md">
           {askSubmitting ? t('qa.submitting') : t('qa.submit')}
         </button>
       </div>
@@ -260,13 +260,13 @@
     {#if totalPage > 1}
     <div data-aos="fade-up" class="flex justify-center items-center gap-1 mt-6">
       <button on:click={() => { if (page > 1) { page--; loadItems(); } }} disabled={page <= 1}
-        class="px-2 py-1 text-xs rounded border border-[var(--button-border-color)] disabled:opacity-30 hover:bg-[var(--button-hover-color)] transition-colors">‹</button>
+        class="comment-page-btn">‹</button>
       {#each Array(totalPage) as _, i}
         <button on:click={() => { page = i + 1; loadItems(); }}
-          class="w-7 h-7 text-xs rounded {page === i + 1 ? 'bg-[var(--link-color)] text-white' : 'border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]'}">{i + 1}</button>
+          class="comment-page-btn" class:is-active={page === i + 1}>{i + 1}</button>
       {/each}
       <button on:click={() => { if (page < totalPage) { page++; loadItems(); } }} disabled={page >= totalPage}
-        class="px-2 py-1 text-xs rounded border border-[var(--button-border-color)] disabled:opacity-30 hover:bg-[var(--button-hover-color)] transition-colors">›</button>
+        class="comment-page-btn">›</button>
     </div>
     {/if}
   {/if}

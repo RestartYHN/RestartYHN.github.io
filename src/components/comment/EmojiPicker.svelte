@@ -205,12 +205,12 @@
     <div class="w-[640px] max-w-[95vw] bg-[var(--bg-color)]/60 backdrop-blur-sm border border-[var(--button-border-color)]/40 rounded-lg shadow-lg overflow-hidden">
       <div class="p-3">
         <div class="flex gap-3 items-center">
-          <button on:click={() => activeTab = 'huanglian'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'huanglian'}>{t('emoji.default')}</button>
-          <button on:click={() => activeTab = 'tv'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'tv'}>{t('emoji.bilibili')}</button>
-          <button on:click={() => activeTab = 'kaomoji'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'kaomoji'}>{t('emoji.kaomoji')}</button>
-          <button on:click={() => activeTab = 'emoji'} class="px-3 py-1 rounded-md" class:font-semibold={activeTab === 'emoji'}>{t('emoji.emoji')}</button>
+          <button on:click={() => activeTab = 'huanglian'} class="comment-btn comment-btn--sm" class:font-semibold={activeTab === 'huanglian'}>{t('emoji.default')}</button>
+          <button on:click={() => activeTab = 'tv'} class="comment-btn comment-btn--sm" class:font-semibold={activeTab === 'tv'}>{t('emoji.bilibili')}</button>
+          <button on:click={() => activeTab = 'kaomoji'} class="comment-btn comment-btn--sm" class:font-semibold={activeTab === 'kaomoji'}>{t('emoji.kaomoji')}</button>
+          <button on:click={() => activeTab = 'emoji'} class="comment-btn comment-btn--sm" class:font-semibold={activeTab === 'emoji'}>{t('emoji.emoji')}</button>
           <div class="flex-1"></div>
-          <button on:click={close} class="px-2 py-1 rounded-md">{t('emoji.close') || '关闭'}</button>
+          <button on:click={close} class="comment-btn comment-btn--tool">{t('emoji.close') || '关闭'}</button>
         </div>
 
         <div class="mt-3">

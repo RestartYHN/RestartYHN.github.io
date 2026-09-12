@@ -1,0 +1,163 @@
+/* Shared comment UI primitives (form fields, buttons, chips, preview).
+   Imported globally from Layout.astro so the same classes are used by
+   Comments.svelte / CommentItem.svelte / QAList.svelte / EmojiPicker.svelte. */
+
+/* ---- form fields ---- */
+.comment-input {
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid var(--button-border-color);
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  padding: 0.5rem;
+}
+.comment-input:focus {
+  outline: none;
+  border-color: var(--link-color);
+}
+textarea.comment-input {
+  min-height: 100px;
+  padding: 0.75rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.comment-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+}
+
+/* ---- buttons ---- */
+.comment-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--button-border-color);
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  line-height: 1.25;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+}
+.comment-btn:hover {
+  background: var(--button-hover-color);
+}
+.comment-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.comment-btn--md {
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  font-weight: 500;
+}
+.comment-btn--sm {
+  padding: 0.25rem 0.75rem; /* px-3 py-1 */
+}
+.comment-btn--tool {
+  padding: 0.25rem 0.5rem; /* px-2 py-1 */
+  font-size: 0.75rem;
+}
+
+/* ---- reaction chips ---- */
+.reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+.reaction-chip:hover {
+  background: var(--button-hover-color);
+}
+.reaction-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.reaction-chip.is-active {
+  font-weight: 700;
+  color: var(--link-color);
+}
+
+/* ---- pagination ---- */
+.comment-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--button-border-color);
+  font-size: 0.75rem;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+.comment-page-btn:hover {
+  background: var(--button-hover-color);
+}
+.comment-page-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.comment-page-btn.is-active {
+  background: var(--link-color);
+  border-color: var(--link-color);
+  color: #fff;
+}
+
+/* ---- rendered markdown in comments (was duplicated in two components) ---- */
+.comment-preview a {
+  color: var(--link-color);
+}
+.comment-preview p {
+  margin-bottom: 0.5rem;
+}
+.comment-preview code {
+  background: color-mix(in srgb, var(--text-color) 10%, transparent);
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+.comment-preview pre {
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  padding: 0.75rem;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+.comment-preview blockquote {
+  border-left: 3px solid var(--link-color);
+  padding-left: 0.75rem;
+  opacity: 0.85;
+}
+.comment-preview img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.comment-content img {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 4px;
+  cursor: zoom-in;
+  margin: 4px 0;
+}
+.comment-content img[src*="/emoji"] {
+  height: 24px;
+  width: auto;
+  display: inline;
+  vertical-align: middle;
+  margin: 0 1px;
+  border-radius: 0;
+  cursor: default;
+  max-height: 24px;
+  object-fit: contain;
+}

@@ -375,9 +375,9 @@
 				{@const cnt = reactions[rt.key] || 0}
 				{#if cnt > 0}
 					<button on:click={() => toggleReaction(rt.key)} disabled={reactPending}
-						class="text-xs hover:bg-[var(--button-hover-color)] rounded px-1 py-0.5 disabled:opacity-50 transition-colors flex-shrink-0"
-						class:font-bold={myReactions.includes(rt.key)}
-						class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
+						class="reaction-chip flex-shrink-0"
+						class:is-active={myReactions.includes(rt.key)}
+						>
 						{rt.key} {cnt}
 					</button>
 				{/if}
@@ -389,9 +389,9 @@
 			{#each REACT_TYPES as rt}
 				{@const cnt = reactions[rt.key] || 0}
 				<button on:click={() => toggleReaction(rt.key)} disabled={reactPending}
-					class="px-1.5 py-0.5 rounded hover:bg-[var(--button-hover-color)] disabled:opacity-50 transition-colors text-center"
-					class:font-bold={myReactions.includes(rt.key)}
-					class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
+					class="reaction-chip justify-center"
+					class:is-active={myReactions.includes(rt.key)}
+					>
 					{rt.key} {cnt > 0 ? cnt : ''}
 				</button>
 			{/each}
@@ -410,16 +410,16 @@
 				}} class="space-y-3">
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-2">
 						<div>
-							<label for="reply-author-{c.id}" class="block text-xs text-[var(--text-color)] mb-1">{t('comments.name')}<span class="text-red-500">*</span></label>
-							<input id="reply-author-{c.id}" type="text" placeholder={t('comments.required')} bind:value={replyAuthor} class="rounded w-full text-[var(--text-color)] border border-[var(--button-border-color)] focus:outline-none focus:border-[var(--link-color)] text-sm py-1 px-2" />
+							<label for="reply-author-{c.id}" class="comment-label">{t('comments.name')}<span class="text-red-500">*</span></label>
+							<input id="reply-author-{c.id}" type="text" placeholder={t('comments.required')} bind:value={replyAuthor} class="comment-input" />
 						</div>
 						<div>
-							<label for="reply-email-{c.id}" class="block text-xs text-[var(--text-color)] mb-1">{t('comments.email')}<span class="text-red-500">*</span></label>
-							<input id="reply-email-{c.id}" type="email" placeholder={t('comments.required')} bind:value={replyEmail} class="rounded w-full text-[var(--text-color)] border border-[var(--button-border-color)] focus:outline-none focus:border-[var(--link-color)] text-sm py-1 px-2" />
+							<label for="reply-email-{c.id}" class="comment-label">{t('comments.email')}<span class="text-red-500">*</span></label>
+							<input id="reply-email-{c.id}" type="email" placeholder={t('comments.required')} bind:value={replyEmail} class="comment-input" />
 						</div>
 						<div>
-							<label for="reply-url-{c.id}" class="block text-xs text-[var(--text-color)] mb-1">{t('comments.site')}</label>
-							<input id="reply-url-{c.id}" type="url" placeholder={t('comments.optional')} bind:value={replyUrl} class="rounded w-full text-[var(--text-color)] border border-[var(--button-border-color)] focus:outline-none focus:border-[var(--link-color)] text-sm py-1 px-2" />
+							<label for="reply-url-{c.id}" class="comment-label">{t('comments.site')}</label>
+							<input id="reply-url-{c.id}" type="url" placeholder={t('comments.optional')} bind:value={replyUrl} class="comment-input" />
 						</div>
 					</div>
 
@@ -433,13 +433,13 @@
 							{/if}
 						</div>
 					{:else}
-						<textarea placeholder={t('comments.replyPlaceholder') || "写下你的回复..."} class="rounded w-full border text-[var(--text-color)] border-[var(--button-border-color)] focus:outline-none focus:border-[var(--link-color)] text-sm p-2 min-h-[80px]" on:paste={replyHandlePaste} bind:value={replyContent} bind:this={replyArea}></textarea>
+						<textarea placeholder={t('comments.replyPlaceholder') || "写下你的回复..."} class="comment-input" on:paste={replyHandlePaste} bind:value={replyContent} bind:this={replyArea}></textarea>
 					{/if}
 						<div class="flex justify-between items-center mt-1">
 							<div>
 								<input type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" bind:this={replyFileInput} on:change={replyHandleFileSelect} />
 								<button type="button" on:click={() => replyFileInput?.click()} disabled={replyUploadingImage}
-									class="text-xs text-[var(--text-color)] inline-flex items-center gap-1 px-2 py-1 rounded border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] hover:text-[var(--link-color)] transition-colors">
+									class="comment-btn comment-btn--tool">
 									<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
 									{replyUploadingImage ? (t('comments.uploadingImage') || '上传中...') : (t('comments.image') || '图片')}
 								</button>
@@ -448,11 +448,11 @@
 
 					<div class="flex justify-end gap-2 items-center">
 						<button type="button" on:click={toggleReplyPreview}
-							class="rounded px-3 py-1 text-sm text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">
+							class="comment-btn comment-btn--sm">
 							{replyShowPreview ? (t('comments.write') || '撰写') : (t('comments.preview') || '预览')}
 						</button>
-						<button type="button" on:click={() => { dispatch('cancel'); replySubmitting = false; }} class="rounded px-3 py-1 text-sm text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)]">{t('comments.cancel')}</button>
-						<button type="submit" disabled={replySubmitting || !isContentWithinLimit(replyContent)} class="rounded px-3 py-1 text-sm font-medium text-[var(--text-color)] border border-[var(--button-border-color)] hover:bg-[var(--button-hover-color)] disabled:opacity-50">{replySubmitting ? t('comments.sending') : t('comments.reply')}</button>
+						<button type="button" on:click={() => { dispatch('cancel'); replySubmitting = false; }} class="comment-btn comment-btn--sm">{t('comments.cancel')}</button>
+						<button type="submit" disabled={replySubmitting || !isContentWithinLimit(replyContent)} class="comment-btn comment-btn--sm">{replySubmitting ? t('comments.sending') : t('comments.reply')}</button>
 					</div>
 				</form>
 			</div>
@@ -483,31 +483,3 @@
 </div>
 {/if}
 
-<style>
-	.comment-content :global(img) {
-		max-width: 100%;
-		max-height: 200px;
-		object-fit: contain;
-		border-radius: 4px;
-		cursor: zoom-in;
-		margin: 4px 0;
-	}
-
-	.comment-content :global(img[src*="/emoji"]) {
-		height: 24px;
-		width: auto;
-		display: inline;
-		vertical-align: middle;
-		margin: 0 1px;
-		border-radius: 0;
-		cursor: default;
-		max-height: 24px;
-		object-fit: contain;
-	}
-	.comment-preview :global(a) { color: var(--link-color); }
-	.comment-preview :global(p) { margin-bottom: 0.5rem; }
-	.comment-preview :global(code) { background: color-mix(in srgb, var(--text-color) 10%, transparent); padding: 0.15rem 0.3rem; border-radius: 3px; font-size: 0.85rem; }
-	.comment-preview :global(pre) { background: color-mix(in srgb, var(--text-color) 8%, transparent); padding: 0.75rem; border-radius: 4px; overflow-x: auto; }
-	.comment-preview :global(blockquote) { border-left: 3px solid var(--link-color); padding-left: 0.75rem; opacity: 0.85; }
-	.comment-preview :global(img) { max-width: 100%; border-radius: 4px; }
-</style>
