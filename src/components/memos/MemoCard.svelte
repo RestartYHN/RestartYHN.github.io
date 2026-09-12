@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import i18nit from '../../i18n/translation.ts';
   import { siteConfig } from '@/config';
+  import { REACTION_TYPES as REACT_TYPES } from '@/lib/reactions';
 
   let { dateFormatted = "", words = 0, minutes = 0, language = 'zh-cn', memoId = '' } = $props();
 
@@ -63,18 +64,6 @@
     } catch {}
   }
 
-  const REACT_TYPES = [
-    { key: '❤️', label: '爱' },
-    { key: '😂', label: '笑' },
-    { key: '😅', label: '汗' },
-    { key: '👀', label: '盯' },
-    { key: '🎉', label: '贺' },
-    { key: '😮', label: '哇' },
-    { key: '😆', label: '乐' },
-    { key: '😉', label: '眨' },
-    { key: '😭', label: '哭' },
-    { key: '🍀', label: '运' },
-  ];
 
   let hasAnyReaction = $derived(REACT_TYPES.some(rt => (reactions[rt.key] || 0) > 0));
 </script>

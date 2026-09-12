@@ -280,55 +280,6 @@
     loadComments();
   });
 
-  // --- Fallback DOM injector: ensure reply forms get an emoji button even if other components fail to render ---
-  function addEmojiButtonToForm(form: HTMLFormElement) {
-    if (!form) return;
-    if (form.querySelector('.__emoji_inject_btn')) return;
-    const ta = form.querySelector('textarea');
-    if (!ta) return;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'comment-btn comment-btn--tool __emoji_inject_btn';
-    btn.textContent = t('comments.emoji') || '表情';
-    btn.style.marginLeft = '8px';
-    
-    
-    btn.addEventListener('click', () => {
-      const taEl = ta as HTMLTextAreaElement;
-      // 使用统一的全局 picker（openPicker），避免与旧的 fallback portal 冲突
-      openPicker((emoji: string, _target?: HTMLElement | null) => {
-        insertEmojiToTextarea(taEl, emoji);
-      }, taEl);
-    });
-    // insert after the textarea
-    ta.parentNode?.insertBefore(btn, ta.nextSibling);
-  }
-
-  function setupFallbackInjector() {
-    // inject into existing forms
-    document.querySelectorAll('#comments form').forEach((f) => { addEmojiButtonToForm(f as HTMLFormElement); });
-
-    // watch for new forms (reply forms appear dynamically)
-    const obs = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        for (const n of Array.from(m.addedNodes)) {
-          if (!(n as Element).querySelector) continue;
-          if ((n as Element).matches && (n as Element).matches('#comments form')) addEmojiButtonToForm(n as HTMLFormElement);
-          (n as Element).querySelectorAll && (n as Element).querySelectorAll('#comments form').forEach((f) => { addEmojiButtonToForm(f as HTMLFormElement); });
-        }
-      }
-    });
-    const container = document.getElementById('comments');
-    if (container) obs.observe(container, { childList: true, subtree: true });
-  }
-
-  // start injector after mount
-  onMount(() => {
-    // slight delay so initial comments/rendering can run
-    setTimeout(() => setupFallbackInjector(), 200);
-  });
-
-  // 使用统一的全局 picker（EmojiPicker + emojiPickerStore），避免使用旧的 fallback portal 实现。
 
   function insertEmojiToTextarea(ta: HTMLTextAreaElement, emoji: string) {
     const start = ta.selectionStart ?? ta.value.length;
@@ -381,7 +332,6 @@
           on:keydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(); } }}
           bind:value={content} bind:this={contentArea}></textarea>
         {/if}
-        <!-- 顶层表单使用 fallback 注入器，不再保留原始 openPicker 按钮 -->
         <div class="flex justify-between items-center mt-1">
           <div class="flex items-center gap-2">
             <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="hidden" bind:this={fileInput} on:change={handleFileSelect} />
@@ -391,7 +341,7 @@
               {uploadingImage ? (t('comments.uploadingImage') || '上传中...') : (t('comments.image') || '图片')}
             </button>
             <button type="button" id="top-emoji-btn"
-              class="__emoji_inject_btn comment-btn comment-btn--tool"
+              class="comment-btn comment-btn--tool"
               on:click={(e) => { e.preventDefault(); openPicker((emoji, target) => insertEmojiToTextarea(contentArea!, emoji), contentArea); }}>
                {t('comments.emoji') || '表情'}
             </button>
