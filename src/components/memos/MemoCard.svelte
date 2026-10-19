@@ -130,14 +130,13 @@
       aria-expanded={showReactions}>
       <SmileIcon size={18} />
     </button>
-    <div class="flex items-center gap-0.5 flex-wrap">
+    <div class="flex items-center gap-1 flex-wrap">
       {#each REACT_TYPES as rt}
         {@const cnt = reactions[rt.key] || 0}
         {#if cnt > 0}
           <button on:click={() => toggleReaction(rt.key)}
-            class="text-xs hover:bg-[var(--button-hover-color)] rounded px-1 py-0.5 transition-colors flex-shrink-0"
-            class:font-bold={myReactions.includes(rt.key)}
-            class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
+            class="reaction-chip flex-shrink-0"
+            class:is-active={myReactions.includes(rt.key)}>
             {rt.key} {cnt}
           </button>
         {/if}
@@ -146,14 +145,12 @@
   </div>
 
   {#if showReactions}
-    <div class="mt-1 grid grid-cols-5 gap-1 text-xs w-fit">
+    <div class="reaction-panel">
       {#each REACT_TYPES as rt}
         {@const cnt = reactions[rt.key] || 0}
         <button on:click={() => toggleReaction(rt.key)}
-          class="px-1.5 py-0.5 rounded hover:bg-[var(--button-hover-color)] transition-colors text-center"
-          class:font-bold={myReactions.includes(rt.key)}
-          class:text-[var(--link-color)]={myReactions.includes(rt.key)}>
-          {rt.key} {cnt > 0 ? cnt : ''}
+          class:is-active={myReactions.includes(rt.key)}>
+          {rt.key}{#if cnt > 0}<span>{cnt}</span>{/if}
         </button>
       {/each}
     </div>

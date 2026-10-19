@@ -393,14 +393,13 @@
 		</div>
 		{/if}
 		{#if showReactions}
-		<div class="mt-1 grid grid-cols-5 gap-1 text-xs">
+		<div class="reaction-panel">
 			{#each REACT_TYPES as rt}
 				{@const cnt = reactions[rt.key] || 0}
 				<button on:click={() => toggleReaction(rt.key)} disabled={reactPending}
-					class="reaction-chip justify-center"
 					class:is-active={myReactions.includes(rt.key)}
 					>
-					{rt.key} {cnt > 0 ? cnt : ''}
+					{rt.key}{#if cnt > 0}<span>{cnt}</span>{/if}
 				</button>
 			{/each}
 		</div>
