@@ -3,6 +3,7 @@ import MainPageLayout from '@layouts/MainPageLayout.astro'
 import { siteConfig, friendLinkConfig, externalLinkConfig } from '@/config'
 import Cover from '@components/Cover.astro';
 import Markdown from '@components/misc/Markdown.astro';
+import FabMenu from '@components/control/FabMenu.astro';
 
 import { getSpec } from '@utils/content-utils'
 
@@ -114,6 +115,8 @@ const totalPages = Math.ceil(links.length / perPage) || 1
           </div>
         )}
     </div>
+    {/* 与其它列表页保持一致，同时让播放条仍可从这里收起 */}
+    <FabMenu showBackBottom={true} />
 </MainPageLayout>
 
 <script define:vars={{ perPage }}>
