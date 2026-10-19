@@ -54,6 +54,7 @@ export interface Translation {
         meun: string;
         toc: string;
         backToComments: string;
+        music: string;
         cursorToggle: string;
     }
     search: {
