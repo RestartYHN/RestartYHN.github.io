@@ -7,6 +7,8 @@
 	import { parseMarkdown } from '@utils/markdown';
 	import { openPicker } from './emojiPickerStore';
 	import { REACTION_TYPES as REACT_TYPES } from '@/lib/reactions';
+	import SmileIcon from '../misc/SmileIcon.svelte';
+	import ThumbsUpIcon from '../misc/ThumbsUpIcon.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -357,14 +359,22 @@
 
 		<div class="mt-1 flex items-center gap-2 text-sm text-[var(--text-color-70)]">
 			<button on:click={() => dispatch('reply', c.id)} class="hover:text-[var(--link-color)]">{t('comments.reply') || '回复'}</button>
-			<button on:click={toggleLike} disabled={likePending} class="hover:text-[var(--link-color)] disabled:opacity-50" title={likedByMe ? (t('comments.unlike') || '取消赞') : (t('comments.like') || '点赞')}>
-				<span class={likedByMe ? 'text-[var(--link-color)]' : ''}>{likedByMe ? '♥' : '♡'}</span>
+			<button on:click={toggleLike} disabled={likePending}
+				class="hover:text-[var(--link-color)] disabled:opacity-50 inline-flex items-center"
+				class:text-[var(--link-color)]={likedByMe}
+				title={likedByMe ? (t('comments.unlike') || '取消赞') : (t('comments.like') || '点赞')}
+				aria-label={likedByMe ? (t('comments.unlike') || '取消赞') : (t('comments.like') || '点赞')}
+				aria-pressed={likedByMe}>
+				<ThumbsUpIcon size={16} filled={likedByMe} />
 				<span class="ml-0.5 text-xs">{likeCount || ''}</span>
 			</button>
 			<button on:click={() => showReactions = !showReactions}
-				class="hover:text-[var(--link-color)] transition-colors flex-shrink-0"
-				title={t('comments.emoji') || '表情'}>
-				😊
+				class="hover:text-[var(--link-color)] transition-colors flex-shrink-0 inline-flex items-center"
+				class:text-[var(--link-color)]={showReactions}
+				title={t('comments.emoji') || '表情'}
+				aria-label={t('comments.emoji') || '表情'}
+				aria-expanded={showReactions}>
+				<SmileIcon size={16} />
 			</button>
 		</div>
 		{#if hasAnyReaction}

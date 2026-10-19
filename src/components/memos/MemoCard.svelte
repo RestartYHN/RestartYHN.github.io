@@ -3,6 +3,7 @@
   import i18nit from '../../i18n/translation.ts';
   import { siteConfig } from '@/config';
   import { REACTION_TYPES as REACT_TYPES } from '@/lib/reactions';
+  import SmileIcon from '../misc/SmileIcon.svelte';
 
   let { dateFormatted = "", words = 0, minutes = 0, language = 'zh-cn', memoId = '' } = $props();
 
@@ -21,21 +22,29 @@
   let showReactions = $state(false);
   let reactions = $state<Record<string, number>>({});
   let myReactions = $state<string[]>([]);
+  let reactPending = $state(false);
+  // Bumped on every user action. The initial GET may write state only while this
+  // is unchanged — otherwise a slow first load lands after the optimistic update
+  // and silently reverts it (reaction shows up, then disappears).
+  let stateSeq = 0;
   const API = siteConfig.comments.backendUrl;
   onMount(async () => {
-    if (memoId) {
-      try {
-        const res = await fetch(`${API}/api/memos/${memoId}/reactions`);
-        if (res.ok) {
-          const d = await res.json();
-          reactions = d.reactions || {};
-          myReactions = d.myReactions || [];
-        }
-      } catch {}
-    }
+    if (!memoId) return;
+    const startedAt = stateSeq;
+    try {
+      const res = await fetch(`${API}/api/memos/${memoId}/reactions`);
+      if (!res.ok) return;
+      const d = await res.json();
+      if (startedAt !== stateSeq) return;
+      reactions = d.reactions || {};
+      myReactions = d.myReactions || [];
+    } catch {}
   });
 
   async function toggleReaction(type: string) {
+    if (reactPending) return;
+    reactPending = true;
+    stateSeq++;
     const had = myReactions.includes(type);
     const prevR = { ...reactions };
     const prevMy = [...myReactions];
@@ -58,6 +67,8 @@
     } catch {
       reactions = prevR;
       myReactions = prevMy;
+    } finally {
+      reactPending = false;
     }
   }
 
@@ -111,9 +122,13 @@
 
   <div class="mt-2 flex items-center gap-2 text-sm text-[var(--text-color-70)]">
     <button on:click={() => showReactions = !showReactions}
-      class="w-6 h-6 rounded-full border border-[var(--button-border-color)] flex items-center justify-center text-xs hover:bg-[var(--button-hover-color)] transition-colors flex-shrink-0"
-      title="表情">
-      😊
+      class="w-6 h-6 rounded-full border flex items-center justify-center hover:bg-[var(--button-hover-color)] transition-colors flex-shrink-0 {showReactions
+        ? 'border-[var(--link-color)] text-[var(--link-color)]'
+        : 'border-[var(--button-border-color)]'}"
+      title="表情"
+      aria-label="表情"
+      aria-expanded={showReactions}>
+      <SmileIcon size={18} />
     </button>
     <div class="flex items-center gap-0.5 flex-wrap">
       {#each REACT_TYPES as rt}
