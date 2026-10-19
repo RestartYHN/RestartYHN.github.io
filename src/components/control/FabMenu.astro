@@ -68,6 +68,11 @@ const tocHeadings = headings.filter(h => h.depth > 1 && h.depth < 5);
         <Icon name="material-symbols:comment-outline-rounded" class="text-lg text-[var(--text-color)]" />
       </button>
     )}
+
+    {/* 音乐播放器收进 Fab，避免独立悬浮按钮在手机上压住菜单 */}
+    <button id="musicToggle" title={t("button.music") || "音乐播放器"} aria-pressed="true" class="music-fab-item w-10 h-10 rounded-full border border-[var(--text-color)]/20 cursor-pointer flex items-center justify-center transition-transform duration-200 active:scale-90 shadow-none backdrop-blur bg-[var(--bg-color)]/20 hover:bg-[var(--button-hover-color)]">
+      <Icon name="fa6-solid:music" class="text-lg text-[var(--text-color)]" />
+    </button>
   </div>
 
   <button id="menuTrigger" title={t("button.meun")} class="w-full h-full rounded-full border border-[var(--text-color)]/20 cursor-pointer flex items-center justify-center transition-all duration-300 shadow-none backdrop-blur bg-[var(--bg-color)]/20 active:scale-95 hover:bg-[var(--button-hover-color)]">
@@ -115,6 +120,7 @@ function initFabMenu() {
   const progressCircle = document.getElementById('progress-circle');
   const tocTrigger = document.getElementById('tocTrigger');
   const closeToc = document.getElementById('closeToc');
+  const musicToggle = document.getElementById('musicToggle');
   const tocLinks = document.querySelectorAll('.toc-link');
   
   if (!container || !trigger) return;
@@ -277,6 +283,20 @@ tocLinks.forEach(link => {
     };
   }
 
+  // 音乐播放条开关（MiniPlayer 通过 window 事件接收，避免两个 island 共享状态）
+  if (musicToggle) {
+    musicToggle.onclick = (e) => {
+      e.stopPropagation();
+      window.dispatchEvent(new CustomEvent('momo:music-bar-toggle'));
+      container.classList.remove('is-active');
+    };
+    window.addEventListener('momo:music-bar-state', (e) => {
+      const visible = e.detail?.visible !== false;
+      musicToggle.setAttribute('aria-pressed', String(visible));
+      musicToggle.classList.toggle('is-muted', !visible);
+    });
+  }
+
   // 点击外部关闭所有展开项
   document.addEventListener('click', (e) => {
     if (!container.contains(e.target)) {
@@ -312,5 +332,10 @@ document.addEventListener('astro:page-load', initFabMenu);
     background-color: var(--button-hover-color) !important;
     color: var(--link-color) !important;
     font-weight: 600;
+  }
+
+  /* 播放条被收起时，音乐按钮降饱和度提示当前状态 */
+  .music-fab-item.is-muted {
+    opacity: 0.55;
   }
 </style>

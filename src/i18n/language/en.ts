@@ -215,6 +215,7 @@ const translation: Translation = {
         meun: "Menu",
         toc: "Contents",
         backToComments: "Back to Comments",
+        music: "Music Player",
         cursorToggle: "Toggle Custom Cursor",
     },
     search: {

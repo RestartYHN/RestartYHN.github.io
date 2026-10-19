@@ -37,6 +37,16 @@
 
   onMount(() => {
     attachAudio(audioEl);
+
+    // The standalone music FAB was merged into the page FAB menu; it toggles the
+    // bar through a window event so the two islands don't need to share state.
+    const onToggle = () => {
+      barVisible = !barVisible;
+      window.dispatchEvent(new CustomEvent("momo:music-bar-state", { detail: { visible: barVisible } }));
+    };
+    window.addEventListener("momo:music-bar-toggle", onToggle);
+    window.dispatchEvent(new CustomEvent("momo:music-bar-state", { detail: { visible: barVisible } }));
+    return () => window.removeEventListener("momo:music-bar-toggle", onToggle);
   });
 
   function onSeek(e: Event) {
@@ -52,14 +62,6 @@
 
 <div class="music-player-root">
 <audio id="music-audio" preload="metadata" class="hidden" bind:this={audioEl}></audio>
-
-<button
-  id="music-fab-toggle"
-  title="Toggle player"
-  aria-label="Toggle music player"
-  class="music-fab"
-  on:click={() => (barVisible = !barVisible)}>🎵</button
->
 
 <div class="music-bottom-player" id="music-bottom-player" class:player-hidden={!barVisible}>
   <div class="mp-row">

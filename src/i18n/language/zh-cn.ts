@@ -215,6 +215,7 @@ const translation: Translation = {
         meun: "菜单",
         toc: "目录",
         backToComments: "前往评论区",
+        music: "音乐播放器",
         cursorToggle: "切换自定义光标",
     },
     search: {
